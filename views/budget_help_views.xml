@@ -2,12 +2,7 @@
 <odoo>
     <!-- views/budget_help_views.xml -->
 
-    <!-- Меню довідки -->
-    <menuitem id="menu_budget_help"
-              name="Довідка"
-              parent="menu_budget_root"
-              sequence="99"/>
-
+    <!-- Действие для справки -->
     <record id="action_budget_help" model="ir.actions.act_url">
         <field name="name">Документація по бюджетуванню</field>
         <field name="url">https://docs.example.com/budget</field>
