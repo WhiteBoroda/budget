@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_help_views.xml -->
+
+    <!-- Меню довідки -->
+    <menuitem id="menu_budget_help"
+              name="Довідка"
+              parent="menu_budget_root"
+              sequence="99"/>
+
+    <record id="action_budget_help" model="ir.actions.act_url">
+        <field name="name">Документація по бюджетуванню</field>
+        <field name="url">https://docs.example.com/budget</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_budget_documentation"
+              name="Документація"
+              parent="menu_budget_help"
+              action="action_budget_help"
+              sequence="10"/>
+
+</odoo>

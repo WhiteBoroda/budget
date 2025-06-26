@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- wizards/budget_approval_wizard.xml -->
+
+    <!-- Майстер затвердження бюджету -->
+    <record id="view_budget_approval_wizard" model="ir.ui.view">
+        <field name="name">budget.approval.wizard.form</field>
+        <field name="model">budget.approval.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Затвердження бюджету">
+                <group>
+                    <field name="budget_ids" widget="many2many_tags" readonly="1"/>
+                    <field name="approval_type"/>
+                    <field name="comments"/>
+                </group>
+                <footer>
+                    <button name="action_approve" string="Затвердити" type="object" class="btn-primary"/>
+                    <button name="action_reject" string="Відхилити" type="object" class="btn-secondary"/>
+                    <button string="Скасувати" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_approval_wizard" model="ir.actions.act_window">
+        <field name="name">Затвердження бюджету</field>
+        <field name="res_model">budget.approval.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+
+</odoo>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- views/budget_notification_views.xml -->
+
+    <!-- Сповіщення -->
+    <record id="view_budget_notification_tree" model="ir.ui.view">
+        <field name="name">budget.notification.tree</field>
+        <field name="model">budget.notification</field>
+        <field name="arch" type="xml">
+            <tree decoration-bold="not is_read"
+                  decoration-danger="priority=='urgent'"
+                  decoration-warning="priority=='high'">
+                <field name="name"/>
+                <field name="notification_type"/>
+                <field name="budget_plan_id"/>
+                <field name="priority"/>
+                <field name="is_read"/>
+                <field name="create_date"/>
+                <button name="action_mark_read"
+                        type="object"
+                        icon="fa-check"
+                        string="Позначити прочитаним"
+                        attrs="{'invisible': [('is_read', '=', True)]}"/>
+                <button name="action_open_budget"
+                        type="object"
+                        icon="fa-external-link"
+                        string="Відкрити бюджет"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_notification_form" model="ir.ui.view">
+        <field name="name">budget.notification.form</field>
+        <field name="model">budget.notification</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_mark_read"
+                            string="Позначити прочитаним"
+                            type="object"
+                            class="btn-primary"
+                            attrs="{'invisible': [('is_read', '=', True)]}"/>
+                    <button name="action_open_budget"
+                            string="Відкрити бюджет"
+                            type="object"
+                            class="btn-secondary"
+                            attrs="{'invisible': [('budget_plan_id', '=', False)]}"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="notification_type"/>
+                            <field name="priority"/>
+                        </group>
+                        <group>
+                            <field name="budget_plan_id"/>
+                            <field name="user_id"/>
+                            <field name="is_read"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_notification" model="ir.actions.act_window">
+        <field name="name">Сповіщення</field>
+        <field name="res_model">budget.notification</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('user_id', '=', uid)]</field>
+        <field name="context">{'default_user_id': uid}</field>
+    </record>
+
+    <menuitem id="menu_budget_notification"
+              name="Сповіщення"
+              parent="menu_budget_root"
+              action="action_budget_notification"
+              sequence="95"/>
+</odoo>

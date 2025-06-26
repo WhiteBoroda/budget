@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- data/ir_sequence_data.xml -->
+
+    <data noupdate="1">
+        <!-- Послідовності -->
+        <record id="seq_budget_plan" model="ir.sequence">
+            <field name="name">Послідовність бюджетних планів</field>
+            <field name="code">budget.plan</field>
+            <field name="prefix">БП/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <record id="seq_sales_plan" model="ir.sequence">
+            <field name="name">Послідовність планів продажів</field>
+            <field name="code">budget.sales.plan</field>
+            <field name="prefix">ПП/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+    </data>
+</odoo>

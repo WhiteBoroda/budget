@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <!-- views/budget_reports_views.xml -->
+
+    <!-- Звіти -->
+    <record id="view_budget_summary_report" model="ir.ui.view">
+        <field name="name">budget.summary.report</field>
+        <field name="model">budget.plan</field>
+        <field name="arch" type="xml">
+            <graph string="Зведення по бюджетах" type="bar" stacked="True">
+                <field name="budget_type_id"/>
+                <field name="planned_amount" type="measure"/>
+                <field name="actual_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_budget_summary_report" model="ir.actions.act_window">
+        <field name="name">Зведений звіт по бюджетах</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">graph,pivot</field>
+        <field name="domain">[('state', '=', 'approved')]</field>
+    </record>
+
+    <menuitem id="menu_budget_summary_report"
+              name="Зведений звіт"
+              parent="menu_budget_reports"
+              action="action_budget_summary_report"
+              sequence="20"/>
+
+    <!-- Server Actions -->
+    <record id="action_mass_approve_budgets" model="ir.actions.server">
+        <field name="name">Масове затвердження бюджетів</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    for record in records:
+        if record.state == 'coordination':
+            record.action_approve()
+        </field>
+    </record>
+
+    <record id="action_export_budget_excel" model="ir.actions.server">
+        <field name="name">Експорт до Excel</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="state">code</field>
+        <field name="code">
+# Логіка експорту до Excel буде додана пізніше
+raise UserError('Функція експорту буде доступна в наступній версії')
+        </field>
+    </record>
+
+</odoo>

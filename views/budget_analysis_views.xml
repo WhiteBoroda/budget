@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+<!-- views/budget_analysis_views.xml -->
+
+    <!-- Аналіз виконання бюджетів -->
+    <record id="view_budget_analysis_tree" model="ir.ui.view">
+        <field name="name">budget.analysis.tree</field>
+        <field name="model">budget.analysis</field>
+        <field name="arch" type="xml">
+            <tree decoration-danger="variance_percent &lt; -10"
+                  decoration-warning="variance_percent &lt; -5 and variance_percent &gt;= -10"
+                  decoration-success="variance_percent &gt;= -5">
+                <field name="budget_name"/>
+                <field name="period_id"/>
+                <field name="company_id"/>
+                <field name="cbo_id"/>
+                <field name="budget_type_id"/>
+                <field name="planned_amount"/>
+                <field name="actual_amount"/>
+                <field name="variance_amount"/>
+                <field name="variance_percent"/>
+                <field name="execution_percent"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_analysis_graph" model="ir.ui.view">
+        <field name="name">budget.analysis.graph</field>
+        <field name="model">budget.analysis</field>
+        <field name="arch" type="xml">
+            <graph string="Аналіз виконання бюджетів" type="bar">
+                <field name="budget_type_id"/>
+                <field name="planned_amount" type="measure"/>
+                <field name="actual_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_budget_analysis_pivot" model="ir.ui.view">
+        <field name="name">budget.analysis.pivot</field>
+        <field name="model">budget.analysis</field>
+        <field name="arch" type="xml">
+            <pivot string="Аналіз бюджетів">
+                <field name="company_id" type="row"/>
+                <field name="budget_type_id" type="row"/>
+                <field name="period_id" type="col"/>
+                <field name="planned_amount" type="measure"/>
+                <field name="actual_amount" type="measure"/>
+                <field name="variance_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_budget_analysis" model="ir.actions.act_window">
+        <field name="name">Аналіз виконання бюджетів</field>
+        <field name="res_model">budget.analysis</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Аналіз виконання бюджетів
+            </p>
+            <p>
+                Тут ви можете проаналізувати виконання затверджених бюджетів.
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_budget_analysis"
+              name="Аналіз виконання"
+              parent="menu_budget_reports"
+              action="action_budget_analysis"
+              sequence="10"/>
+</odoo>

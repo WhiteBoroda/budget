@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- wizards/sales_plan_wizard.xml -->
+
+    <!-- Майстер створення плану продажів -->
+    <record id="view_sales_plan_wizard_form" model="ir.ui.view">
+        <field name="name">sales.plan.wizard.form</field>
+        <field name="model">sales.plan.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Створення плану продажів">
+                <group>
+                    <group>
+                        <field name="period_id"/>
+                        <field name="company_id"/>
+                        <field name="copy_previous"/>
+                    </group>
+                    <group>
+                        <field name="base_period_id"
+                               attrs="{'required': [('copy_previous', '=', True)],
+                                       'invisible': [('copy_previous', '=', False)]}"/>
+                        <field name="growth_rate"
+                               attrs="{'invisible': [('copy_previous', '=', False)]}"/>
+                        <field name="product_category_ids" widget="many2many_tags"/>
+                    </group>
+                </group>
+                <footer>
+                    <button name="action_create_plan" string="Створити план" type="object" class="btn-primary"/>
+                    <button string="Скасувати" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sales_plan_wizard" model="ir.actions.act_window">
+        <field name="name">Створити план продажів</field>
+        <field name="res_model">sales.plan.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Додавання дії до меню планів продажів -->
+    <record id="action_create_sales_plan_from_menu" model="ir.actions.server">
+        <field name="name">Створити план продажів</field>
+        <field name="model_id" ref="model_budget_sales_plan"/>
+        <field name="binding_model_id" ref="model_budget_sales_plan"/>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Створити план продажів',
+    'res_model': 'sales.plan.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {},
+}
+        </field>
+    </record>
+
+    <!-- Контекстні дії для бюджетів -->
+    <record id="action_consolidate_budgets_context" model="ir.actions.server">
+        <field name="name">Консолідувати бюджети</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Консолідація бюджетів',
+    'res_model': 'budget.consolidation.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_period_id': records[0].period_id.id if records else False,
+        'default_company_ids': [(6, 0, records.mapped('company_id').ids)] if records else [],
+    },
+}
+        </field>
+    </record>
+
+    <record id="action_approve_budgets_context" model="ir.actions.server">
+        <field name="name">Затвердити бюджети</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Затвердження бюджетів',
+    'res_model': 'budget.approval.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_budget_ids': [(6, 0, records.ids)],
+        'active_ids': records.ids,
+        'active_model': 'budget.plan',
+    },
+}
+        </field>
+    </record>
+
+</odoo>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_quick_actions.xml -->
+
+    <!-- Швидкі дії для створення -->
+    <record id="action_quick_create_sales_plan" model="ir.actions.act_window">
+        <field name="name">Швидке створення плану продажів</field>
+        <field name="res_model">sales.plan.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_quick_create_sales_plan"
+              name="Швидко створити план продажів"
+              parent="menu_budget_planning"
+              action="action_quick_create_sales_plan"
+              sequence="5"/>
+
+    <record id="action_quick_create_budget" model="ir.actions.act_window">
+        <field name="name">Швидке створення бюджету</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_level': 'level3'}</field>
+    </record>
+
+    <menuitem id="menu_quick_create_budget"
+              name="Швидко створити бюджет"
+              parent="menu_budget_planning"
+              action="action_quick_create_budget"
+              sequence="15"/>
+
+</odoo>

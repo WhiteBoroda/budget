@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<odoo>
+    <data noupdate="1">
+        <!-- Типи бюджетів згідно регламенту -->
+        <record id="budget_type_01" model="budget.type">
+            <field name="code">01</field>
+            <field name="name">Бюджет ФОТ</field>
+            <field name="budget_category">direct_costs</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="description">Фонд оплати праці включає затрати на виплату основної та додаткової заробітної плати всього персоналу ПП</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="budget_type_02" model="budget.type">
+            <field name="code">02</field>
+            <field name="name">Бюджет розвитку та підбору персоналу</field>
+            <field name="budget_category">indirect_costs</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Витрати на навчання та розвиток персоналу</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="budget_type_03" model="budget.type">
+            <field name="code">03</field>
+            <field name="name">Бюджет соціальних витрат</field>
+            <field name="budget_category">indirect_costs</field>
+            <field name="calculation_method">statistical</field>
+            <field name="description">Соціальні витрати відповідно до колективного договору</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="budget_type_04" model="budget.type">
+            <field name="code">04</field>
+            <field name="name">Бюджет благодійності (матеріальна допомога ветеранам)</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">statistical</field>
+            <field name="description">Матеріальна допомога ветеранам згідно колективного договору</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="budget_type_04_2" model="budget.type">
+            <field name="code">04(2)</field>
+            <field name="name">Бюджет благодійності (маркетинг)</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">contract_based</field>
+            <field name="description">Членство в громадських організаціях, спонсорська допомога</field>
+            <field name="sequence">42</field>
+        </record>
+
+        <record id="budget_type_05" model="budget.type">
+            <field name="code">05</field>
+            <field name="name">Бюджет маркетингових витрат</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Витрати на рекламу, маркетингові дослідження, участь у виставках</field>
+            <field name="sequence">50</field>
+        </record>
+
+        <record id="budget_type_06" model="budget.type">
+            <field name="code">06</field>
+            <field name="name">Бюджет податків</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="description">Податки та обов'язкові платежі згідно чинного законодавства</field>
+            <field name="sequence">60</field>
+        </record>
+
+        <record id="budget_type_07" model="budget.type">
+            <field name="code">07</field>
+            <field name="name">Бюджет консультаційних та аудиторських послуг</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">contract_based</field>
+            <field name="description">Професійні послуги аудиторів, консультантів</field>
+            <field name="sequence">70</field>
+        </record>
+
+        <record id="budget_type_08" model="budget.type">
+            <field name="code">08</field>
+            <field name="name">Бюджет фінансової діяльності та страхування</field>
+            <field name="budget_category">financial</field>
+            <field name="calculation_method">contract_based</field>
+            <field name="description">Банківські послуги, страхування, відсотки за кредитами</field>
+            <field name="sequence">80</field>
+        </record>
+
+        <record id="budget_type_09" model="budget.type">
+            <field name="code">09</field>
+            <field name="name">Бюджет доходів по реалізації послуг, робіт, прочих ТМЦ</field>
+            <field name="budget_category">income</field>
+            <field name="calculation_method">contract_based</field>
+            <field name="description">Доходи від додаткових послуг та реалізації прочих ТМЦ</field>
+            <field name="sequence">90</field>
+        </record>
+
+        <record id="budget_type_10" model="budget.type">
+            <field name="code">10</field>
+            <field name="name">Бюджет витрат по оренді</field>
+            <field name="budget_category">indirect_costs</field>
+            <field name="calculation_method">contract_based</field>
+            <field name="description">Витрати на оренду основних засобів</field>
+            <field name="sequence">100</field>
+        </record>
+
+        <record id="budget_type_11" model="budget.type">
+            <field name="code">11</field>
+            <field name="name">Бюджет витрат на логістику</field>
+            <field name="budget_category">direct_costs</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="description">Витрати на доставку готової продукції</field>
+            <field name="sequence">110</field>
+        </record>
+
+        <record id="budget_type_12" model="budget.type">
+            <field name="code">12</field>
+            <field name="name">Бюджет інформаційного забезпечення</field>
+            <field name="budget_category">indirect_costs</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">ІТ-витрати, обслуговування програм, телекомунікації</field>
+            <field name="sequence">120</field>
+        </record>
+
+        <record id="budget_type_13" model="budget.type">
+            <field name="code">13</field>
+            <field name="name">Бюджет витрат по контролю якості</field>
+            <field name="budget_category">direct_costs</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="description">Витрати на контроль якості, дератизацію, дезінсекцію</field>
+            <field name="sequence">130</field>
+        </record>
+
+        <record id="budget_type_19" model="budget.type">
+            <field name="code">19</field>
+            <field name="name">Бюджет витрат на енергоносії</field>
+            <field name="budget_category">direct_costs</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="description">Електроенергія, газ, водопостачання</field>
+            <field name="sequence">190</field>
+        </record>
+
+        <record id="budget_type_24" model="budget.type">
+            <field name="code">24</field>
+            <field name="name">Інвестиційний бюджет</field>
+            <field name="budget_category">investment</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Капітальні вкладення та інвестиційні проекти</field>
+            <field name="sequence">240</field>
+        </record>
+
+        <!-- Додаткові типи бюджетів можна додати аналогічно -->
+    </data>
+</odoo>

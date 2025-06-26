@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+    <!-- Шаблони повідомлень -->
+    <record id="mail_template_budget_approval_request" model="mail.template">
+        <field name="name">Запит на затвердження бюджету</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="subject">Запит на затвердження: ${object.display_name}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Шановний ${object.coordinator_user_id.name or 'координаторе'},</p>
+
+                <p>Надійшов запит на затвердження бюджету:</p>
+
+                <ul>
+                    <li><strong>Назва:</strong> ${object.display_name}</li>
+                    <li><strong>Тип бюджету:</strong> ${object.budget_type_id.name}</li>
+                    <li><strong>ЦБО:</strong> ${object.cbo_id.name}</li>
+                    <li><strong>Період:</strong> ${object.period_id.name}</li>
+                    <li><strong>Планова сума:</strong> ${object.planned_amount} ${object.currency_id.name}</li>
+                    <li><strong>Відповідальний:</strong> ${object.responsible_user_id.name}</li>
+                </ul>
+
+                <p>Будь ласка, розгляньте та затвердіть бюджет в системі.</p>
+
+                <p>З повагою,<br/>Система бюджетування</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_budget_approved" model="mail.template">
+        <field name="name">Бюджет затверджено</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="subject">Бюджет затверджено: ${object.display_name}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Шановний ${object.responsible_user_id.name},</p>
+
+                <p>Ваш бюджет успішно затверджено:</p>
+
+                <ul>
+                    <li><strong>Назва:</strong> ${object.display_name}</li>
+                    <li><strong>Планова сума:</strong> ${object.planned_amount} ${object.currency_id.name}</li>
+                    <li><strong>Затверджено:</strong> ${object.approved_by_id.name}</li>
+                    <li><strong>Дата затвердження:</strong> ${object.approval_date}</li>
+                </ul>
+
+                <p>Ви можете розпочинати виконання бюджету.</p>
+
+                <p>З повагою,<br/>Система бюджетування</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+    <record id="mail_template_budget_deadline_reminder" model="mail.template">
+        <field name="name">Нагадування про дедлайн</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="subject">Нагадування: дедлайн подання бюджету завтра</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Шановний ${object.responsible_user_id.name},</p>
+
+                <p><strong style="color: orange;">Нагадування!</strong></p>
+
+                <p>Завтра закінчується термін подання бюджету:</p>
+
+                <ul>
+                    <li><strong>Назва:</strong> ${object.display_name}</li>
+                    <li><strong>Дедлайн:</strong> ${object.submission_deadline}</li>
+                    <li><strong>Поточний статус:</strong> ${object.state}</li>
+                </ul>
+
+                <p>Будь ласка, завершіть підготовку та подайте бюджет вчасно.</p>
+
+                <p>З повагою,<br/>Система бюджетування</p>
+            </div>
+        </field>
+        <field name="auto_delete" eval="True"/>
+    </record>
+
+</odoo>

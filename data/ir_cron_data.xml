@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- data/ir_cron_data.xml -->
+
+    <!-- Автоматичні завдання -->
+    <record id="cron_budget_deadline_notifications" model="ir.cron">
+        <field name="name">Нагадування про дедлайни бюджетів</field>
+        <field name="model_id" ref="model_budget_notification"/>
+        <field name="state">code</field>
+        <field name="code">model.create_deadline_notifications()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <record id="cron_budget_overdue_notifications" model="ir.cron">
+        <field name="name">Сповіщення про прострочені бюджети</field>
+        <field name="model_id" ref="model_budget_notification"/>
+        <field name="state">code</field>
+        <field name="code">model.create_overdue_notifications()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+</odoo>

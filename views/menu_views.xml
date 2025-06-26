@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/menu_views.xml -->
+
+    <!-- Головне меню бюджетування -->
+    <menuitem id="menu_budget_root"
+              name="Бюджетування"
+              sequence="45"
+              groups="group_budget_user"/>
+
+    <!-- Підменю -->
+    <menuitem id="menu_budget_planning"
+              name="Планування"
+              parent="menu_budget_root"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_execution"
+              name="Виконання"
+              parent="menu_budget_root"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_reports"
+              name="Звітність"
+              parent="menu_budget_root"
+              sequence="30"/>
+
+    <menuitem id="menu_budget_config"
+              name="Налаштування"
+              parent="menu_budget_root"
+              sequence="90"/>
+
+    <!-- Додаткові меню та посилання -->
+    <menuitem id="menu_budget_help"
+              name="Довідка"
+              parent="menu_budget_root"
+              sequence="99"/>
+
+    <menuitem id="menu_budget_documentation"
+              name="Документація"
+              parent="menu_budget_help"
+              action="action_budget_help"
+              sequence="10"/>
+
+    <!-- Швидкі посилання на панелі -->
+    <record id="action_quick_create_sales_plan" model="ir.actions.act_window">
+        <field name="name">Швидке створення плану продажів</field>
+        <field name="res_model">sales.plan.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <menuitem id="menu_quick_create_sales_plan"
+              name="Швидко створити план продажів"
+              parent="menu_budget_planning"
+              action="action_quick_create_sales_plan"
+              sequence="5"/>
+
+    <record id="action_quick_create_budget" model="ir.actions.act_window">
+        <field name="name">Швидке створення бюджету</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+        <field name="context">{'default_level': 'level3'}</field>
+    </record>
+
+    <menuitem id="menu_quick_create_budget"
+              name="Швидко створити бюджет"
+              parent="menu_budget_planning"
+              action="action_quick_create_budget"
+              sequence="15"/>
+
+</odoo>

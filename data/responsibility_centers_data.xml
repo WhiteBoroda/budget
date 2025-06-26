@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- data/responsibility_centers_data.xml -->
+
+    <data noupdate="1">
+        <!-- ЦБО Управляючої компанії (батьківські записи) -->
+        <record id="cbo_uk_management" model="budget.responsibility.center">
+            <field name="name">Керівництво УК</field>
+            <field name="code">UK_MGT</field>
+            <field name="level">managing_company</field>
+            <field name="sequence">10</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Дочірні ЦБО УК (створюються після батьківського) -->
+        <record id="cbo_uk_sales" model="budget.responsibility.center">
+            <field name="name">Управління продажів</field>
+            <field name="code">UK_SALES</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">20</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_uk_tech" model="budget.responsibility.center">
+            <field name="name">Технологічне управління</field>
+            <field name="code">UK_TECH</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">30</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_uk_hr" model="budget.responsibility.center">
+            <field name="name">Управління по роботі з персоналом</field>
+            <field name="code">UK_HR</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">40</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_uk_finance" model="budget.responsibility.center">
+            <field name="name">Управління економіки та фінансів</field>
+            <field name="code">UK_FIN</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">50</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_uk_it" model="budget.responsibility.center">
+            <field name="name">Управління ІТ</field>
+            <field name="code">UK_IT</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">60</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_uk_marketing" model="budget.responsibility.center">
+            <field name="name">Управління по маркетингу</field>
+            <field name="code">UK_MKT</field>
+            <field name="level">managing_company</field>
+            <field name="parent_id" ref="cbo_uk_management"/>
+            <field name="sequence">70</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- ЦБО Виробничих підприємств (окремі батьківські записи) -->
+        <record id="cbo_pp_management" model="budget.responsibility.center">
+            <field name="name">Керівництво підприємством</field>
+            <field name="code">PP_MGT</field>
+            <field name="level">production_enterprise</field>
+            <field name="sequence">100</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Дочірні ЦБО ПП -->
+        <record id="cbo_pp_production" model="budget.responsibility.center">
+            <field name="name">Виробничий відділ</field>
+            <field name="code">PP_PROD</field>
+            <field name="level">production_enterprise</field>
+            <field name="parent_id" ref="cbo_pp_management"/>
+            <field name="sequence">110</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_pp_quality" model="budget.responsibility.center">
+            <field name="name">Відділ якості</field>
+            <field name="code">PP_QC</field>
+            <field name="level">production_enterprise</field>
+            <field name="parent_id" ref="cbo_pp_management"/>
+            <field name="sequence">120</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_pp_maintenance" model="budget.responsibility.center">
+            <field name="name">Служба головного інженера</field>
+            <field name="code">PP_MAINT</field>
+            <field name="level">production_enterprise</field>
+            <field name="parent_id" ref="cbo_pp_management"/>
+            <field name="sequence">130</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_pp_accounting" model="budget.responsibility.center">
+            <field name="name">Бухгалтерія</field>
+            <field name="code">PP_ACC</field>
+            <field name="level">production_enterprise</field>
+            <field name="parent_id" ref="cbo_pp_management"/>
+            <field name="sequence">140</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="cbo_pp_hr" model="budget.responsibility.center">
+            <field name="name">Відділ кадрів</field>
+            <field name="code">PP_HR</field>
+            <field name="level">production_enterprise</field>
+            <field name="parent_id" ref="cbo_pp_management"/>
+            <field name="sequence">150</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+    </data>
+</odoo>

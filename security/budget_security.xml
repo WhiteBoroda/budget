@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- security/budget_security.xml -->
+    <data noupdate="1">
+        <!-- Групи безпеки -->
+        <record id="group_budget_user" model="res.groups">
+            <field name="name">Користувач бюджетування</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Може переглядати та створювати бюджети свого підрозділу</field>
+        </record>
+
+        <record id="group_budget_coordinator" model="res.groups">
+            <field name="name">Координатор бюджетування</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Може узгоджувати бюджети всіх підрозділів</field>
+            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
+        </record>
+
+        <record id="group_budget_manager" model="res.groups">
+            <field name="name">Менеджер бюджетування</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Може затверджувати та консолідувати бюджети</field>
+            <field name="implied_ids" eval="[(4, ref('group_budget_coordinator'))]"/>
+        </record>
+
+        <record id="group_budget_director" model="res.groups">
+            <field name="name">Директор з бюджетування</field>
+            <field name="category_id" ref="base.module_category_accounting"/>
+            <field name="comment">Повний доступ до системи бюджетування</field>
+            <field name="implied_ids" eval="[(4, ref('group_budget_manager'))]"/>
+        </record>
+
+        <!-- Правила доступу до записів -->
+        <record id="budget_plan_user_rule" model="ir.rule">
+            <field name="name">Бюджети: користувач бачить свої ЦБО</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="domain_force">[('cbo_id.responsible_user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+        </record>
+
+        <record id="budget_plan_coordinator_rule" model="ir.rule">
+            <field name="name">Бюджети: координатор бачить все в компанії</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('group_budget_coordinator'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+        </record>
+
+        <record id="sales_plan_user_rule" model="ir.rule">
+            <field name="name">Плани продажів: користувач бачить свою компанію</field>
+            <field name="model_id" ref="model_budget_sales_plan"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
+        </record>
+
+        <record id="budget_notification_rule" model="ir.rule">
+            <field name="name">Сповіщення: користувач бачить тільки свої</field>
+            <field name="model_id" ref="model_budget_notification"/>
+            <field name="domain_force">[('user_id', '=', user.id)]</field>
+            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
+        </record>
+    </data>
+</odoo>

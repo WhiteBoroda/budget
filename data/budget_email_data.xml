@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<odoo>
+
+    <!-- Налаштування повідомлень -->
+    <record id="budget_message_subtype_approval" model="mail.message.subtype">
+        <field name="name">Затвердження бюджету</field>
+        <field name="description">Бюджет відправлено на затвердження</field>
+        <field name="res_model">budget.plan</field>
+        <field name="default">True</field>
+        <field name="sequence">1</field>
+    </record>
+
+    <record id="budget_message_subtype_approved" model="mail.message.subtype">
+        <field name="name">Бюджет затверджено</field>
+        <field name="description">Бюджет успішно затверджено</field>
+        <field name="res_model">budget.plan</field>
+        <field name="default">True</field>
+        <field name="sequence">2</field>
+    </record>
+
+    <record id="budget_message_subtype_rejected" model="mail.message.subtype">
+        <field name="name">Бюджет відхилено</field>
+        <field name="description">Бюджет потребує доопрацювання</field>
+        <field name="res_model">budget.plan</field>
+        <field name="default">True</field>
+        <field name="sequence">3</field>
+    </record>
+
+    <!-- Налаштування для планів продажів -->
+    <record id="sales_plan_message_subtype_approved" model="mail.message.subtype">
+        <field name="name">План продажів затверджено</field>
+        <field name="description">План продажів успішно затверджено</field>
+        <field name="res_model">budget.sales.plan</field>
+        <field name="default">True</field>
+        <field name="sequence">1</field>
+    </record>
+
+</odoo>

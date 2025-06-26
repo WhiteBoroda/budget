@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_execution_views.xml -->
+
+    <!-- Виконання бюджету -->
+    <record id="view_budget_execution_tree" model="ir.ui.view">
+        <field name="name">budget.execution.tree</field>
+        <field name="model">budget.execution</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="date"/>
+                <field name="budget_plan_id"/>
+                <field name="actual_amount"/>
+                <field name="variance_amount"/>
+                <field name="variance_percent"/>
+                <field name="responsible_user_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_execution_form" model="ir.ui.view">
+        <field name="name">budget.execution.form</field>
+        <field name="model">budget.execution</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="budget_plan_id"/>
+                            <field name="date"/>
+                            <field name="actual_amount"/>
+                            <field name="responsible_user_id"/>
+                        </group>
+                        <group>
+                            <field name="variance_amount" readonly="1"/>
+                            <field name="variance_percent" readonly="1"/>
+                            <field name="move_id"/>
+                            <field name="move_line_id"/>
+                        </group>
+                    </group>
+                    <group string="Опис">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_execution" model="ir.actions.act_window">
+        <field name="name">Виконання бюджету</field>
+        <field name="res_model">budget.execution</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_budget_execution_fact"
+              name="Фактичне виконання"
+              parent="menu_budget_execution"
+              action="action_budget_execution"
+              sequence="10"/>
+</odoo>

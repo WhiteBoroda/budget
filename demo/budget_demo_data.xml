@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- demo/budget_demo_data.xml -->
+
+    <data noupdate="1">
+        <!-- Демо періоди на 2024 рік -->
+        <record id="demo_period_2024_01" model="budget.period">
+            <field name="name">Січень 2024</field>
+            <field name="period_type">month</field>
+            <field name="date_start">2024-01-01</field>
+            <field name="date_end">2024-01-31</field>
+            <field name="state">planning</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="demo_period_2024_02" model="budget.period">
+            <field name="name">Лютий 2024</field>
+            <field name="period_type">month</field>
+            <field name="date_start">2024-02-01</field>
+            <field name="date_end">2024-02-29</field>
+            <field name="state">draft</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="demo_period_2024_03" model="budget.period">
+            <field name="name">Березень 2024</field>
+            <field name="period_type">month</field>
+            <field name="date_start">2024-03-01</field>
+            <field name="date_end">2024-03-31</field>
+            <field name="state">draft</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <record id="demo_period_2024_q1" model="budget.period">
+            <field name="name">I квартал 2024</field>
+            <field name="period_type">quarter</field>
+            <field name="date_start">2024-01-01</field>
+            <field name="date_end">2024-03-31</field>
+            <field name="state">planning</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Демо план продажів -->
+        <record id="demo_sales_plan_2024_01" model="budget.sales.plan">
+            <field name="period_id" ref="demo_period_2024_01"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="state">project</field>
+            <field name="responsible_user_id" ref="base.user_admin"/>
+            <field name="previous_period_sales">1000000</field>
+        </record>
+
+        <!-- Демо лінії плану продажів -->
+        <record id="demo_sales_plan_line_1" model="budget.sales.plan.line">
+            <field name="plan_id" ref="demo_sales_plan_2024_01"/>
+            <field name="sales_channel">b2b</field>
+            <field name="region">local</field>
+            <field name="planned_qty">1000</field>
+            <field name="planned_price">150</field>
+            <field name="discount_percent">5</field>
+            <field name="notes">Хліб білий, основний асортимент</field>
+        </record>
+
+        <record id="demo_sales_plan_line_2" model="budget.sales.plan.line">
+            <field name="plan_id" ref="demo_sales_plan_2024_01"/>
+            <field name="sales_channel">retail</field>
+            <field name="region">regional</field>
+            <field name="planned_qty">500</field>
+            <field name="planned_price">120</field>
+            <field name="discount_percent">0</field>
+            <field name="notes">Хліб житній, роздрібна мережа</field>
+        </record>
+
+        <!-- Демо бюджет -->
+        <record id="demo_budget_plan_fot" model="budget.plan">
+            <field name="period_id" ref="demo_period_2024_01"/>
+            <field name="cbo_id" ref="cbo_pp_management"/>
+            <field name="budget_type_id" ref="budget_type_01"/>
+            <field name="level">level3</field>
+            <field name="state">planning</field>
+            <field name="responsible_user_id" ref="base.user_admin"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="submission_deadline">2023-12-23</field>
+            <field name="sales_plan_id" ref="demo_sales_plan_2024_01"/>
+        </record>
+
+        <!-- Демо лінії бюджету -->
+        <record id="demo_budget_line_1" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_plan_fot"/>
+            <field name="description">Основна заробітна плата виробничого персоналу</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="quantity">50</field>
+            <field name="unit_price">8000</field>
+            <field name="planned_amount">400000</field>
+            <field name="calculation_basis">50 працівників × 8000 грн середня зарплата</field>
+        </record>
+
+        <record id="demo_budget_line_2" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_plan_fot"/>
+            <field name="description">Додаткова заробітна плата</field>
+            <field name="calculation_method">percentage</field>
+            <field name="quantity">1</field>
+            <field name="unit_price">60000</field>
+            <field name="planned_amount">60000</field>
+            <field name="calculation_basis">15% від основної заробітної плати</field>
+        </record>
+
+        <!-- Демо сповіщення -->
+        <record id="demo_notification_1" model="budget.notification">
+            <field name="name">Нагадування: дедлайн подання бюджету ФОТ завтра</field>
+            <field name="notification_type">deadline</field>
+            <field name="budget_plan_id" ref="demo_budget_plan_fot"/>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="priority">high</field>
+            <field name="is_read">False</field>
+        </record>
+
+        <!-- Демо панель керування -->
+        <record id="demo_dashboard_1" model="budget.dashboard">
+            <field name="name">Панель бюджетування Січень 2024</field>
+            <field name="period_id" ref="demo_period_2024_01"/>
+        </record>
+    </data>
+</odoo>
