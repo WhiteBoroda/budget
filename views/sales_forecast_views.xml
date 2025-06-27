@@ -248,7 +248,7 @@
                         domain="[('user_id', '=', uid)]"/>
                 <filter string="Моя команда"
                         name="my_team"
-                        domain="[('team_id', 'in', user.sale_team_ids.ids)]"/>
+                        domain="[('team_id.member_ids', 'in', [uid])]"/>
                 <filter string="На розгляді"
                         name="review"
                         domain="[('state', '=', 'review')]"/>
