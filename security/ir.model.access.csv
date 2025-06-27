@@ -35,3 +35,6 @@ access_budget_notification_manager,budget.notification.manager,model_budget_noti
 access_budget_approval_wizard_user,budget.approval.wizard.user,model_budget_approval_wizard,group_budget_user,1,1,1,1
 access_budget_consolidation_wizard_coordinator,budget.consolidation.wizard.coordinator,model_budget_consolidation_wizard,group_budget_coordinator,1,1,1,1
 access_sales_plan_wizard_user,sales.plan.wizard.user,model_sales_plan_wizard,group_budget_user,1,1,1,1
+access_budget_period_wizard_user,budget.period.wizard.user,model_budget_period_wizard,group_budget_user,1,1,1,1
+access_budget_period_wizard_coordinator,budget.period.wizard.coordinator,model_budget_period_wizard,group_budget_coordinator,1,1,1,1
+access_budget_period_wizard_manager,budget.period.wizard.manager,model_budget_period_wizard,group_budget_manager,1,1,1,1

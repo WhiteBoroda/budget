@@ -34,6 +34,9 @@ class BudgetPeriodWizard(models.TransientModel):
         ('9', 'Вересень'), ('10', 'Жовтень'), ('11', 'Листопад'), ('12', 'Грудень')
     ], 'Кінцевий місяць', default='12')
 
+    skip_existing = fields.Boolean('Пропускати існуючі', default=True,
+                                   help="Якщо включено, існуючі періоди будуть пропущені")
+
     @api.model
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
@@ -53,29 +56,54 @@ class BudgetPeriodWizard(models.TransientModel):
             raise UserError('Оберіть принаймні одну компанію!')
 
         created_periods = []
+        skipped_periods = []
 
         for company in companies:
             if self.period_type in ['month', 'all']:
-                created_periods.extend(self._create_monthly_periods(company))
+                created, skipped = self._create_monthly_periods(company)
+                created_periods.extend(created)
+                skipped_periods.extend(skipped)
 
             if self.period_type in ['quarter', 'all']:
-                created_periods.extend(self._create_quarterly_periods(company))
+                created, skipped = self._create_quarterly_periods(company)
+                created_periods.extend(created)
+                skipped_periods.extend(skipped)
 
             if self.period_type in ['year', 'all']:
-                created_periods.extend(self._create_yearly_period(company))
+                created, skipped = self._create_yearly_period(company)
+                created_periods.extend(created)
+                skipped_periods.extend(skipped)
+
+        # Формуємо повідомлення
+        message = f"Створено {len(created_periods)} періодів"
+        if skipped_periods:
+            message += f", пропущено {len(skipped_periods)} існуючих"
 
         return {
-            'type': 'ir.actions.act_window',
-            'name': 'Створені періоди',
-            'res_model': 'budget.period',
-            'view_mode': 'tree,form',
-            'domain': [('id', 'in', [p.id for p in created_periods])],
-            'context': {'default_company_id': companies[0].id if len(companies) == 1 else False}
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Створення періодів завершено',
+                'message': message,
+                'type': 'success',
+                'sticky': False,
+                'next': {
+                    'type': 'ir.actions.act_window',
+                    'name': 'Створені періоди',
+                    'res_model': 'budget.period',
+                    'view_mode': 'tree,form',
+                    'domain': [('id', 'in', [p.id for p in created_periods])] if created_periods else [
+                        ('id', '=', False)],
+                    'context': {'default_company_id': companies[0].id if len(companies) == 1 else False}
+                }
+            }
         }
 
     def _create_monthly_periods(self, company):
         """Створення місячних періодів"""
-        periods = []
+        created_periods = []
+        skipped_periods = []
+
         month_names = {
             1: 'Січень', 2: 'Лютий', 3: 'Березень', 4: 'Квітень',
             5: 'Травень', 6: 'Червень', 7: 'Липень', 8: 'Серпень',
@@ -83,17 +111,30 @@ class BudgetPeriodWizard(models.TransientModel):
         }
 
         for month in range(int(self.start_month), int(self.end_month) + 1):
+            date_start = date(self.year, month, 1)
+
             # Перевіряємо чи не існує вже такий період
             existing = self.env['budget.period'].search([
                 ('company_id', '=', company.id),
                 ('period_type', '=', 'month'),
-                ('date_start', '=', date(self.year, month, 1))
+                ('date_start', '=', date_start)
             ])
 
             if existing:
-                continue
+                if self.skip_existing:
+                    skipped_periods.append(existing)
+                    continue
+                else:
+                    # Оновлюємо існуючий період
+                    date_end = date_start + relativedelta(months=1) - relativedelta(days=1)
+                    existing.write({
+                        'name': f"{month_names[month]} {self.year}",
+                        'date_end': date_end,
+                    })
+                    created_periods.append(existing)
+                    continue
 
-            date_start = date(self.year, month, 1)
+            # Створюємо новий період
             date_end = date_start + relativedelta(months=1) - relativedelta(days=1)
 
             period = self.env['budget.period'].create({
@@ -104,13 +145,15 @@ class BudgetPeriodWizard(models.TransientModel):
                 'company_id': company.id,
                 'state': 'draft'
             })
-            periods.append(period)
+            created_periods.append(period)
 
-        return periods
+        return created_periods, skipped_periods
 
     def _create_quarterly_periods(self, company):
         """Створення квартальних періодів"""
-        periods = []
+        created_periods = []
+        skipped_periods = []
+
         quarters = [
             (1, 'I квартал', 1, 3),
             (2, 'II квартал', 4, 6),
@@ -123,18 +166,36 @@ class BudgetPeriodWizard(models.TransientModel):
             if end_month < int(self.start_month) or start_month > int(self.end_month):
                 continue
 
+            date_start = date(self.year, start_month, 1)
+
             # Перевіряємо чи не існує вже такий період
             existing = self.env['budget.period'].search([
                 ('company_id', '=', company.id),
                 ('period_type', '=', 'quarter'),
-                ('date_start', '=', date(self.year, start_month, 1))
+                ('date_start', '=', date_start)
             ])
 
             if existing:
-                continue
+                if self.skip_existing:
+                    skipped_periods.append(existing)
+                    continue
+                else:
+                    # Оновлюємо існуючий період
+                    date_end = date(self.year, end_month, 1) + relativedelta(months=1) - relativedelta(days=1)
+                    if end_month == 12:
+                        date_end = date(self.year, 12, 31)
 
-            date_start = date(self.year, start_month, 1)
-            date_end = date(self.year, end_month + 1, 1) - relativedelta(days=1) if end_month < 12 else date(self.year, 12, 31)
+                    existing.write({
+                        'name': f"{quarter_name} {self.year}",
+                        'date_end': date_end,
+                    })
+                    created_periods.append(existing)
+                    continue
+
+            # Створюємо новий період
+            date_end = date(self.year, end_month, 1) + relativedelta(months=1) - relativedelta(days=1)
+            if end_month == 12:
+                date_end = date(self.year, 12, 31)
 
             period = self.env['budget.period'].create({
                 'name': f"{quarter_name} {self.year}",
@@ -144,29 +205,46 @@ class BudgetPeriodWizard(models.TransientModel):
                 'company_id': company.id,
                 'state': 'draft'
             })
-            periods.append(period)
+            created_periods.append(period)
 
-        return periods
+        return created_periods, skipped_periods
 
     def _create_yearly_period(self, company):
         """Створення річного періоду"""
+        created_periods = []
+        skipped_periods = []
+
+        date_start = date(self.year, 1, 1)
+
         # Перевіряємо чи не існує вже такий період
         existing = self.env['budget.period'].search([
             ('company_id', '=', company.id),
             ('period_type', '=', 'year'),
-            ('date_start', '=', date(self.year, 1, 1))
+            ('date_start', '=', date_start)
         ])
 
         if existing:
-            return []
+            if self.skip_existing:
+                skipped_periods.append(existing)
+                return created_periods, skipped_periods
+            else:
+                # Оновлюємо існуючий період
+                existing.write({
+                    'name': f"{self.year} рік",
+                    'date_end': date(self.year, 12, 31),
+                })
+                created_periods.append(existing)
+                return created_periods, skipped_periods
 
+        # Створюємо новий період
         period = self.env['budget.period'].create({
             'name': f"{self.year} рік",
             'period_type': 'year',
-            'date_start': date(self.year, 1, 1),
+            'date_start': date_start,
             'date_end': date(self.year, 12, 31),
             'company_id': company.id,
             'state': 'draft'
         })
+        created_periods.append(period)
 
-        return [period]
+        return created_periods, skipped_periods

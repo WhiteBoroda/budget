@@ -2,7 +2,7 @@
 <odoo>
     <!-- wizards/budget_period_wizard_views.xml -->
 
-    <!-- Мастер создания бюджетных периодов -->
+    <!-- Форма мастера создания бюджетных периодов -->
     <record id="view_budget_period_wizard_form" model="ir.ui.view">
         <field name="name">budget.period.wizard.form</field>
         <field name="model">budget.period.wizard</field>
@@ -44,7 +44,7 @@
         </field>
     </record>
 
-    <!-- ОСНОВНОЙ ACTION для wizard -->
+    <!-- Action для wizard -->
     <record id="action_budget_period_wizard" model="ir.actions.act_window">
         <field name="name">Створити бюджетні періоди</field>
         <field name="res_model">budget.period.wizard</field>
@@ -52,33 +52,11 @@
         <field name="target">new</field>
     </record>
 
-    <!-- ОДИН ОСНОВНОЙ menuitem в конфигурации -->
+    <!-- ЕДИНСТВЕННОЕ меню в конфигурации -->
     <menuitem id="menu_budget_period_wizard"
               name="🧙‍♂️ Майстер періодів"
               parent="menu_budget_config"
               action="action_budget_period_wizard"
               sequence="35"/>
-
-    <!-- Server Action для контекстного меню компаний -->
-    <record id="action_create_periods_for_company" model="ir.actions.server">
-        <field name="name">Створити періоди для компанії</field>
-        <field name="model_id" ref="base.model_res_company"/>
-        <field name="binding_model_id" ref="base.model_res_company"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">
-action = {
-    'type': 'ir.actions.act_window',
-    'name': 'Створити бюджетні періоди',
-    'res_model': 'budget.period.wizard',
-    'view_mode': 'form',
-    'target': 'new',
-    'context': {
-        'default_company_ids': [(6, 0, records.ids)],
-        'default_create_for_all_companies': False,
-    },
-}
-        </field>
-    </record>
 
 </odoo>

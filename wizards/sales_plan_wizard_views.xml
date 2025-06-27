@@ -38,25 +38,7 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Додавання дії до меню планів продажів -->
-    <record id="action_create_sales_plan_from_menu" model="ir.actions.server">
-        <field name="name">Створити план продажів</field>
-        <field name="model_id" ref="model_budget_sales_plan"/>
-        <field name="binding_model_id" ref="model_budget_sales_plan"/>
-        <field name="state">code</field>
-        <field name="code">
-action = {
-    'type': 'ir.actions.act_window',
-    'name': 'Створити план продажів',
-    'res_model': 'sales.plan.wizard',
-    'view_mode': 'form',
-    'target': 'new',
-    'context': {},
-}
-        </field>
-    </record>
-
-    <!-- Контекстні дії для бюджетів -->
+    <!-- Server Actions для контекстных меню -->
     <record id="action_consolidate_budgets_context" model="ir.actions.server">
         <field name="name">Консолідувати бюджети</field>
         <field name="model_id" ref="model_budget_plan"/>
