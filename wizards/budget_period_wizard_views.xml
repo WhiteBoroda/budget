@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- wizards/budget_period_wizard_views.xml -->
+
+    <!-- Мастер создания бюджетных периодов -->
+    <record id="view_budget_period_wizard_form" model="ir.ui.view">
+        <field name="name">budget.period.wizard.form</field>
+        <field name="model">budget.period.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Створення бюджетних періодів">
+                <group>
+                    <group string="Основні параметри">
+                        <field name="year"/>
+                        <field name="period_type"/>
+                        <field name="create_for_all_companies"/>
+                        <field name="company_ids" widget="many2many_tags"
+                               invisible="create_for_all_companies"/>
+                    </group>
+                    <group string="Діапазон місяців" invisible="period_type == 'year'">
+                        <field name="start_month"/>
+                        <field name="end_month"/>
+                    </group>
+                </group>
+
+                <div class="oe_clear">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Інформація:</strong>
+                        <ul>
+                            <li><strong>Місячні періоди:</strong> Створить періоди для кожного місяця у вибраному діапазоні</li>
+                            <li><strong>Квартальні періоди:</strong> Створить 4 квартали (якщо вони потрапляють у діапазон)</li>
+                            <li><strong>Річний період:</strong> Створить один період на весь рік</li>
+                            <li><strong>Всі типи:</strong> Створить місячні, квартальні та річний періоди</li>
+                        </ul>
+                        Періоди, що вже існують, будуть пропущені.
+                    </div>
+                </div>
+
+                <footer>
+                    <button name="action_create_periods" string="Створити періоди"
+                            type="object" class="btn-primary"/>
+                    <button string="Скасувати" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_period_wizard" model="ir.actions.act_window">
+        <field name="name">Створити бюджетні періоди</field>
+        <field name="res_model">budget.period.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Добавляем в меню КОНФИГУРАЦИИ -->
+    <menuitem id="menu_budget_period_wizard"
+              name="Створити періоди"
+              parent="menu_budget_config"
+              action="action_budget_period_wizard"
+              sequence="35"/>
+
+    <!-- Также добавляем как отдельную кнопку в меню периодов -->
+    <menuitem id="menu_budget_period_wizard_quick"
+              name="📅 Майстер створення періодів"
+              parent="menu_budget_config"
+              action="action_budget_period_wizard"
+              sequence="31"/>
+
+    <!-- ВРЕМЕННО: добавим в корень для тестирования -->
+    <menuitem id="menu_budget_period_wizard_root"
+              name="🧙‍♂️ Створити періоди"
+              parent="menu_budget_root"
+              action="action_budget_period_wizard"
+              sequence="5"/>
+
+    <!-- Server Action для контекстного меню -->
+    <record id="action_create_periods_for_company" model="ir.actions.server">
+        <field name="name">Створити періоди для компанії</field>
+        <field name="model_id" ref="base.model_res_company"/>
+        <field name="binding_model_id" ref="base.model_res_company"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Створити бюджетні періоди',
+    'res_model': 'budget.period.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_company_ids': [(6, 0, records.ids)],
+        'default_create_for_all_companies': False,
+    },
+}
+        </field>
+    </record>
+
+</odoo>
