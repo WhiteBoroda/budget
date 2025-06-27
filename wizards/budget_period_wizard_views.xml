@@ -44,6 +44,7 @@
         </field>
     </record>
 
+    <!-- ОСНОВНОЙ ACTION для wizard -->
     <record id="action_budget_period_wizard" model="ir.actions.act_window">
         <field name="name">Створити бюджетні періоди</field>
         <field name="res_model">budget.period.wizard</field>
@@ -51,28 +52,14 @@
         <field name="target">new</field>
     </record>
 
-    <!-- Добавляем в меню КОНФИГУРАЦИИ -->
+    <!-- ОДИН ОСНОВНОЙ menuitem в конфигурации -->
     <menuitem id="menu_budget_period_wizard"
-              name="Створити періоди"
+              name="🧙‍♂️ Майстер періодів"
               parent="menu_budget_config"
               action="action_budget_period_wizard"
               sequence="35"/>
 
-    <!-- Также добавляем как отдельную кнопку в меню периодов -->
-    <menuitem id="menu_budget_period_wizard_quick"
-              name="📅 Майстер створення періодів"
-              parent="menu_budget_config"
-              action="action_budget_period_wizard"
-              sequence="31"/>
-
-    <!-- ВРЕМЕННО: добавим в корень для тестирования -->
-    <menuitem id="menu_budget_period_wizard_root"
-              name="🧙‍♂️ Створити періоди"
-              parent="menu_budget_root"
-              action="action_budget_period_wizard"
-              sequence="5"/>
-
-    <!-- Server Action для контекстного меню -->
+    <!-- Server Action для контекстного меню компаний -->
     <record id="action_create_periods_for_company" model="ir.actions.server">
         <field name="name">Створити періоди для компанії</field>
         <field name="model_id" ref="base.model_res_company"/>

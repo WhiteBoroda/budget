@@ -7,9 +7,9 @@ from dateutil.relativedelta import relativedelta
 
 
 class BudgetPeriodWizard(models.TransientModel):
-    """Мастер создания бюджетных периодов"""
+    """Майстер створення бюджетних періодів"""
     _name = 'budget.period.wizard'
-    _description = 'Мастер создания бюджетных периодов'
+    _description = 'Майстер створення бюджетних періодів'
 
     year = fields.Integer('Рік', required=True, default=lambda self: datetime.now().year)
     period_type = fields.Selection([
@@ -134,8 +134,7 @@ class BudgetPeriodWizard(models.TransientModel):
                 continue
 
             date_start = date(self.year, start_month, 1)
-            date_end = date(self.year, end_month + 1, 1) - relativedelta(days=1) if end_month < 12 else date(self.year,
-                                                                                                             12, 31)
+            date_end = date(self.year, end_month + 1, 1) - relativedelta(days=1) if end_month < 12 else date(self.year, 12, 31)
 
             period = self.env['budget.period'].create({
                 'name': f"{quarter_name} {self.year}",
