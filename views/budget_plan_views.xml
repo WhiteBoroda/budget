@@ -13,15 +13,16 @@
                   decoration-danger="state == 'revision'">
                 <field name="display_name"/>
                 <field name="period_id"/>
-                <field name="level"/>
+                <field name="budget_level"/>
                 <field name="cbo_id"/>
                 <field name="budget_type_id"/>
                 <field name="planned_amount"/>
                 <field name="actual_amount"/>
-                <field name="variance_percent"/>
+                <field name="execution_percent"/>
                 <field name="state"/>
                 <field name="responsible_user_id"/>
                 <field name="submission_deadline"/>
+                <field name="version"/>
             </tree>
         </field>
     </record>
@@ -55,45 +56,82 @@
                             class="btn-warning"
                             invisible="state != 'coordination'"
                             groups="budget.group_budget_manager"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,planning,coordination,approved"/>
+                    <button name="action_execute"
+                            string="Почати виконання"
+                            type="object"
+                            class="btn-info"
+                            invisible="state != 'approved'"
+                            groups="budget.group_budget_manager"/>
+                    <button name="action_create_revision"
+                            string="Створити ревізію"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="state != 'approved'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,planning,coordination,approved,executed"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
                             <field name="display_name" readonly="1"/>
                         </h1>
+                        <div class="o_row" invisible="not version or version == '1.0'">
+                            <label for="version" string="Версія:"/>
+                            <field name="version" readonly="1"/>
+                            <field name="is_baseline" invisible="1"/>
+                            <span invisible="not is_baseline" class="badge badge-success ml8">Базова версія</span>
+                        </div>
                     </div>
+
                     <group>
-                        <group>
+                        <group string="Основні параметри">
                             <field name="period_id" options="{'no_create': True}"/>
                             <field name="cbo_id" options="{'no_create': True}"/>
                             <field name="budget_type_id" options="{'no_create': True}"/>
-                            <field name="level"/>
-                            <field name="sales_plan_id" domain="[('company_id', '=', company_id), ('period_id', '=', period_id)]"/>
+                            <field name="budget_level" readonly="1"/>
+                            <field name="calculation_method" readonly="1"/>
                         </group>
-                        <group>
+                        <group string="Відповідальні особи">
                             <field name="company_id" options="{'no_create': True}"/>
                             <field name="responsible_user_id"/>
                             <field name="coordinator_user_id"/>
+                            <field name="approver_user_id"/>
                             <field name="submission_deadline"/>
                         </group>
                     </group>
+
                     <group string="Фінансові показники">
                         <group>
                             <field name="planned_amount"/>
                             <field name="actual_amount" readonly="1"/>
+                            <field name="committed_amount" readonly="1"/>
+                            <field name="available_amount" readonly="1"/>
                         </group>
                         <group>
                             <field name="variance_amount" readonly="1"/>
                             <field name="variance_percent" readonly="1"/>
+                            <field name="execution_percent" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Затвердження" invisible="state != 'approved'">
+
+                    <group string="Інтеграція з продажами" invisible="not sales_forecast_ids">
+                        <field name="sales_forecast_ids" widget="many2many_tags"/>
+                    </group>
+
+                    <group string="Валютні налаштування" invisible="not budget_currency_setting_id">
+                        <field name="budget_currency_setting_id"/>
+                        <field name="currency_id" readonly="1"/>
+                    </group>
+
+                    <group string="Затвердження" invisible="state not in ['approved', 'executed', 'closed']">
                         <group>
                             <field name="approved_by_id" readonly="1"/>
                             <field name="approval_date" readonly="1"/>
                         </group>
+                        <group>
+                            <field name="baseline_budget_id" readonly="1" invisible="not baseline_budget_id"/>
+                        </group>
                     </group>
+
                     <notebook>
                         <page string="Позиції бюджету">
                             <field name="line_ids">
@@ -105,47 +143,88 @@
                                     <field name="quantity"/>
                                     <field name="unit_price"/>
                                     <field name="planned_amount"/>
+                                    <field name="committed_amount"/>
+                                    <field name="actual_amount"/>
                                     <field name="department_id"/>
                                     <field name="project_id"/>
+                                    <field name="is_consolidation" readonly="1"/>
                                 </tree>
                                 <form>
                                     <group>
-                                        <group>
+                                        <group string="Основна інформація">
                                             <field name="description"/>
                                             <field name="account_id"/>
                                             <field name="analytic_account_id"/>
                                             <field name="calculation_method"/>
+                                            <field name="is_consolidation" readonly="1"/>
                                         </group>
-                                        <group>
+                                        <group string="Фінансові показники">
                                             <field name="quantity"/>
                                             <field name="unit_price"/>
                                             <field name="planned_amount"/>
-                                            <field name="department_id"/>
-                                            <field name="project_id"/>
+                                            <field name="committed_amount"/>
+                                            <field name="actual_amount" readonly="1"/>
                                         </group>
                                     </group>
-                                    <group string="Розрахунок">
-                                        <field name="calculation_basis"/>
-                                        <field name="notes"/>
+                                    <group>
+                                        <group string="Аналітичні виміри">
+                                            <field name="department_id"/>
+                                            <field name="project_id"/>
+                                            <field name="sales_forecast_line_id"/>
+                                        </group>
+                                        <group string="Додаткові параметри">
+                                            <field name="percentage_base" invisible="calculation_method != 'percentage'"/>
+                                        </group>
+                                    </group>
+                                    <group string="Розрахунки та обґрунтування">
+                                        <field name="calculation_basis" nolabel="1"/>
+                                        <field name="notes" nolabel="1"/>
                                     </group>
                                 </form>
                             </field>
                         </page>
-                        <page string="Консолідація" invisible="state != 'approved'">
-                            <group string="Батьківський бюджет">
-                                <field name="parent_budget_id"/>
+
+                        <page string="Прогнози продажів" invisible="not sales_forecast_ids">
+                            <field name="sales_forecast_ids" readonly="1">
+                                <tree>
+                                    <field name="team_id"/>
+                                    <field name="channel"/>
+                                    <field name="customer_segment"/>
+                                    <field name="total_forecast_amount"/>
+                                    <field name="margin_percent"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Консолідація" invisible="not child_budget_ids and not parent_budget_id">
+                            <group string="Батьківський бюджет" invisible="not parent_budget_id">
+                                <field name="parent_budget_id" readonly="1"/>
+                                <field name="auto_consolidation" readonly="1"/>
+                                <field name="consolidation_method" readonly="1"/>
                             </group>
-                            <group string="Дочірні бюджети">
+
+                            <group string="Дочірні бюджети" invisible="not child_budget_ids">
                                 <field name="child_budget_ids" readonly="1">
                                     <tree>
                                         <field name="cbo_id"/>
                                         <field name="budget_type_id"/>
                                         <field name="planned_amount"/>
+                                        <field name="actual_amount"/>
+                                        <field name="execution_percent"/>
                                         <field name="state"/>
+                                        <field name="version"/>
                                     </tree>
                                 </field>
                             </group>
                         </page>
+
+                        <page string="Версії" invisible="not baseline_budget_id">
+                            <group>
+                                <field name="baseline_budget_id" readonly="1"/>
+                            </group>
+                        </page>
+
                         <page string="Примітки">
                             <field name="notes"/>
                         </page>
@@ -169,8 +248,12 @@
                 <field name="cbo_id"/>
                 <field name="budget_type_id"/>
                 <field name="planned_amount"/>
+                <field name="actual_amount"/>
+                <field name="execution_percent"/>
                 <field name="state"/>
                 <field name="submission_deadline"/>
+                <field name="responsible_user_id"/>
+                <field name="version"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
@@ -183,10 +266,33 @@
                                         <small class="o_kanban_record_subtitle text-muted">
                                             <field name="cbo_id"/>
                                         </small>
+                                        <div class="float-right" t-if="record.version.raw_value != '1.0'">
+                                            <span class="badge badge-info">v<t t-esc="record.version.value"/></span>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="o_kanban_record_body">
-                                    <field name="planned_amount" widget="monetary"/>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <strong>Планово:</strong><br/>
+                                            <field name="planned_amount" widget="monetary"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Фактично:</strong><br/>
+                                            <field name="actual_amount" widget="monetary"/>
+                                        </div>
+                                    </div>
+                                    <div class="row mt8">
+                                        <div class="col-12">
+                                            <div class="progress">
+                                                <div class="progress-bar"
+                                                     t-att-style="'width:' + Math.min(100, record.execution_percent.raw_value) + '%'"
+                                                     t-att-class="record.execution_percent.raw_value > 100 ? 'bg-warning' : 'bg-success'">
+                                                    <t t-esc="Math.round(record.execution_percent.raw_value)"/>%
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="o_kanban_record_bottom">
                                     <div class="oe_kanban_bottom_left">
@@ -224,6 +330,7 @@
                 <field name="budget_type_id"/>
                 <field name="responsible_user_id"/>
                 <field name="company_id"/>
+                <field name="budget_level"/>
 
                 <separator/>
                 <filter string="Мої бюджети"
@@ -235,23 +342,34 @@
                 <filter string="Затверджені"
                         name="approved"
                         domain="[('state', '=', 'approved')]"/>
+                <filter string="Виконуються"
+                        name="executed"
+                        domain="[('state', '=', 'executed')]"/>
                 <filter string="Прострочені"
                         name="overdue"
-                        domain="[('submission_deadline', '&lt;', context_today()), ('state', '!=', 'approved')]"/>
+                        domain="[('submission_deadline', '&lt;', context_today()), ('state', 'not in', ['approved', 'executed', 'closed'])]"/>
+                <filter string="Базові версії"
+                        name="baseline"
+                        domain="[('is_baseline', '=', True)]"/>
 
                 <separator/>
                 <filter string="Поточний місяць"
                         name="current_month"
                         domain="[('period_id.date_start', '&lt;=', context_today()),
                                 ('period_id.date_end', '&gt;=', context_today())]"/>
+                <filter string="З відхиленнями"
+                        name="with_variance"
+                        domain="[('variance_percent', '!=', 0)]"/>
 
                 <group expand="0" string="Групувати за">
                     <filter string="Статус" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="ЦБО" name="group_cbo" context="{'group_by': 'cbo_id'}"/>
                     <filter string="Тип бюджету" name="group_type" context="{'group_by': 'budget_type_id'}"/>
+                    <filter string="Рівень бюджетування" name="group_level" context="{'group_by': 'budget_level'}"/>
                     <filter string="Період" name="group_period" context="{'group_by': 'period_id'}"/>
                     <filter string="Підприємство" name="group_company" context="{'group_by': 'company_id'}"/>
                     <filter string="Відповідальний" name="group_responsible" context="{'group_by': 'responsible_user_id'}"/>
+                    <filter string="Версія" name="group_version" context="{'group_by': 'version'}"/>
                 </group>
             </search>
         </field>
@@ -262,51 +380,84 @@
         <field name="name">Бюджетні плани</field>
         <field name="res_model">budget.plan</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="domain">[('level', '=', 'level3')]</field>
-        <field name="context">{'default_level': 'level3'}</field>
+        <field name="context">{'search_default_my_budgets': 1}</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Створіть ваш перший бюджет!
             </p>
             <p>
-                Бюджетне планування починається з рівня ЦБО (3 рівень).
+                Бюджетне планування починається з вибору ЦБО та типу бюджету.
+                Система автоматично визначить рівень бюджетування та налаштує процес затвердження.
             </p>
         </field>
     </record>
 
-    <record id="action_budget_plan_level2" model="ir.actions.act_window">
-        <field name="name">Бюджети ПП</field>
+    <record id="action_budget_plan_strategic" model="ir.actions.act_window">
+        <field name="name">Стратегічні бюджети</field>
         <field name="res_model">budget.plan</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('level', '=', 'level2')]</field>
-        <field name="context">{'default_level': 'level2'}</field>
+        <field name="domain">[('budget_level', '=', 'strategic')]</field>
+        <field name="context">{'default_budget_level': 'strategic'}</field>
     </record>
 
-    <record id="action_budget_plan_level1" model="ir.actions.act_window">
-        <field name="name">Консолідований бюджет</field>
+    <record id="action_budget_plan_tactical" model="ir.actions.act_window">
+        <field name="name">Тактичні бюджети</field>
         <field name="res_model">budget.plan</field>
         <field name="view_mode">tree,form</field>
-        <field name="domain">[('level', '=', 'level1')]</field>
-        <field name="context">{'default_level': 'level1'}</field>
+        <field name="domain">[('budget_level', '=', 'tactical')]</field>
+        <field name="context">{'default_budget_level': 'tactical'}</field>
+    </record>
+
+    <record id="action_budget_plan_operational" model="ir.actions.act_window">
+        <field name="name">Операційні бюджети</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('budget_level', '=', 'operational')]</field>
+        <field name="context">{'default_budget_level': 'operational'}</field>
+    </record>
+
+    <record id="action_budget_plan_functional" model="ir.actions.act_window">
+        <field name="name">Функціональні бюджети</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('budget_level', '=', 'functional')]</field>
+        <field name="context">{'default_budget_level': 'functional'}</field>
     </record>
 
     <!-- Menu items для бюджетних планів -->
     <menuitem id="menu_budget_plan"
-              name="Бюджети ЦБО"
+              name="Всі бюджети"
               parent="menu_budget_planning"
               action="action_budget_plan"
               sequence="20"/>
 
-    <menuitem id="menu_budget_plan_level2"
-              name="Бюджети ПП"
+    <menuitem id="menu_budget_plan_by_level"
+              name="За рівнями"
               parent="menu_budget_planning"
-              action="action_budget_plan_level2"
+              sequence="25"/>
+
+    <menuitem id="menu_budget_plan_strategic"
+              name="Стратегічні"
+              parent="menu_budget_plan_by_level"
+              action="action_budget_plan_strategic"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_plan_tactical"
+              name="Тактичні"
+              parent="menu_budget_plan_by_level"
+              action="action_budget_plan_tactical"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_plan_operational"
+              name="Операційні"
+              parent="menu_budget_plan_by_level"
+              action="action_budget_plan_operational"
               sequence="30"/>
 
-    <menuitem id="menu_budget_plan_level1"
-              name="Консолідований бюджет"
-              parent="menu_budget_planning"
-              action="action_budget_plan_level1"
+    <menuitem id="menu_budget_plan_functional"
+              name="Функціональні"
+              parent="menu_budget_plan_by_level"
+              action="action_budget_plan_functional"
               sequence="40"/>
 
 </odoo>

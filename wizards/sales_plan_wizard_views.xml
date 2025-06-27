@@ -2,29 +2,52 @@
 <odoo>
     <!-- wizards/sales_plan_wizard_views.xml -->
 
-    <!-- Майстер створення плану продажів -->
+    <!-- Майстер створення прогнозу продажів -->
     <record id="view_sales_plan_wizard_form" model="ir.ui.view">
         <field name="name">sales.plan.wizard.form</field>
         <field name="model">sales.plan.wizard</field>
         <field name="arch" type="xml">
-            <form string="Створення плану продажів">
+            <form string="Створення прогнозу продажів">
                 <group>
-                    <group>
-                        <field name="period_id"/>
+                    <group string="Основні параметри">
                         <field name="company_id"/>
-                        <field name="copy_previous"/>
+                        <field name="period_id" domain="[('company_id', '=', company_id)]"/>
+                        <field name="forecast_scope"/>
+                        <field name="team_id"
+                               invisible="forecast_scope not in ['team', 'combined']"
+                               required="forecast_scope == 'team'"/>
+                        <field name="cbo_id"
+                               invisible="forecast_scope not in ['cbo', 'combined']"
+                               required="forecast_scope == 'cbo'"/>
+                        <field name="project_id"
+                               invisible="forecast_scope not in ['project', 'combined']"
+                               required="forecast_scope == 'project'"/>
                     </group>
-                    <group>
+                    <group string="Копіювання даних">
+                        <field name="copy_previous"/>
                         <field name="base_period_id"
                                required="copy_previous"
                                invisible="not copy_previous"/>
                         <field name="growth_rate"
                                invisible="not copy_previous"/>
-                        <field name="product_category_ids" widget="many2many_tags"/>
+                        <field name="product_category_ids" widget="many2many_tags"
+                               invisible="copy_previous"/>
                     </group>
                 </group>
+
+                <div class="alert alert-info" role="alert">
+                    <strong>Інформація:</strong>
+                    <ul>
+                        <li><strong>Команда продажів:</strong> Прогноз для конкретної команди продажів</li>
+                        <li><strong>ЦБО:</strong> Прогноз для кластера, бренду або напрямку бізнесу</li>
+                        <li><strong>Проект:</strong> Прогноз для окремого проекту</li>
+                        <li><strong>Комбінований:</strong> Можна вибрати декілька областей одночасно</li>
+                    </ul>
+                    Якщо включено копіювання з попереднього періоду, дані будуть скопійовані з урахуванням темпу росту.
+                </div>
+
                 <footer>
-                    <button name="action_create_plan" string="Створити план" type="object" class="btn-primary"/>
+                    <button name="action_create_plan" string="Створити прогноз" type="object" class="btn-primary"/>
                     <button string="Скасувати" class="btn-secondary" special="cancel"/>
                 </footer>
             </form>
@@ -32,7 +55,7 @@
     </record>
 
     <record id="action_sales_plan_wizard" model="ir.actions.act_window">
-        <field name="name">Створити план продажів</field>
+        <field name="name">Створити прогноз продажів</field>
         <field name="res_model">sales.plan.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

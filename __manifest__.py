@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.2.0.0',
+    'version': '17.0.2.0.1',
     'category': 'Accounting/Management',
     'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО та інтеграцією з прогнозами продажів',
     'description': """
@@ -44,6 +44,7 @@
         # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
         'views/budget_config_views.xml',
         'views/sales_forecast_views.xml',
+        'views/crm_team_extension_views.xml',
         'views/budget_plan_views.xml',
         'views/budget_execution_views.xml',
         'views/budget_dashboard_views.xml',

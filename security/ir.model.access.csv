@@ -50,3 +50,5 @@ access_sales_plan_wizard_user,sales.plan.wizard.user,model_sales_plan_wizard,gro
 access_budget_period_wizard_user,budget.period.wizard.user,model_budget_period_wizard,group_budget_user,1,1,1,1
 access_budget_period_wizard_coordinator,budget.period.wizard.coordinator,model_budget_period_wizard,group_budget_coordinator,1,1,1,1
 access_budget_period_wizard_manager,budget.period.wizard.manager,model_budget_period_wizard,group_budget_manager,1,1,1,1
+access_crm_team_budget_user,crm.team.budget.user,crm.model_crm_team,group_budget_user,1,0,0,0
+access_crm_team_sales_forecast_user,crm.team.sales.forecast.user,crm.model_crm_team,group_sales_forecast_user,1,1,0,0

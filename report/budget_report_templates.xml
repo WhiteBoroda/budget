@@ -36,7 +36,7 @@
                                     </tr>
                                     <tr>
                                         <td><strong>Рівень:</strong></td>
-                                        <td><span t-field="budget.level"/></td>
+                                        <td><span t-field="budget.budget_level"/></td>
                                     </tr>
                                 </table>
                             </div>
@@ -58,6 +58,7 @@
                                             <span t-if="budget.state == 'coordination'">Узгодження</span>
                                             <span t-if="budget.state == 'approved'">Затверджений</span>
                                             <span t-if="budget.state == 'revision'">Доопрацювання</span>
+                                            <span t-if="budget.state == 'executed'">Виконується</span>
                                         </td>
                                     </tr>
                                     <tr>
@@ -88,6 +89,10 @@
                                             (<span t-field="budget.variance_percent"/>%)
                                         </td>
                                     </tr>
+                                    <tr>
+                                        <td><strong>Виконання:</strong></td>
+                                        <td><span t-field="budget.execution_percent"/>%</td>
+                                    </tr>
                                 </table>
                             </div>
                         </div>
@@ -104,7 +109,8 @@
                                             <th>Метод розрахунку</th>
                                             <th>Кількість</th>
                                             <th>Ціна</th>
-                                            <th>Сума</th>
+                                            <th>Планова сума</th>
+                                            <th>Фактична сума</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -115,12 +121,15 @@
                                                 <td>
                                                     <span t-if="line.calculation_method == 'manual'">Ручний ввід</span>
                                                     <span t-if="line.calculation_method == 'norm_based'">За нормативами</span>
-                                                    <span t-if="line.calculation_method == 'percentage'">Відсоток від доходів</span>
+                                                    <span t-if="line.calculation_method == 'percentage'">Відсоток</span>
                                                     <span t-if="line.calculation_method == 'previous_period'">Попередній період</span>
+                                                    <span t-if="line.calculation_method == 'sales_forecast'">Прогноз продажів</span>
+                                                    <span t-if="line.calculation_method == 'consolidation'">Консолідація</span>
                                                 </td>
                                                 <td><span t-field="line.quantity" t-options="{'precision': 2}"/></td>
                                                 <td><span t-field="line.unit_price" t-options="{'widget': 'monetary'}"/></td>
                                                 <td><span t-field="line.planned_amount" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="line.actual_amount" t-options="{'widget': 'monetary'}"/></td>
                                             </tr>
                                         </t>
                                     </tbody>
@@ -128,8 +137,49 @@
                                         <tr>
                                             <th colspan="5">Загалом:</th>
                                             <th><span t-field="budget.planned_amount" t-options="{'widget': 'monetary'}"/></th>
+                                            <th><span t-field="budget.actual_amount" t-options="{'widget': 'monetary'}"/></th>
                                         </tr>
                                     </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Прогнози продажів -->
+                        <div class="row mt32" t-if="budget.sales_forecast_ids">
+                            <div class="col-12">
+                                <h4>Пов'язані прогнози продажів</h4>
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Область прогнозування</th>
+                                            <th>Команда/ЦБО/Проект</th>
+                                            <th>Канал</th>
+                                            <th>Прогнозна сума</th>
+                                            <th>Маржа</th>
+                                            <th>Статус</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <t t-foreach="budget.sales_forecast_ids" t-as="forecast">
+                                            <tr>
+                                                <td>
+                                                    <span t-if="forecast.forecast_scope == 'team'">Команда</span>
+                                                    <span t-if="forecast.forecast_scope == 'cbo'">ЦБО</span>
+                                                    <span t-if="forecast.forecast_scope == 'project'">Проект</span>
+                                                    <span t-if="forecast.forecast_scope == 'combined'">Комбінований</span>
+                                                </td>
+                                                <td>
+                                                    <span t-if="forecast.team_id" t-field="forecast.team_id.name"/>
+                                                    <span t-if="forecast.cbo_id" t-field="forecast.cbo_id.name"/>
+                                                    <span t-if="forecast.project_id" t-field="forecast.project_id.name"/>
+                                                </td>
+                                                <td><span t-field="forecast.channel"/></td>
+                                                <td><span t-field="forecast.total_forecast_amount" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="forecast.margin_percent"/>%</td>
+                                                <td><span t-field="forecast.state"/></td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
                                 </table>
                             </div>
                         </div>
@@ -143,7 +193,7 @@
                         </div>
 
                         <!-- Затвердження -->
-                        <div class="row mt32" t-if="budget.state == 'approved'">
+                        <div class="row mt32" t-if="budget.state in ['approved', 'executed', 'closed']">
                             <div class="col-6">
                                 <h4>Інформація про затвердження</h4>
                                 <table class="table table-sm table-borderless">
@@ -154,6 +204,10 @@
                                     <tr>
                                         <td><strong>Дата затвердження:</strong></td>
                                         <td><span t-field="budget.approval_date"/></td>
+                                    </tr>
+                                    <tr t-if="budget.version != '1.0'">
+                                        <td><strong>Версія:</strong></td>
+                                        <td><span t-field="budget.version"/></td>
                                     </tr>
                                 </table>
                             </div>
@@ -166,10 +220,10 @@
         </t>
     </template>
 
-    <!-- Звіт по плану продажів -->
-    <template id="sales_plan_report_template">
+    <!-- Звіт по прогнозу продажів -->
+    <template id="sales_forecast_report_template">
         <t t-call="web.html_container">
-            <t t-foreach="docs" t-as="plan">
+            <t t-foreach="docs" t-as="forecast">
                 <t t-call="web.external_layout">
                     <div class="page">
                         <div class="oe_structure"/>
@@ -177,8 +231,8 @@
                         <!-- Заголовок звіту -->
                         <div class="row">
                             <div class="col-12 text-center">
-                                <h2>План продажів</h2>
-                                <h3><span t-field="plan.period_id.name"/> - <span t-field="plan.company_id.name"/></h3>
+                                <h2>Прогноз продажів</h2>
+                                <h3><span t-field="forecast.period_id.name"/> - <span t-field="forecast.company_id.name"/></h3>
                             </div>
                         </div>
 
@@ -188,15 +242,32 @@
                                 <table class="table table-sm table-borderless">
                                     <tr>
                                         <td><strong>Період:</strong></td>
-                                        <td><span t-field="plan.period_id.name"/></td>
+                                        <td><span t-field="forecast.period_id.name"/></td>
                                     </tr>
                                     <tr>
-                                        <td><strong>Підприємство:</strong></td>
-                                        <td><span t-field="plan.company_id.name"/></td>
+                                        <td><strong>Область прогнозування:</strong></td>
+                                        <td>
+                                            <span t-if="forecast.forecast_scope == 'team'">Команда продажів</span>
+                                            <span t-if="forecast.forecast_scope == 'cbo'">ЦБО</span>
+                                            <span t-if="forecast.forecast_scope == 'project'">Проект</span>
+                                            <span t-if="forecast.forecast_scope == 'combined'">Комбінований</span>
+                                        </td>
+                                    </tr>
+                                    <tr t-if="forecast.team_id">
+                                        <td><strong>Команда:</strong></td>
+                                        <td><span t-field="forecast.team_id.name"/></td>
+                                    </tr>
+                                    <tr t-if="forecast.cbo_id">
+                                        <td><strong>ЦБО:</strong></td>
+                                        <td><span t-field="forecast.cbo_id.name"/></td>
+                                    </tr>
+                                    <tr t-if="forecast.project_id">
+                                        <td><strong>Проект:</strong></td>
+                                        <td><span t-field="forecast.project_id.name"/></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Відповідальний:</strong></td>
-                                        <td><span t-field="plan.responsible_user_id.name"/></td>
+                                        <td><span t-field="forecast.user_id.name"/></td>
                                     </tr>
                                 </table>
                             </div>
@@ -204,110 +275,87 @@
                                 <table class="table table-sm table-borderless">
                                     <tr>
                                         <td><strong>Загальна сума:</strong></td>
-                                        <td><span t-field="plan.total_planned_amount" t-options="{'widget': 'monetary'}"/></td>
+                                        <td><span t-field="forecast.total_forecast_amount" t-options="{'widget': 'monetary'}"/></td>
                                     </tr>
                                     <tr>
                                         <td><strong>Загальна кількість:</strong></td>
-                                        <td><span t-field="plan.total_planned_qty" t-options="{'precision': 2}"/></td>
+                                        <td><span t-field="forecast.total_forecast_qty" t-options="{'precision': 2}"/></td>
                                     </tr>
-                                    <tr t-if="plan.growth_rate">
+                                    <tr>
+                                        <td><strong>Загальна маржа:</strong></td>
+                                        <td><span t-field="forecast.total_margin" t-options="{'widget': 'monetary'}"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Маржинальність:</strong></td>
+                                        <td><span t-field="forecast.margin_percent"/>%</td>
+                                    </tr>
+                                    <tr t-if="forecast.growth_rate">
                                         <td><strong>Темп росту:</strong></td>
-                                        <td><span t-field="plan.growth_rate"/>%</td>
+                                        <td><span t-field="forecast.growth_rate"/>%</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Канал збуту:</strong></td>
+                                        <td><span t-field="forecast.channel"/></td>
                                     </tr>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Деталізація плану -->
+                        <!-- Деталізація прогнозу -->
                         <div class="row">
                             <div class="col-12">
-                                <h4>Деталізація плану продажів</h4>
+                                <h4>Деталізація прогнозу продажів</h4>
                                 <table class="table table-sm">
                                     <thead>
                                         <tr>
                                             <th>Товар</th>
                                             <th>Категорія</th>
-                                            <th>Канал збуту</th>
-                                            <th>Регіон</th>
+                                            <th>Бренд</th>
                                             <th>Кількість</th>
                                             <th>Ціна</th>
                                             <th>Знижка %</th>
                                             <th>Сума</th>
+                                            <th>Маржа %</th>
+                                            <th>Впевненість</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <t t-foreach="plan.line_ids" t-as="line">
+                                        <t t-foreach="forecast.line_ids" t-as="line">
                                             <tr>
                                                 <td><span t-field="line.product_id.name"/></td>
                                                 <td><span t-field="line.product_category_id.name"/></td>
-                                                <td>
-                                                    <span t-if="line.sales_channel == 'b2b'">B2B</span>
-                                                    <span t-if="line.sales_channel == 'retail'">Роздрібна мережа</span>
-                                                    <span t-if="line.sales_channel == 'export'">Експорт</span>
-                                                    <span t-if="line.sales_channel == 'other'">Інше</span>
-                                                </td>
-                                                <td>
-                                                    <span t-if="line.region == 'local'">Місцевий</span>
-                                                    <span t-if="line.region == 'regional'">Регіональний</span>
-                                                    <span t-if="line.region == 'national'">Національний</span>
-                                                    <span t-if="line.region == 'export'">Експорт</span>
-                                                </td>
-                                                <td><span t-field="line.planned_qty" t-options="{'precision': 2}"/></td>
-                                                <td><span t-field="line.planned_price" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="line.product_brand"/></td>
+                                                <td><span t-field="line.forecast_qty" t-options="{'precision': 2}"/></td>
+                                                <td><span t-field="line.forecast_price" t-options="{'widget': 'monetary'}"/></td>
                                                 <td><span t-field="line.discount_percent"/>%</td>
-                                                <td><span t-field="line.planned_amount" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="line.forecast_amount" t-options="{'widget': 'monetary'}"/></td>
+                                                <td><span t-field="line.margin_percent"/>%</td>
+                                                <td>
+                                                    <span t-if="line.confidence_level == 'low'">Низький</span>
+                                                    <span t-if="line.confidence_level == 'medium'">Середній</span>
+                                                    <span t-if="line.confidence_level == 'high'">Високий</span>
+                                                    <span t-if="line.confidence_level == 'certain'">Впевнений</span>
+                                                </td>
                                             </tr>
                                         </t>
                                     </tbody>
                                     <tfoot>
                                         <tr>
-                                            <th colspan="7">Загалом:</th>
-                                            <th><span t-field="plan.total_planned_amount" t-options="{'widget': 'monetary'}"/></th>
+                                            <th colspan="6">Загалом:</th>
+                                            <th><span t-field="forecast.total_forecast_amount" t-options="{'widget': 'monetary'}"/></th>
+                                            <th><span t-field="forecast.margin_percent"/>%</th>
+                                            <th>-</th>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                         </div>
 
-                        <!-- Аналіз по каналах збуту -->
-                        <div class="row mt32">
-                            <div class="col-12">
-                                <h4>Аналіз по каналах збуту</h4>
-                                <table class="table table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Канал збуту</th>
-                                            <th>Сума</th>
-                                            <th>Частка %</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <t t-set="total_amount" t-value="plan.total_planned_amount"/>
-                                        <t t-set="channels" t-value="plan.line_ids.mapped('sales_channel')"/>
-                                        <t t-foreach="list(set(channels))" t-as="channel">
-                                            <t t-set="channel_lines" t-value="plan.line_ids.filtered(lambda l: l.sales_channel == channel)"/>
-                                            <t t-set="channel_amount" t-value="sum(channel_lines.mapped('planned_amount'))"/>
-                                            <tr>
-                                                <td>
-                                                    <span t-if="channel == 'b2b'">B2B</span>
-                                                    <span t-if="channel == 'retail'">Роздрібна мережа</span>
-                                                    <span t-if="channel == 'export'">Експорт</span>
-                                                    <span t-if="channel == 'other'">Інше</span>
-                                                </td>
-                                                <td><span t-esc="'{:,.2f}'.format(channel_amount)"/> <span t-field="plan.currency_id.symbol"/></td>
-                                                <td><span t-esc="'{:.1f}'.format(channel_amount / total_amount * 100 if total_amount else 0)"/>%</td>
-                                            </tr>
-                                        </t>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
                         <!-- Примітки -->
-                        <div class="row mt32" t-if="plan.notes">
+                        <div class="row mt32" t-if="forecast.notes">
                             <div class="col-12">
                                 <h4>Примітки</h4>
-                                <p t-field="plan.notes"/>
+                                <p t-field="forecast.notes"/>
                             </div>
                         </div>
 
@@ -341,10 +389,11 @@
                                 <thead>
                                     <tr>
                                         <th>Тип бюджету</th>
+                                        <th>Рівень</th>
+                                        <th>ЦБО</th>
                                         <th>Планово</th>
                                         <th>Фактично</th>
                                         <th>Відхилення</th>
-                                        <th>Відхилення %</th>
                                         <th>Виконання %</th>
                                     </tr>
                                 </thead>
@@ -352,25 +401,21 @@
                                     <t t-foreach="docs" t-as="budget">
                                         <tr>
                                             <td><span t-field="budget.budget_type_id.name"/></td>
+                                            <td><span t-field="budget.budget_level"/></td>
+                                            <td><span t-field="budget.cbo_id.name"/></td>
                                             <td><span t-field="budget.planned_amount" t-options="{'widget': 'monetary'}"/></td>
                                             <td><span t-field="budget.actual_amount" t-options="{'widget': 'monetary'}"/></td>
                                             <td><span t-field="budget.variance_amount" t-options="{'widget': 'monetary'}"/></td>
-                                            <td><span t-field="budget.variance_percent"/>%</td>
-                                            <td>
-                                                <t t-if="budget.planned_amount">
-                                                    <span t-esc="'{:.1f}'.format(budget.actual_amount / budget.planned_amount * 100)"/>%
-                                                </t>
-                                            </td>
+                                            <td><span t-field="budget.execution_percent"/>%</td>
                                         </tr>
                                     </t>
                                 </tbody>
                                 <tfoot>
                                     <tr>
-                                        <th>Загалом:</th>
+                                        <th colspan="3">Загалом:</th>
                                         <th><span t-esc="'{:,.2f}'.format(sum(docs.mapped('planned_amount')))"/></th>
                                         <th><span t-esc="'{:,.2f}'.format(sum(docs.mapped('actual_amount')))"/></th>
                                         <th><span t-esc="'{:,.2f}'.format(sum(docs.mapped('variance_amount')))"/></th>
-                                        <th>-</th>
                                         <th>-</th>
                                     </tr>
                                 </tfoot>
@@ -395,13 +440,13 @@
         <field name="binding_type">report</field>
     </record>
 
-    <record id="action_sales_plan_report" model="ir.actions.report">
-        <field name="name">План продажів</field>
-        <field name="model">budget.sales.plan</field>
+    <record id="action_sales_forecast_report" model="ir.actions.report">
+        <field name="name">Прогноз продажів</field>
+        <field name="model">sale.forecast</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">budget.sales_plan_report_template</field>
-        <field name="report_file">budget.sales_plan_report</field>
-        <field name="binding_model_id" ref="model_budget_sales_plan"/>
+        <field name="report_name">budget.sales_forecast_report_template</field>
+        <field name="report_file">budget.sales_forecast_report</field>
+        <field name="binding_model_id" ref="model_sale_forecast"/>
         <field name="binding_type">report</field>
     </record>
 

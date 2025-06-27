@@ -308,7 +308,7 @@
         <field name="domain">[('team_id', 'in', user.sale_team_ids.ids)]</field>
     </record>
 
-    <!-- Шаблони прогнозів -->
+    <!-- ШАБЛОНИ ПРОГНОЗІВ - ИСПРАВЛЕННЫЕ ПРЕДСТАВЛЕНИЯ -->
     <record id="view_sale_forecast_template_tree" model="ir.ui.view">
         <field name="name">sale.forecast.template.tree</field>
         <field name="model">sale.forecast.template</field>
@@ -343,7 +343,7 @@
                     </group>
                     <notebook>
                         <page string="Позиції шаблону">
-                            <field name="line_ids">
+                            <field name="template_line_ids">
                                 <tree editable="bottom">
                                     <field name="product_id"/>
                                     <field name="product_category_id"/>
@@ -364,6 +364,14 @@
         <field name="name">Шаблони прогнозів</field>
         <field name="res_model">sale.forecast.template</field>
         <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть ваш перший шаблон прогнозу!
+            </p>
+            <p>
+                Шаблони дозволяють швидко створювати прогнози продажів на основі попередньо налаштованих позицій.
+            </p>
+        </field>
     </record>
 
     <!-- Графічні представлення -->
@@ -394,12 +402,15 @@
         </field>
     </record>
 
-    <!-- Menu items -->
+    <!-- МЕНЮ - ПРАВИЛЬНАЯ СТРУКТУРА -->
+
+    <!-- Корневое меню для прогнозов продаж (подменю основного меню Бюджетування) -->
     <menuitem id="menu_sale_forecast_root"
               name="Прогнози продажів"
               parent="menu_budget_root"
               sequence="15"/>
 
+    <!-- Подменю прогнозов -->
     <menuitem id="menu_sale_forecast"
               name="Всі прогнози"
               parent="menu_sale_forecast_root"
@@ -418,6 +429,7 @@
               action="action_sale_forecast_team"
               sequence="30"/>
 
+    <!-- ДОБАВЛЯЕМ ОТСУТСТВУЮЩИЙ ПУНКТ МЕНЮ ДЛЯ ШАБЛОНОВ -->
     <menuitem id="menu_sale_forecast_template"
               name="Шаблони прогнозів"
               parent="menu_sale_forecast_root"

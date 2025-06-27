@@ -223,8 +223,8 @@ class SalesForecastTemplate(models.Model):
         ('other', 'Інше')
     ], 'Канал продажів')
 
-    # Шаблонні лінії
-    line_ids = fields.One2many('sale.forecast.template.line', 'template_id', 'Позиції шаблону')
+    # Шаблонні лінії - ИСПРАВЛЕНО НАЗВАНИЕ ПОЛЯ
+    template_line_ids = fields.One2many('sale.forecast.template.line', 'template_id', 'Позиції шаблону')
 
     active = fields.Boolean('Активний', default=True)
 
@@ -240,8 +240,8 @@ class SalesForecastTemplate(models.Model):
 
         forecast = self.env['sale.forecast'].create(forecast_vals)
 
-        # Копіюємо лінії
-        for template_line in self.line_ids:
+        # Копіюємо лінії - ИСПРАВЛЕНО НАЗВАНИЕ ПОЛЯ
+        for template_line in self.template_line_ids:
             line_vals = {
                 'forecast_id': forecast.id,
                 'product_id': template_line.product_id.id,
