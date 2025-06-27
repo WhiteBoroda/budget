@@ -10,9 +10,10 @@
             <tree>
                 <field name="name"/>
                 <field name="code"/>
-                <field name="level"/>
+                <field name="cbo_type"/>
+                <field name="budget_level"/>
                 <field name="responsible_user_id"/>
-                <field name="company_id"/>
+                <field name="business_segment"/>
                 <field name="active"/>
             </tree>
         </field>
@@ -25,20 +26,40 @@
             <form>
                 <sheet>
                     <group>
-                        <group>
+                        <group string="Основна інформація">
                             <field name="name"/>
                             <field name="code"/>
-                            <field name="level"/>
+                            <field name="cbo_type"/>
+                            <field name="budget_level"/>
                             <field name="parent_id"/>
                         </group>
-                        <group>
+                        <group string="Відповідальні особи">
                             <field name="responsible_user_id"/>
+                            <field name="approver_user_id"/>
                             <field name="department_id"/>
-                            <field name="company_id"/>
                             <field name="sequence"/>
                             <field name="active"/>
                         </group>
                     </group>
+
+                    <group string="Організаційні зв'язки">
+                        <group>
+                            <field name="company_ids" widget="many2many_tags"/>
+                            <field name="business_segment"/>
+                        </group>
+                        <group>
+                            <field name="country_id"/>
+                            <field name="region"/>
+                        </group>
+                    </group>
+
+                    <group string="Налаштування бюджетування">
+                        <group>
+                            <field name="auto_consolidation"/>
+                            <field name="consolidation_method" invisible="not auto_consolidation"/>
+                        </group>
+                    </group>
+
                     <notebook>
                         <page string="Типи бюджетів">
                             <field name="budget_type_ids">
@@ -46,6 +67,7 @@
                                     <field name="code"/>
                                     <field name="name"/>
                                     <field name="budget_category"/>
+                                    <field name="calculation_method"/>
                                 </tree>
                             </field>
                         </page>
@@ -54,7 +76,8 @@
                                 <tree>
                                     <field name="code"/>
                                     <field name="name"/>
-                                    <field name="level"/>
+                                    <field name="cbo_type"/>
+                                    <field name="budget_level"/>
                                     <field name="responsible_user_id"/>
                                 </tree>
                             </field>
@@ -62,6 +85,29 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_responsibility_center_search" model="ir.ui.view">
+        <field name="name">budget.responsibility.center.search</field>
+        <field name="model">budget.responsibility.center</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="code"/>
+                <field name="responsible_user_id"/>
+                <field name="business_segment"/>
+
+                <separator/>
+                <filter string="Активні" name="active" domain="[('active', '=', True)]"/>
+                <filter string="Мої ЦБО" name="my_cbo" domain="[('responsible_user_id', '=', uid)]"/>
+
+                <group expand="0" string="Групувати за">
+                    <filter string="Тип ЦБО" name="group_type" context="{'group_by': 'cbo_type'}"/>
+                    <filter string="Рівень бюджетування" name="group_level" context="{'group_by': 'budget_level'}"/>
+                    <filter string="Бізнес-сегмент" name="group_segment" context="{'group_by': 'business_segment'}"/>
+                </group>
+            </search>
         </field>
     </record>
 
@@ -87,6 +133,7 @@
                 <field name="name"/>
                 <field name="budget_category"/>
                 <field name="calculation_method"/>
+                <field name="applicable_cbo_types"/>
                 <field name="approval_required"/>
                 <field name="active"/>
             </tree>
@@ -107,6 +154,7 @@
                             <field name="calculation_method"/>
                         </group>
                         <group>
+                            <field name="applicable_cbo_types"/>
                             <field name="approval_required"/>
                             <field name="sequence"/>
                             <field name="active"/>
@@ -121,8 +169,20 @@
                                 <tree>
                                     <field name="code"/>
                                     <field name="name"/>
-                                    <field name="level"/>
+                                    <field name="cbo_type"/>
+                                    <field name="budget_level"/>
                                     <field name="responsible_user_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Налаштування по рівнях">
+                            <field name="level_settings">
+                                <tree editable="bottom">
+                                    <field name="budget_level"/>
+                                    <field name="is_required"/>
+                                    <field name="calculation_method"/>
+                                    <field name="deadline_days"/>
+                                    <field name="approval_workflow"/>
                                 </tree>
                             </field>
                         </page>
@@ -152,9 +212,11 @@
             <tree>
                 <field name="name"/>
                 <field name="period_type"/>
+                <field name="planning_cycle"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="state"/>
+                <field name="is_forecast"/>
                 <field name="company_id"/>
             </tree>
         </field>
@@ -170,12 +232,14 @@
                         <group>
                             <field name="name"/>
                             <field name="period_type"/>
+                            <field name="planning_cycle"/>
                             <field name="date_start"/>
                             <field name="date_end"/>
                         </group>
                         <group>
                             <field name="state"/>
                             <field name="company_id"/>
+                            <field name="is_forecast"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -203,5 +267,66 @@
               parent="menu_budget_config"
               action="action_budget_period"
               sequence="30"/>
+
+    <!-- Валютні налаштування -->
+    <record id="view_budget_currency_setting_tree" model="ir.ui.view">
+        <field name="name">budget.currency.setting.tree</field>
+        <field name="model">budget.currency.setting</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="base_currency_id"/>
+                <field name="reporting_currency_id"/>
+                <field name="use_planned_rates"/>
+                <field name="planning_rate"/>
+                <field name="active"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_currency_setting_form" model="ir.ui.view">
+        <field name="name">budget.currency.setting.form</field>
+        <field name="model">budget.currency.setting</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="base_currency_id"/>
+                            <field name="reporting_currency_id"/>
+                        </group>
+                        <group>
+                            <field name="use_planned_rates"/>
+                            <field name="planning_rate" invisible="not use_planned_rates"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="ЦБО які використовують ці налаштування">
+                        <field name="cbo_ids" nolabel="1">
+                            <tree>
+                                <field name="code"/>
+                                <field name="name"/>
+                                <field name="cbo_type"/>
+                                <field name="budget_level"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_currency_setting" model="ir.actions.act_window">
+        <field name="name">Валютні налаштування</field>
+        <field name="res_model">budget.currency.setting</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <menuitem id="menu_budget_currency_setting"
+              name="Валютні налаштування"
+              parent="menu_budget_config"
+              action="action_budget_currency_setting"
+              sequence="40"/>
 
 </odoo>
