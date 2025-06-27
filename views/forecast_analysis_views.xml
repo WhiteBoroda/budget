@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/forecast_analysis_views.xml -->
+
+    <!-- Pivot view для анализа прогнозов по проектам -->
+    <record id="view_sale_forecast_project_pivot" model="ir.ui.view">
+        <field name="name">sale.forecast.project.pivot</field>
+        <field name="model">sale.forecast</field>
+        <field name="arch" type="xml">
+            <pivot string="Аналіз прогнозів по проектах">
+                <field name="project_id" type="row"/>
+                <field name="cbo_id" type="row"/>
+                <field name="period_id" type="col"/>
+                <field name="state" type="col"/>
+                <field name="total_forecast_amount" type="measure"/>
+                <field name="total_margin" type="measure"/>
+                <field name="margin_percent" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- Graph view для прогнозов по ЦБО -->
+    <record id="view_sale_forecast_cbo_graph" model="ir.ui.view">
+        <field name="name">sale.forecast.cbo.graph</field>
+        <field name="model">sale.forecast</field>
+        <field name="arch" type="xml">
+            <graph string="Прогнози по ЦБО" type="bar">
+                <field name="cbo_id"/>
+                <field name="total_forecast_amount" type="measure"/>
+                <field name="total_margin" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <!-- Dashboard для проектов продаж -->
+    <record id="action_sales_project_dashboard" model="ir.actions.act_window">
+        <field name="name">Дашборд проектів продажів</field>
+        <field name="res_model">sale.forecast</field>
+        <field name="view_mode">graph,pivot,kanban,tree</field>
+        <field name="domain">[('project_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_group_project': 1,
+            'search_default_approved': 1
+        }</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_sale_forecast_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_sale_forecast_project_pivot')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sale_forecast_kanban')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_sale_forecast_tree')})]"/>
+    </record>
+
+    <!-- Dashboard для ЦБО -->
+    <record id="action_sales_cbo_dashboard" model="ir.actions.act_window">
+        <field name="name">Дашборд прогнозів по ЦБО</field>
+        <field name="res_model">sale.forecast</field>
+        <field name="view_mode">graph,pivot,kanban,tree</field>
+        <field name="domain">[('cbo_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_group_cbo': 1,
+            'search_default_approved': 1
+        }</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_sale_forecast_cbo_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_sale_forecast_pivot')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_sale_forecast_kanban')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_sale_forecast_tree')})]"/>
+    </record>
+
+    <!-- Меню для аналитики -->
+    <menuitem id="menu_forecast_analytics"
+              name="Аналітика прогнозів"
+              parent="menu_sale_forecast_root"
+              sequence="60"/>
+
+    <menuitem id="menu_sales_project_dashboard"
+              name="По проектах"
+              parent="menu_forecast_analytics"
+              action="action_sales_project_dashboard"
+              sequence="10"/>
+
+    <menuitem id="menu_sales_cbo_dashboard"
+              name="По ЦБО"
+              parent="menu_forecast_analytics"
+              action="action_sales_cbo_dashboard"
+              sequence="20"/>
+
+    <!-- Дополнительные фильтры для команд продаж -->
+    <record id="action_teams_with_forecasts" model="ir.actions.act_window">
+        <field name="name">Команди з прогнозами</field>
+        <field name="res_model">crm.team</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('forecast_count', '>', 0)]</field>
+        <field name="context">{'search_default_group_cbo': 1}</field>
+    </record>
+
+    <record id="action_projects_with_forecasts" model="ir.actions.act_window">
+        <field name="name">Проекти з прогнозами</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('is_sales_project', '=', True), ('forecast_count', '>', 0)]</field>
+        <field name="context">{'search_default_group_cbo': 1}</field>
+    </record>
+
+</odoo>

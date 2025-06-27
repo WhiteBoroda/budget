@@ -44,6 +44,8 @@
         # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
         'views/budget_config_views.xml',
         'views/sales_forecast_views.xml',
+        'views/crm_team_views.xml',
+        'views/project_views.xml',
         'views/crm_team_extension_views.xml',
         'views/budget_plan_views.xml',
         'views/budget_execution_views.xml',

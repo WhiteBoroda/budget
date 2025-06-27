@@ -14,8 +14,6 @@
                 <field name="display_name"/>
                 <field name="period_id"/>
                 <field name="team_id"/>
-                <field name="project_id"/>
-                <field name="cbo_id"/>
                 <field name="channel"/>
                 <field name="customer_segment"/>
                 <field name="total_forecast_amount"/>
@@ -75,18 +73,11 @@
                             <field name="customer_segment"/>
                             <field name="forecast_base"/>
                         </group>
-                        <group string="Інтеграція">
-                            <field name="project_id" options="{'no_create': True}"/>
-                            <field name="cbo_id" options="{'no_create': True}"/>
-                            <field name="company_id" options="{'no_create': True}"/>
-                            <field name="currency_id"/>
-                        </group>
-                    </group>
-
-                    <group string="Географія">
-                        <group>
+                        <group string="Географія">
                             <field name="country_id"/>
                             <field name="state_id"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="currency_id"/>
                         </group>
                     </group>
 
@@ -247,8 +238,6 @@
                                      ('notes', 'ilike', self)]"/>
                 <field name="period_id"/>
                 <field name="team_id"/>
-                <field name="project_id"/>
-                <field name="cbo_id"/>
                 <field name="user_id"/>
                 <field name="channel"/>
                 <field name="customer_segment"/>
@@ -279,8 +268,6 @@
                 <group expand="0" string="Групувати за">
                     <filter string="Статус" name="group_state" context="{'group_by': 'state'}"/>
                     <filter string="Команда" name="group_team" context="{'group_by': 'team_id'}"/>
-                    <filter string="Проект" name="group_project" context="{'group_by': 'project_id'}"/>
-                    <filter string="ЦБО" name="group_cbo" context="{'group_by': 'cbo_id'}"/>
                     <filter string="Канал" name="group_channel" context="{'group_by': 'channel'}"/>
                     <filter string="Період" name="group_period" context="{'group_by': 'period_id'}"/>
                     <filter string="Сегмент клієнтів" name="group_segment" context="{'group_by': 'customer_segment'}"/>
@@ -319,22 +306,6 @@
         <field name="res_model">sale.forecast</field>
         <field name="view_mode">kanban,tree,form</field>
         <field name="domain">[('team_id', 'in', user.sale_team_ids.ids)]</field>
-    </record>
-
-    <record id="action_sale_forecast_project" model="ir.actions.act_window">
-        <field name="name">Прогнози по проектах</field>
-        <field name="res_model">sale.forecast</field>
-        <field name="view_mode">kanban,tree,form</field>
-        <field name="domain">[('project_id', '!=', False)]</field>
-        <field name="context">{'search_default_group_project': 1}</field>
-    </record>
-
-    <record id="action_sale_forecast_cbo" model="ir.actions.act_window">
-        <field name="name">Прогнози по ЦБО</field>
-        <field name="res_model">sale.forecast</field>
-        <field name="view_mode">kanban,tree,form</field>
-        <field name="domain">[('cbo_id', '!=', False)]</field>
-        <field name="context">{'search_default_group_cbo': 1}</field>
     </record>
 
     <!-- ШАБЛОНИ ПРОГНОЗІВ - ИСПРАВЛЕННЫЕ ПРЕДСТАВЛЕНИЯ -->
@@ -457,18 +428,6 @@
               parent="menu_sale_forecast_root"
               action="action_sale_forecast_team"
               sequence="30"/>
-
-    <menuitem id="menu_sale_forecast_project"
-              name="По проектах"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_project"
-              sequence="35"/>
-
-    <menuitem id="menu_sale_forecast_cbo"
-              name="По ЦБО"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_cbo"
-              sequence="37"/>
 
     <!-- ДОБАВЛЯЕМ ОТСУТСТВУЮЩИЙ ПУНКТ МЕНЮ ДЛЯ ШАБЛОНОВ -->
     <menuitem id="menu_sale_forecast_template"

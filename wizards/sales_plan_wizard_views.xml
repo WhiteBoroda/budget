@@ -1,54 +1,69 @@
-<?xml version="1.0" encoding="UTF-8" ?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- wizards/sales_plan_wizard_views.xml -->
+    <!-- views/sales_plan_wizard_views.xml -->
 
-    <!-- Майстер створення прогнозу продажів -->
     <record id="view_sales_plan_wizard_form" model="ir.ui.view">
         <field name="name">sales.plan.wizard.form</field>
         <field name="model">sales.plan.wizard</field>
         <field name="arch" type="xml">
-            <form string="Створення прогнозу продажів">
+            <form string="Майстер створення прогнозу продажів">
                 <group>
                     <group string="Основні параметри">
-                        <field name="company_id"/>
-                        <field name="period_id" domain="[('company_id', '=', company_id)]"/>
+                        <field name="company_id" options="{'no_create': True}"/>
+                        <field name="period_id" options="{'no_create': True}"/>
                         <field name="forecast_scope"/>
-                        <field name="team_id"
-                               invisible="forecast_scope not in ['team', 'combined']"
-                               required="forecast_scope == 'team'"/>
-                        <field name="cbo_id"
-                               invisible="forecast_scope not in ['cbo', 'combined']"
-                               required="forecast_scope == 'cbo'"/>
-                        <field name="project_id"
-                               invisible="forecast_scope not in ['project', 'combined']"
-                               required="forecast_scope == 'project'"/>
                     </group>
                     <group string="Копіювання даних">
                         <field name="copy_previous"/>
                         <field name="base_period_id"
-                               required="copy_previous"
-                               invisible="not copy_previous"/>
+                               invisible="not copy_previous"
+                               options="{'no_create': True}"/>
                         <field name="growth_rate"
                                invisible="not copy_previous"/>
-                        <field name="product_category_ids" widget="many2many_tags"
-                               invisible="copy_previous"/>
                     </group>
                 </group>
 
-                <div class="alert alert-info" role="alert">
-                    <strong>Інформація:</strong>
-                    <ul>
-                        <li><strong>Команда продажів:</strong> Прогноз для конкретної команди продажів</li>
-                        <li><strong>ЦБО:</strong> Прогноз для кластера, бренду або напрямку бізнесу</li>
-                        <li><strong>Проект:</strong> Прогноз для окремого проекту</li>
-                        <li><strong>Комбінований:</strong> Можна вибрати декілька областей одночасно</li>
-                    </ul>
-                    Якщо включено копіювання з попереднього періоду, дані будуть скопійовані з урахуванням темпу росту.
-                </div>
+                <group string="Область прогнозування">
+                    <group>
+                        <field name="team_id"
+                               invisible="forecast_scope not in ['team', 'combined']"
+                               options="{'no_create': True}"/>
+                        <field name="cbo_id"
+                               invisible="forecast_scope not in ['cbo', 'combined']"
+                               options="{'no_create': True}"/>
+                        <field name="project_id"
+                               invisible="forecast_scope not in ['project', 'combined']"
+                               options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="channel"/>
+                        <field name="customer_segment"/>
+                    </group>
+                </group>
+
+                <group string="Географія">
+                    <group>
+                        <field name="country_id" options="{'no_create': True}"/>
+                        <field name="state_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+
+                <group string="Категорії товарів">
+                    <field name="product_category_ids" widget="many2many_tags"/>
+                </group>
 
                 <footer>
-                    <button name="action_create_plan" string="Створити прогноз" type="object" class="btn-primary"/>
-                    <button string="Скасувати" class="btn-secondary" special="cancel"/>
+                    <button name="action_create_plan"
+                            string="Створити прогноз"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_preview_plan"
+                            string="Попередній перегляд"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Скасувати"
+                            class="btn-default"
+                            special="cancel"/>
                 </footer>
             </form>
         </field>
@@ -59,50 +74,15 @@
         <field name="res_model">sales.plan.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
+        <field name="binding_model_id" ref="model_sale_forecast"/>
+        <field name="binding_view_types">list</field>
     </record>
 
-    <!-- Server Actions для контекстных меню -->
-    <record id="action_consolidate_budgets_context" model="ir.actions.server">
-        <field name="name">Консолідувати бюджети</field>
-        <field name="model_id" ref="model_budget_plan"/>
-        <field name="binding_model_id" ref="model_budget_plan"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">
-action = {
-    'type': 'ir.actions.act_window',
-    'name': 'Консолідація бюджетів',
-    'res_model': 'budget.consolidation.wizard',
-    'view_mode': 'form',
-    'target': 'new',
-    'context': {
-        'default_period_id': records[0].period_id.id if records else False,
-        'default_company_ids': [(6, 0, records.mapped('company_id').ids)] if records else [],
-    },
-}
-        </field>
-    </record>
-
-    <record id="action_approve_budgets_context" model="ir.actions.server">
-        <field name="name">Затвердити бюджети</field>
-        <field name="model_id" ref="model_budget_plan"/>
-        <field name="binding_model_id" ref="model_budget_plan"/>
-        <field name="binding_view_types">list</field>
-        <field name="state">code</field>
-        <field name="code">
-action = {
-    'type': 'ir.actions.act_window',
-    'name': 'Затвердження бюджетів',
-    'res_model': 'budget.approval.wizard',
-    'view_mode': 'form',
-    'target': 'new',
-    'context': {
-        'default_budget_ids': [(6, 0, records.ids)],
-        'active_ids': records.ids,
-        'active_model': 'budget.plan',
-    },
-}
-        </field>
-    </record>
+    <!-- Додаємо пункт меню для швидкого створення прогнозу -->
+    <menuitem id="menu_sales_plan_wizard"
+              name="Створити прогноз"
+              parent="menu_sale_forecast_root"
+              action="action_sales_plan_wizard"
+              sequence="50"/>
 
 </odoo>

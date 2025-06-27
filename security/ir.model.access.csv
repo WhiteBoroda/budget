@@ -26,6 +26,11 @@ access_sale_forecast_template_manager,sale.forecast.template.manager,model_sale_
 access_sale_forecast_template_line_user,sale.forecast.template.line.user,model_sale_forecast_template_line,group_budget_user,1,1,1,1
 access_sale_forecast_template_line_coordinator,sale.forecast.template.line.coordinator,model_sale_forecast_template_line,group_budget_coordinator,1,1,1,1
 access_sale_forecast_template_line_manager,sale.forecast.template.line.manager,model_sale_forecast_template_line,group_budget_manager,1,1,1,1
+access_sales_plan_wizard_user,sales.plan.wizard.user,model_sales_plan_wizard,group_budget_user,1,1,1,1
+access_sales_plan_wizard_coordinator,sales.plan.wizard.coordinator,model_sales_plan_wizard,group_budget_coordinator,1,1,1,1
+access_sales_plan_wizard_manager,sales.plan.wizard.manager,model_sales_plan_wizard,group_budget_manager,1,1,1,1
+access_sales_plan_wizard_forecast_user,sales.plan.wizard.forecast.user,model_sales_plan_wizard,group_sales_forecast_user,1,1,1,1
+access_sales_plan_wizard_forecast_manager,sales.plan.wizard.forecast.manager,model_sales_plan_wizard,group_sales_forecast_manager,1,1,1,1
 access_budget_plan_user,budget.plan.user,model_budget_plan,group_budget_user,1,1,1,0
 access_budget_plan_coordinator,budget.plan.coordinator,model_budget_plan,group_budget_coordinator,1,1,1,1
 access_budget_plan_manager,budget.plan.manager,model_budget_plan,group_budget_manager,1,1,1,1
@@ -46,9 +51,6 @@ access_budget_notification_coordinator,budget.notification.coordinator,model_bud
 access_budget_notification_manager,budget.notification.manager,model_budget_notification,group_budget_manager,1,1,1,1
 access_budget_approval_wizard_user,budget.approval.wizard.user,model_budget_approval_wizard,group_budget_user,1,1,1,1
 access_budget_consolidation_wizard_coordinator,budget.consolidation.wizard.coordinator,model_budget_consolidation_wizard,group_budget_coordinator,1,1,1,1
-access_sales_plan_wizard_user,sales.plan.wizard.user,model_sales_plan_wizard,group_budget_user,1,1,1,1
 access_budget_period_wizard_user,budget.period.wizard.user,model_budget_period_wizard,group_budget_user,1,1,1,1
 access_budget_period_wizard_coordinator,budget.period.wizard.coordinator,model_budget_period_wizard,group_budget_coordinator,1,1,1,1
 access_budget_period_wizard_manager,budget.period.wizard.manager,model_budget_period_wizard,group_budget_manager,1,1,1,1
-access_crm_team_budget_user,crm.team.budget.user,crm.model_crm_team,group_budget_user,1,0,0,0
-access_crm_team_sales_forecast_user,crm.team.sales.forecast.user,crm.model_crm_team,group_sales_forecast_user,1,1,0,0

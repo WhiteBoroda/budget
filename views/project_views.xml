@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/project_views.xml -->
+
+    <!-- Расширение формы проекта -->
+    <record id="project_project_view_form_inherit_budget" model="ir.ui.view">
+        <field name="name">project.project.form.inherit.budget</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.edit_project"/>
+        <field name="arch" type="xml">
+
+            <!-- Добавляем кнопки в header -->
+            <xpath expr="//header" position="inside">
+                <button name="action_view_forecasts"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-line-chart"
+                        invisible="forecast_count == 0">
+                    <field name="forecast_count" widget="statinfo" string="Прогнози"/>
+                </button>
+                <button name="action_create_forecast"
+                        type="object"
+                        class="oe_stat_button"
+                        icon="fa-plus"
+                        string="Створити прогноз"
+                        invisible="not is_sales_project"/>
+            </xpath>
+
+            <!-- Добавляем поля после основной группы -->
+            <xpath expr="//sheet//group[1]" position="after">
+                <group string="Інтеграція з продажами та бюджетуванням" invisible="not is_sales_project">
+                    <group>
+                        <field name="is_sales_project"/>
+                        <field name="responsibility_center_id"
+                               options="{'no_create': True}"
+                               invisible="not is_sales_project"/>
+                    </group>
+                    <group>
+                        <field name="forecast_count" readonly="1" invisible="not is_sales_project"/>
+                        <field name="total_forecast_amount"
+                               widget="monetary"
+                               readonly="1"
+                               invisible="not is_sales_project"/>
+                    </group>
+                </group>
+            </xpath>
+
+            <!-- Добавляем is_sales_project в начало для контроля видимости -->
+            <xpath expr="//sheet//group[1]//field[@name='partner_id']" position="after">
+                <field name="is_sales_project"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- Расширение tree view проектов -->
+    <record id="project_project_view_tree_inherit_budget" model="ir.ui.view">
+        <field name="name">project.project.tree.inherit.budget</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="is_sales_project" widget="boolean_toggle"/>
+                <field name="responsibility_center_id"/>
+                <field name="forecast_count"/>
+                <field name="total_forecast_amount" widget="monetary"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Фильтры для проектов -->
+    <record id="project_project_view_search_inherit_budget" model="ir.ui.view">
+        <field name="name">project.project.search.inherit.budget</field>
+        <field name="model">project.project</field>
+        <field name="inherit_id" ref="project.view_project_project_filter"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <field name="responsibility_center_id"/>
+                <field name="is_sales_project"/>
+            </xpath>
+
+            <xpath expr="//filter[@name='inactive']" position="after">
+                <separator/>
+                <filter string="Проекти продажів"
+                        name="sales_projects"
+                        domain="[('is_sales_project', '=', True)]"/>
+                <filter string="З прогнозами"
+                        name="with_forecasts"
+                        domain="[('forecast_count', '>', 0)]"/>
+                <filter string="Без прогнозів"
+                        name="without_forecasts"
+                        domain="[('is_sales_project', '=', True), ('forecast_count', '=', 0)]"/>
+            </xpath>
+
+            <xpath expr="//group[@name='groupby']" position="inside">
+                <filter string="ЦБО"
+                        name="group_cbo"
+                        context="{'group_by': 'responsibility_center_id'}"/>
+                <filter string="Тип проекту"
+                        name="group_sales_type"
+                        context="{'group_by': 'is_sales_project'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Server action для создания прогноза из проекта -->
+    <record id="action_create_forecast_from_project" model="ir.actions.server">
+        <field name="name">Створити прогноз продажів</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="binding_model_id" ref="project.model_project_project"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+for project in records:
+    if project.is_sales_project:
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': f'Створити прогноз для проекту {project.name}',
+            'res_model': 'sales.plan.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_project_id': project.id,
+                'default_forecast_scope': 'project',
+                'default_cbo_id': project.responsibility_center_id.id if project.responsibility_center_id else False,
+                'default_company_id': project.company_id.id if project.company_id else False,
+            }
+        }
+    else:
+        raise UserError('Можна створювати прогнози тільки для проектів продажів. Спочатку позначте проект як "Проект продажів".')
+        </field>
+    </record>
+
+</odoo>
