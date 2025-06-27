@@ -37,9 +37,23 @@ class ResponsibilityCenter(models.Model):
 
     @api.constrains('parent_id')
     def _check_hierarchy(self):
+        """Перевірка на рекурсивну ієрархію"""
         for record in self:
-            if record.parent_id and self._check_recursion():
-                raise ValidationError('Неможливо створити рекурсивну ієрархію ЦБО!')
+            if record.parent_id:
+                # Проверяем, что запись не ссылается сама на себя
+                if record.parent_id.id == record.id:
+                    raise ValidationError('ЦБО не може бути батьківським для самого себе!')
+
+                # Проверяем рекурсию вручную
+                parent = record.parent_id
+                visited = set()
+                while parent:
+                    if parent.id in visited:
+                        raise ValidationError('Неможливо створити рекурсивну ієрархію ЦБО!')
+                    if parent.id == record.id:
+                        raise ValidationError('Неможливо створити рекурсивну ієрархію ЦБО!')
+                    visited.add(parent.id)
+                    parent = parent.parent_id
 
 
 class BudgetType(models.Model):

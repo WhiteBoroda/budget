@@ -9,15 +9,16 @@ class BudgetPlan(models.Model):
     _name = 'budget.plan'
     _description = 'Бюджетний план'
     _order = 'period_id desc, level, cbo_id'
-    _rec_name = 'display_name'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    @api.depends('period_id', 'cbo_id', 'budget_type_id')
     def _compute_display_name(self):
         for record in self:
-            record.display_name = f"{record.budget_type_id.name} - {record.cbo_id.name} ({record.period_id.name})"
+            budget_type_name = record.budget_type_id.name if record.budget_type_id else 'Без типу'
+            cbo_name = record.cbo_id.name if record.cbo_id else 'Без ЦБО'
+            period_name = record.period_id.name if record.period_id else 'Без періоду'
+            record.display_name = f"{budget_type_name} - {cbo_name} ({period_name})"
 
-    display_name = fields.Char('Назва', compute='_compute_display_name', store=True)
+    display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
 
     period_id = fields.Many2one('budget.period', 'Період', required=True)
     cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО', required=True)

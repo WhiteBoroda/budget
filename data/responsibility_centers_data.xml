@@ -3,7 +3,9 @@
     <!-- data/responsibility_centers_data.xml -->
 
     <data noupdate="1">
-        <!-- ЦБО Управляючої компанії (батьківські записи) -->
+        <!-- Сначала создаем КОРНЕВЫЕ ЦБО без parent_id -->
+
+        <!-- ЦБО Управляющей компании (корневой уровень) -->
         <record id="cbo_uk_management" model="budget.responsibility.center">
             <field name="name">Керівництво УК</field>
             <field name="code">UK_MGT</field>
@@ -12,7 +14,16 @@
             <field name="company_id" ref="base.main_company"/>
         </record>
 
-        <!-- Дочірні ЦБО УК (створюються після батьківського) -->
+        <!-- ЦБО Производственных предприятий (корневой уровень) -->
+        <record id="cbo_pp_management" model="budget.responsibility.center">
+            <field name="name">Керівництво підприємством</field>
+            <field name="code">PP_MGT</field>
+            <field name="level">production_enterprise</field>
+            <field name="sequence">100</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- ДОЧЕРНИЕ ЦБО УК (создаются ПОСЛЕ родительских) -->
         <record id="cbo_uk_sales" model="budget.responsibility.center">
             <field name="name">Управління продажів</field>
             <field name="code">UK_SALES</field>
@@ -67,16 +78,7 @@
             <field name="company_id" ref="base.main_company"/>
         </record>
 
-        <!-- ЦБО Виробничих підприємств (окремі батьківські записи) -->
-        <record id="cbo_pp_management" model="budget.responsibility.center">
-            <field name="name">Керівництво підприємством</field>
-            <field name="code">PP_MGT</field>
-            <field name="level">production_enterprise</field>
-            <field name="sequence">100</field>
-            <field name="company_id" ref="base.main_company"/>
-        </record>
-
-        <!-- Дочірні ЦБО ПП -->
+        <!-- ДОЧЕРНИЕ ЦБО ПП (создаются ПОСЛЕ родительского) -->
         <record id="cbo_pp_production" model="budget.responsibility.center">
             <field name="name">Виробничий відділ</field>
             <field name="code">PP_PROD</field>

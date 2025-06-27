@@ -1,21 +1,20 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.1.0.0',
+    'version': '17.0.1.0.3',
     'category': 'Accounting/Management',
     'summary': 'Комплексна система бюджетування з трирівневою структурою',
     'description': """
+Система бюджетування для групи компаній "Хлебодар"
 
-                                              Система бюджетування для групи компаній "Хлебодар"
-
-                                              Функціонал:
-                                              * Трирівнева структура бюджетування (ЦБО, ПП, Консолідований)
-                                              * Формування планів продажів
-                                              * 32 типи бюджетів згідно регламенту
-                                              * Матрична структура відповідальності
-                                              * Автоматизація процесів узгодження
-                                              * Звітність та аналітика
-                                          """,
+Функціонал:
+* Трирівнева структура бюджетування (ЦБО, ПП, Консолідований)
+* Формування планів продажів
+* 32 типи бюджетів згідно регламенту
+* Матрична структура відповідальності
+* Автоматизація процесів узгодження
+* Звітність та аналітика
+""",
     'author': 'HD Digital Solution',
     'website': 'https://hd-group.ua',
     'license': 'LGPL-3',
@@ -30,17 +29,17 @@
         'mail'
     ],
     'data': [
-        # Безпека (завжди першою)
+        # 1. БЕЗПЕКА (завжди першою)
         'security/budget_security.xml',
         'security/ir.model.access.csv',
 
-        # Послідовності та базові дані
+        # 2. ПОСЛІДОВНОСТІ (потрібні для моделей)
         'data/ir_sequence_data.xml',
-        'data/budget_types_data.xml',
-        'data/responsibility_centers_data.xml',
 
-        # Основні представлення (menu завжди першим)
+        # 3. МЕНЮ (базова структура)
         'views/menu_views.xml',
+
+        # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
         'views/budget_config_views.xml',
         'views/sales_plan_views.xml',
         'views/budget_plan_views.xml',
@@ -52,15 +51,20 @@
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
 
-        # Wizards (після основних представлень)
+        # 5. WIZARDS (після основних представлень)
         'wizards/budget_approval_wizard_views.xml',
         'wizards/budget_consolidation_wizard_views.xml',
         'wizards/sales_plan_wizard_views.xml',
+        'wizards/budget_period_wizard_views.xml',
 
-        # Звіти
+        # 6. ЗВІТИ
         'report/budget_report_templates.xml',
 
-        # Шаблони пошти та автоматизація (наприкінці)
+        # 7. БАЗОВІ ДАНІ (після всіх представлень і wizards)
+        'data/budget_types_data.xml',
+        'data/responsibility_centers_data.xml',  # ВКЛЮЧАЕМ ОБРАТНО
+
+        # 8. ШАБЛОНИ ПОШТИ та АВТОМАТИЗАЦІЯ (наприкінці)
         'data/mail_template_data.xml',
         'data/ir_cron_data.xml',
     ],

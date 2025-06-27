@@ -7,9 +7,9 @@
         <field name="name">budget.sales.plan.tree</field>
         <field name="model">budget.sales.plan</field>
         <field name="arch" type="xml">
-            <tree decoration-success="state=='approved'"
-                  decoration-warning="state=='coordination'"
-                  decoration-info="state=='draft'">
+            <tree decoration-success="state == 'approved'"
+                  decoration-warning="state == 'coordination'"
+                  decoration-info="state == 'draft'">
                 <field name="display_name"/>
                 <field name="period_id"/>
                 <field name="company_id"/>
@@ -32,27 +32,27 @@
                             string="Почати аналіз"
                             type="object"
                             class="btn-primary"
-                            states="draft"/>
+                            invisible="state != 'draft'"/>
                     <button name="action_create_project"
                             string="Створити проект"
                             type="object"
                             class="btn-primary"
-                            states="analysis"/>
+                            invisible="state != 'analysis'"/>
                     <button name="action_send_for_coordination"
                             string="На узгодження"
                             type="object"
                             class="btn-primary"
-                            states="project"/>
+                            invisible="state != 'project'"/>
                     <button name="action_approve"
                             string="Затвердити"
                             type="object"
                             class="btn-success"
-                            states="coordination"/>
+                            invisible="state != 'coordination'"/>
                     <button name="action_revise"
                             string="На доопрацювання"
                             type="object"
                             class="btn-warning"
-                            states="coordination"/>
+                            invisible="state != 'coordination'"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,analysis,project,coordination,approved"/>
                 </header>
                 <sheet>
@@ -74,7 +74,7 @@
                             <field name="growth_rate"/>
                         </group>
                     </group>
-                    <group string="Затвердження" states="approved">
+                    <group string="Затвердження" invisible="state != 'approved'">
                         <group>
                             <field name="approved_by_id" readonly="1"/>
                             <field name="approval_date" readonly="1"/>

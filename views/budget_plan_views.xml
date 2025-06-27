@@ -7,10 +7,10 @@
         <field name="name">budget.plan.tree</field>
         <field name="model">budget.plan</field>
         <field name="arch" type="xml">
-            <tree decoration-success="state=='approved'"
-                  decoration-warning="state=='coordination'"
-                  decoration-info="state=='draft'"
-                  decoration-danger="state=='revision'">
+            <tree decoration-success="state == 'approved'"
+                  decoration-warning="state == 'coordination'"
+                  decoration-info="state == 'draft'"
+                  decoration-danger="state == 'revision'">
                 <field name="display_name"/>
                 <field name="period_id"/>
                 <field name="level"/>
@@ -37,23 +37,23 @@
                             string="Почати планування"
                             type="object"
                             class="btn-primary"
-                            states="draft"/>
+                            invisible="state != 'draft'"/>
                     <button name="action_send_coordination"
                             string="На узгодження"
                             type="object"
                             class="btn-primary"
-                            states="planning"/>
+                            invisible="state != 'planning'"/>
                     <button name="action_approve"
                             string="Затвердити"
                             type="object"
                             class="btn-success"
-                            states="coordination"
+                            invisible="state != 'coordination'"
                             groups="budget.group_budget_manager"/>
                     <button name="action_request_revision"
                             string="На доопрацювання"
                             type="object"
                             class="btn-warning"
-                            states="coordination"
+                            invisible="state != 'coordination'"
                             groups="budget.group_budget_manager"/>
                     <field name="state" widget="statusbar" statusbar_visible="draft,planning,coordination,approved"/>
                 </header>
@@ -88,7 +88,7 @@
                             <field name="variance_percent" readonly="1"/>
                         </group>
                     </group>
-                    <group string="Затвердження" states="approved">
+                    <group string="Затвердження" invisible="state != 'approved'">
                         <group>
                             <field name="approved_by_id" readonly="1"/>
                             <field name="approval_date" readonly="1"/>
@@ -131,7 +131,7 @@
                                 </form>
                             </field>
                         </page>
-                        <page string="Консолідація" states="approved">
+                        <page string="Консолідація" invisible="state != 'approved'">
                             <group string="Батьківський бюджет">
                                 <field name="parent_budget_id"/>
                             </group>
@@ -237,13 +237,13 @@
                         domain="[('state', '=', 'approved')]"/>
                 <filter string="Прострочені"
                         name="overdue"
-                        domain="[('submission_deadline', '&lt;', context_today().strftime('%Y-%m-%d')), ('state', '!=', 'approved')]"/>
+                        domain="[('submission_deadline', '&lt;', context_today()), ('state', '!=', 'approved')]"/>
 
                 <separator/>
                 <filter string="Поточний місяць"
                         name="current_month"
-                        domain="[('period_id.date_start', '&lt;=', context_today().strftime('%Y-%m-%d')),
-                                ('period_id.date_end', '&gt;=', context_today().strftime('%Y-%m-%d'))]"/>
+                        domain="[('period_id.date_start', '&lt;=', context_today()),
+                                ('period_id.date_end', '&gt;=', context_today())]"/>
 
                 <group expand="0" string="Групувати за">
                     <filter string="Статус" name="group_state" context="{'group_by': 'state'}"/>

@@ -8,24 +8,15 @@
         <field name="name">budget.notification.tree</field>
         <field name="model">budget.notification</field>
         <field name="arch" type="xml">
-            <tree decoration-bold="not is_read"
-                  decoration-danger="priority=='urgent'"
-                  decoration-warning="priority=='high'">
+            <tree decoration-bf="is_read == False"
+                  decoration-danger="priority == 'urgent'"
+                  decoration-warning="priority == 'high'">
                 <field name="name"/>
                 <field name="notification_type"/>
                 <field name="budget_plan_id"/>
                 <field name="priority"/>
                 <field name="is_read"/>
                 <field name="create_date"/>
-                <button name="action_mark_read"
-                        type="object"
-                        icon="fa-check"
-                        string="Позначити прочитаним"
-                        attrs="{'invisible': [('is_read', '=', True)]}"/>
-                <button name="action_open_budget"
-                        type="object"
-                        icon="fa-external-link"
-                        string="Відкрити бюджет"/>
             </tree>
         </field>
     </record>
@@ -40,12 +31,12 @@
                             string="Позначити прочитаним"
                             type="object"
                             class="btn-primary"
-                            attrs="{'invisible': [('is_read', '=', True)]}"/>
+                            invisible="is_read"/>
                     <button name="action_open_budget"
                             string="Відкрити бюджет"
                             type="object"
                             class="btn-secondary"
-                            attrs="{'invisible': [('budget_plan_id', '=', False)]}"/>
+                            invisible="not budget_plan_id"/>
                 </header>
                 <sheet>
                     <group>

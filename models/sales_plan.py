@@ -9,15 +9,15 @@ class SalesPlan(models.Model):
     _name = 'budget.sales.plan'
     _description = 'План продажів'
     _order = 'period_id desc, company_id'
-    _rec_name = 'display_name'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    @api.depends('period_id', 'company_id')
     def _compute_display_name(self):
         for record in self:
-            record.display_name = f"План продажів {record.company_id.name} - {record.period_id.name}"
+            company_name = record.company_id.name if record.company_id else 'Без компанії'
+            period_name = record.period_id.name if record.period_id else 'Без періоду'
+            record.display_name = f"План продажів {company_name} - {period_name}"
 
-    display_name = fields.Char('Назва', compute='_compute_display_name', store=True)
+    display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
 
     period_id = fields.Many2one('budget.period', 'Період', required=True)
     company_id = fields.Many2one('res.company', 'Підприємство', required=True, default=lambda self: self.env.company)

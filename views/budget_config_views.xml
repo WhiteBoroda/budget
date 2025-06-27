@@ -150,6 +150,12 @@
         <field name="model">budget.period</field>
         <field name="arch" type="xml">
             <tree>
+                <header>
+                    <button name="%(action_budget_period_wizard)d"
+                            string="📅 Створити періоди"
+                            type="action"
+                            class="btn-primary"/>
+                </header>
                 <field name="name"/>
                 <field name="period_type"/>
                 <field name="date_start"/>
@@ -184,10 +190,19 @@
         </field>
     </record>
 
+    <!-- ИСПРАВЛЕННЫЙ ACTION С ПОМОЩЬЮ -->
     <record id="action_budget_period" model="ir.actions.act_window">
         <field name="name">Бюджетні періоди</field>
         <field name="res_model">budget.period</field>
         <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть ваші перші бюджетні періоди!
+            </p>
+            <p>
+                Скористайтеся майстром для швидкого створення періодів на весь рік.
+            </p>
+        </field>
     </record>
 
     <menuitem id="menu_budget_period"
