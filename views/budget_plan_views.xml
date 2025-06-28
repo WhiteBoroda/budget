@@ -11,6 +11,7 @@
                   decoration-warning="state == 'coordination'"
                   decoration-info="state == 'draft'"
                   decoration-danger="state == 'revision'">
+                <field name="name"/>
                 <field name="display_name"/>
                 <field name="period_id"/>
                 <field name="budget_level"/>
@@ -72,8 +73,11 @@
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="display_name" readonly="1"/>
+                            <field name="name" readonly="1"/>
                         </h1>
+                        <h2>
+                            <field name="display_name" readonly="1"/>
+                        </h2>
                         <div class="o_row" invisible="not version or version == '1.0'">
                             <label for="version" string="Версія:"/>
                             <field name="version" readonly="1"/>
@@ -84,8 +88,8 @@
 
                     <group>
                         <group string="Основні параметри">
-                            <field name="period_id" options="{'no_create': True}"/>
-                            <field name="cbo_id" options="{'no_create': True}"/>
+                            <field name="period_id" options="{'no_create': True}" domain="[('company_id', '=', company_id)]"/>
+                            <field name="cbo_id" options="{'no_create': True}" domain="[('company_ids', 'in', [company_id])]"/>
                             <field name="budget_type_id" options="{'no_create': True}"/>
                             <field name="budget_level" readonly="1"/>
                             <field name="calculation_method" readonly="1"/>
@@ -187,11 +191,12 @@
                         <page string="Прогнози продажів" invisible="not sales_forecast_ids">
                             <field name="sales_forecast_ids" readonly="1">
                                 <tree>
+                                    <field name="name"/>
                                     <field name="team_id"/>
                                     <field name="channel"/>
                                     <field name="customer_segment"/>
                                     <field name="total_forecast_amount"/>
-                                    <field name="margin_percent"/>
+                                    <field name="conversion_rate"/>
                                     <field name="state"/>
                                 </tree>
                             </field>
@@ -207,6 +212,7 @@
                             <group string="Дочірні бюджети" invisible="not child_budget_ids">
                                 <field name="child_budget_ids" readonly="1">
                                     <tree>
+                                        <field name="name"/>
                                         <field name="cbo_id"/>
                                         <field name="budget_type_id"/>
                                         <field name="planned_amount"/>
@@ -244,6 +250,7 @@
         <field name="model">budget.plan</field>
         <field name="arch" type="xml">
             <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
                 <field name="display_name"/>
                 <field name="cbo_id"/>
                 <field name="budget_type_id"/>
@@ -319,9 +326,9 @@
         <field name="model">budget.plan</field>
         <field name="arch" type="xml">
             <search>
-                <field name="display_name" string="Пошук"
+                <field name="name" string="Пошук"
                        filter_domain="['|', '|', '|',
-                                     ('display_name', 'ilike', self),
+                                     ('name', 'ilike', self),
                                      ('cbo_id.name', 'ilike', self),
                                      ('budget_type_id.name', 'ilike', self),
                                      ('notes', 'ilike', self)]"/>

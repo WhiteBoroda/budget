@@ -16,12 +16,17 @@ class BudgetPlan(models.Model):
 
     def _compute_display_name(self):
         for record in self:
-            budget_type_name = record.budget_type_id.name if record.budget_type_id else 'Без типу'
-            cbo_name = record.cbo_id.name if record.cbo_id else 'Без ЦБО'
-            period_name = record.period_id.name if record.period_id else 'Без періоду'
-            record.display_name = f"{budget_type_name} - {cbo_name} ({period_name})"
+            if record.budget_type_id and record.cbo_id and record.period_id:
+                budget_type_name = record.budget_type_id.name
+                cbo_name = record.cbo_id.name
+                period_name = record.period_id.name
+                record.display_name = f"{budget_type_name} - {cbo_name} ({period_name})"
+            elif record.name and record.name != '/':
+                record.display_name = record.name
+            else:
+                record.display_name = "Новий бюджет"
 
-    display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
+    display_name = fields.Char('Назва', compute='_compute_display_name', store=True)
 
     # Основні параметри
     period_id = fields.Many2one('budget.period', 'Період', required=True, index=True)

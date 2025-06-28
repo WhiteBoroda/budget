@@ -8,7 +8,7 @@ class ResponsibilityCenter(models.Model):
     """Центри бюджетної відповідальності (ЦБО) - гнучка структура"""
     _name = 'budget.responsibility.center'
     _description = 'Центри бюджетної відповідальності'
-    _order = 'level, sequence, name'
+    _order = 'cbo_type, sequence, name'
 
     name = fields.Char('Назва ЦБО', required=True)
     code = fields.Char('Код', required=True, size=10)

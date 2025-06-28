@@ -11,6 +11,7 @@
                   decoration-warning="state == 'review'"
                   decoration-info="state == 'draft'"
                   decoration-danger="state == 'revision'">
+                <field name="name"/>
                 <field name="display_name"/>
                 <field name="period_id"/>
                 <field name="team_id"/>
@@ -19,8 +20,8 @@
                 <field name="channel"/>
                 <field name="customer_segment"/>
                 <field name="total_forecast_amount"/>
-                <field name="margin_percent"/>
-                <field name="growth_rate"/>
+                <field name="avg_deal_size"/>
+                <field name="conversion_rate"/>
                 <field name="state"/>
                 <field name="user_id"/>
             </tree>
@@ -34,11 +35,16 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_submit_for_review"
-                            string="Подати на розгляд"
+                    <button name="action_start_planning"
+                            string="Почати планування"
                             type="object"
                             class="btn-primary"
                             invisible="state != 'draft'"/>
+                    <button name="action_submit_review"
+                            string="Подати на перевірку"
+                            type="object"
+                            class="btn-primary"
+                            invisible="state != 'planning'"/>
                     <button name="action_approve"
                             string="Затвердити"
                             type="object"
@@ -51,33 +57,36 @@
                             class="btn-warning"
                             invisible="state != 'review'"
                             groups="budget.group_sales_forecast_manager"/>
-                    <button name="action_lock"
-                            string="Заблокувати"
+                    <button name="action_archive"
+                            string="Архівувати"
                             type="object"
                             class="btn-secondary"
                             invisible="state != 'approved'"
                             groups="budget.group_sales_forecast_manager"/>
-                    <field name="state" widget="statusbar" statusbar_visible="draft,review,approved"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,planning,review,approved"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="display_name" readonly="1"/>
+                            <field name="name" readonly="1"/>
                         </h1>
+                        <h2>
+                            <field name="display_name" readonly="1"/>
+                        </h2>
                     </div>
 
                     <group>
                         <group string="Основні параметри">
-                            <field name="period_id" options="{'no_create': True}"/>
-                            <field name="team_id" options="{'no_create': True}"/>
+                            <field name="period_id" options="{'no_create': True}" domain="[('company_id', '=', company_id)]"/>
+                            <field name="team_id" options="{'no_create': True}" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
                             <field name="user_id"/>
                             <field name="channel"/>
                             <field name="customer_segment"/>
                             <field name="forecast_base"/>
                         </group>
                         <group string="Інтеграція">
-                            <field name="project_id" options="{'no_create': True}"/>
-                            <field name="cbo_id" options="{'no_create': True}"/>
+                            <field name="project_id" options="{'no_create': True}" domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]"/>
+                            <field name="cbo_id" options="{'no_create': True}" domain="[('company_ids', 'in', [company_id])]"/>
                             <field name="company_id" options="{'no_create': True}"/>
                             <field name="currency_id"/>
                         </group>
@@ -88,68 +97,72 @@
                             <field name="country_id"/>
                             <field name="state_id"/>
                         </group>
+                        <group>
+                            <field name="submission_deadline"/>
+                            <field name="sales_cycle_days"/>
+                        </group>
                     </group>
 
                     <group string="Підсумки">
                         <group>
                             <field name="total_forecast_amount"/>
                             <field name="total_forecast_qty"/>
-                            <field name="previous_period_sales"/>
+                            <field name="deals_count"/>
                         </group>
                         <group>
-                            <field name="total_margin"/>
-                            <field name="margin_percent"/>
-                            <field name="growth_rate"/>
+                            <field name="avg_deal_size"/>
+                            <field name="conversion_rate"/>
                         </group>
                     </group>
 
-                    <group string="Затвердження" invisible="state not in ['approved', 'locked']">
+                    <group string="Затвердження" invisible="state not in ['approved', 'archived']">
                         <group>
                             <field name="approved_by_id" readonly="1"/>
-                            <field name="approval_date" readonly="1"/>
+                            <field name="approved_date" readonly="1"/>
                         </group>
                     </group>
 
                     <notebook>
                         <page string="Позиції прогнозу">
-                            <field name="line_ids">
+                            <field name="forecast_line_ids">
                                 <tree editable="bottom">
                                     <field name="product_id"/>
                                     <field name="product_category_id"/>
-                                    <field name="product_brand"/>
+                                    <field name="description"/>
                                     <field name="forecast_qty"/>
                                     <field name="forecast_price"/>
-                                    <field name="discount_percent"/>
                                     <field name="forecast_amount"/>
-                                    <field name="cost_price"/>
-                                    <field name="margin_amount"/>
-                                    <field name="margin_percent"/>
-                                    <field name="confidence_level"/>
+                                    <field name="probability"/>
+                                    <field name="weighted_amount"/>
+                                    <field name="sales_stage"/>
+                                    <field name="expected_date"/>
                                 </tree>
                                 <form>
                                     <group>
                                         <group string="Товар">
                                             <field name="product_id"/>
                                             <field name="product_category_id"/>
-                                            <field name="product_brand"/>
+                                            <field name="description"/>
                                         </group>
                                         <group string="Прогноз">
                                             <field name="forecast_qty"/>
                                             <field name="forecast_price"/>
-                                            <field name="discount_percent"/>
-                                            <field name="return_percent"/>
-                                            <field name="confidence_level"/>
+                                            <field name="forecast_amount"/>
+                                            <field name="probability"/>
+                                            <field name="weighted_amount"/>
                                         </group>
                                     </group>
                                     <group>
-                                        <group string="Фінансові показники">
-                                            <field name="forecast_amount"/>
-                                            <field name="cost_price"/>
-                                            <field name="margin_amount"/>
-                                            <field name="margin_percent"/>
+                                        <group string="Продажі">
+                                            <field name="sales_stage"/>
+                                            <field name="expected_date"/>
+                                            <field name="sales_person_id"/>
+                                            <field name="region"/>
                                         </group>
-                                        <group string="Аналітика">
-                                            <field name="analytic_account_id"/>
+                                        <group string="Клієнт">
+                                            <field name="partner_id"/>
+                                            <field name="partner_category"/>
+                                            <field name="opportunity_id"/>
                                         </group>
                                     </group>
                                     <group string="Примітки">
@@ -158,8 +171,16 @@
                                 </form>
                             </field>
                         </page>
-                        <page string="Примітки">
-                            <field name="notes"/>
+                        <page string="Методологія">
+                            <group>
+                                <field name="template_id"/>
+                            </group>
+                            <group string="Примітки">
+                                <field name="methodology_notes" nolabel="1"/>
+                                <field name="market_assumptions" nolabel="1"/>
+                                <field name="risk_factors" nolabel="1"/>
+                                <field name="notes" nolabel="1"/>
+                            </group>
                         </page>
                     </notebook>
                 </sheet>
@@ -177,11 +198,11 @@
         <field name="model">sale.forecast</field>
         <field name="arch" type="xml">
             <kanban default_group_by="state" class="o_kanban_small_column">
+                <field name="name"/>
                 <field name="display_name"/>
                 <field name="team_id"/>
                 <field name="total_forecast_amount"/>
-                <field name="margin_percent"/>
-                <field name="growth_rate"/>
+                <field name="conversion_rate"/>
                 <field name="state"/>
                 <templates>
                     <t t-name="kanban-box">
@@ -204,14 +225,14 @@
                                             <field name="total_forecast_amount" widget="monetary"/>
                                         </div>
                                         <div class="col-6">
-                                            <strong>Маржа:</strong><br/>
-                                            <span t-esc="record.margin_percent.value"/>%
+                                            <strong>Конверсія:</strong><br/>
+                                            <span t-esc="record.conversion_rate.value"/>%
                                         </div>
                                     </div>
                                     <div class="row mt8">
                                         <div class="col-12">
-                                            <strong>Ріст:</strong>
-                                            <span t-esc="record.growth_rate.value"/>%
+                                            <strong>Середня угода:</strong>
+                                            <field name="avg_deal_size" widget="monetary"/>
                                         </div>
                                     </div>
                                 </div>
@@ -240,8 +261,9 @@
         <field name="model">sale.forecast</field>
         <field name="arch" type="xml">
             <search>
-                <field name="display_name" string="Пошук"
-                       filter_domain="['|', '|',
+                <field name="name" string="Пошук"
+                       filter_domain="['|', '|', '|',
+                                     ('name', 'ilike', self),
                                      ('display_name', 'ilike', self),
                                      ('team_id.name', 'ilike', self),
                                      ('notes', 'ilike', self)]"/>
@@ -259,8 +281,8 @@
                         domain="[('user_id', '=', uid)]"/>
                 <filter string="Моя команда"
                         name="my_team"
-                        domain="[('team_id', 'in', user.sale_team_ids.ids)]"/>
-                <filter string="На розгляді"
+                        domain="[('team_id.member_ids', 'in', [uid])]"/>
+                <filter string="На перевірці"
                         name="review"
                         domain="[('state', '=', 'review')]"/>
                 <filter string="Затверджені"
@@ -272,9 +294,9 @@
                         name="current_month"
                         domain="[('period_id.date_start', '&lt;=', context_today()),
                                 ('period_id.date_end', '&gt;=', context_today())]"/>
-                <filter string="Високий ріст"
-                        name="high_growth"
-                        domain="[('growth_rate', '&gt;', 10)]"/>
+                <filter string="Висока конверсія"
+                        name="high_conversion"
+                        domain="[('conversion_rate', '&gt;', 70)]"/>
 
                 <group expand="0" string="Групувати за">
                     <filter string="Статус" name="group_state" context="{'group_by': 'state'}"/>
@@ -318,7 +340,7 @@
         <field name="name">Прогнози команди</field>
         <field name="res_model">sale.forecast</field>
         <field name="view_mode">kanban,tree,form</field>
-        <field name="domain">[('team_id', 'in', user.sale_team_ids.ids)]</field>
+        <field name="domain">[('team_id.member_ids', 'in', [uid])]</field>
     </record>
 
     <record id="action_sale_forecast_project" model="ir.actions.act_window">
@@ -337,14 +359,14 @@
         <field name="context">{'search_default_group_cbo': 1}</field>
     </record>
 
-    <!-- ШАБЛОНИ ПРОГНОЗІВ - ИСПРАВЛЕННЫЕ ПРЕДСТАВЛЕНИЯ -->
+    <!-- ШАБЛОНИ ПРОГНОЗІВ -->
     <record id="view_sale_forecast_template_tree" model="ir.ui.view">
         <field name="name">sale.forecast.template.tree</field>
         <field name="model">sale.forecast.template</field>
         <field name="arch" type="xml">
             <tree>
                 <field name="name"/>
-                <field name="team_id"/>
+                <field name="team_ids" widget="many2many_tags"/>
                 <field name="channel"/>
                 <field name="active"/>
             </tree>
@@ -360,7 +382,7 @@
                     <group>
                         <group>
                             <field name="name"/>
-                            <field name="team_id"/>
+                            <field name="team_ids" widget="many2many_tags"/>
                             <field name="channel"/>
                         </group>
                         <group>
@@ -372,16 +394,20 @@
                     </group>
                     <notebook>
                         <page string="Позиції шаблону">
-                            <field name="template_line_ids">
+                            <field name="line_ids">
                                 <tree editable="bottom">
+                                    <field name="sequence" widget="handle"/>
                                     <field name="product_id"/>
                                     <field name="product_category_id"/>
+                                    <field name="description"/>
                                     <field name="default_qty"/>
                                     <field name="default_price"/>
-                                    <field name="cost_price"/>
-                                    <field name="confidence_level"/>
+                                    <field name="default_probability"/>
                                 </tree>
                             </field>
+                        </page>
+                        <page string="Методологія">
+                            <field name="methodology_notes" nolabel="1"/>
                         </page>
                     </notebook>
                 </sheet>
@@ -411,7 +437,7 @@
             <graph string="Аналіз прогнозів продажів" type="line">
                 <field name="period_id"/>
                 <field name="total_forecast_amount" type="measure"/>
-                <field name="total_margin" type="measure"/>
+                <field name="avg_deal_size" type="measure"/>
             </graph>
         </field>
     </record>
@@ -425,57 +451,10 @@
                 <field name="channel" type="row"/>
                 <field name="period_id" type="col"/>
                 <field name="total_forecast_amount" type="measure"/>
-                <field name="total_margin" type="measure"/>
-                <field name="growth_rate" type="measure"/>
+                <field name="conversion_rate" type="measure"/>
             </pivot>
         </field>
     </record>
-
-    <!-- МЕНЮ - ПРАВИЛЬНАЯ СТРУКТУРА -->
-
-    <!-- Корневое меню для прогнозов продаж (подменю основного меню Бюджетування) -->
-    <menuitem id="menu_sale_forecast_root"
-              name="Прогнози продажів"
-              parent="menu_budget_root"
-              sequence="15"/>
-
-    <!-- Подменю прогнозов -->
-    <menuitem id="menu_sale_forecast"
-              name="Всі прогнози"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast"
-              sequence="10"/>
-
-    <menuitem id="menu_sale_forecast_my"
-              name="Мої прогнози"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_my"
-              sequence="20"/>
-
-    <menuitem id="menu_sale_forecast_team"
-              name="Прогнози команди"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_team"
-              sequence="30"/>
-
-    <menuitem id="menu_sale_forecast_project"
-              name="По проектах"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_project"
-              sequence="35"/>
-
-    <menuitem id="menu_sale_forecast_cbo"
-              name="По ЦБО"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_cbo"
-              sequence="37"/>
-
-    <!-- ДОБАВЛЯЕМ ОТСУТСТВУЮЩИЙ ПУНКТ МЕНЮ ДЛЯ ШАБЛОНОВ -->
-    <menuitem id="menu_sale_forecast_template"
-              name="Шаблони прогнозів"
-              parent="menu_sale_forecast_root"
-              action="action_sale_forecast_template"
-              sequence="40"/>
 
     <!-- Server Actions -->
     <record id="action_create_forecast_from_template" model="ir.actions.server">
@@ -498,8 +477,32 @@ if records:
 
     forecasts = []
     for template in records:
-        forecast = template.create_forecast_from_template(current_period.id)
-        forecasts.append(forecast.id)
+        for team in template.team_ids:
+            forecast_vals = {
+                'period_id': current_period.id,
+                'team_id': team.id,
+                'channel': template.channel or 'direct',
+                'forecast_base': 'manual',
+                'user_id': env.user.id,
+                'template_id': template.id,
+                'methodology_notes': template.methodology_notes,
+            }
+
+            forecast = env['sale.forecast'].create(forecast_vals)
+
+            # Копируем линии шаблона
+            for line in template.line_ids:
+                env['sale.forecast.line'].create({
+                    'forecast_id': forecast.id,
+                    'product_id': line.product_id.id,
+                    'product_category_id': line.product_category_id.id,
+                    'description': line.description,
+                    'forecast_qty': line.default_qty,
+                    'forecast_price': line.default_price,
+                    'probability': line.default_probability,
+                })
+
+            forecasts.append(forecast.id)
 
     if forecasts:
         action = {

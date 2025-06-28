@@ -36,17 +36,26 @@ class CrmTeam(models.Model):
         ('government', 'Державні')
     ], 'Сегмент клієнтів за замовчуванням', default='existing')
 
+    # Настройки бюджетирования
+    budget_responsible_user_id = fields.Many2one('res.users', 'Ответственный за бюджет команды')
+    auto_create_forecasts = fields.Boolean('Автоматически создавать прогнозы',
+                                           help="Автоматически создавать прогнозы для новых периодов")
+
     # Вычисляемые поля для аналитики
     forecast_count = fields.Integer('Кількість прогнозів', compute='_compute_forecast_count')
     active_forecasts_count = fields.Integer('Активних прогнозів', compute='_compute_forecast_count')
 
-    @api.depends('name')
+    # Связь с прогнозами
+    forecast_ids = fields.One2many('sale.forecast', 'team_id', string='Прогнозы продаж')
+
+    @api.depends('forecast_ids')
     def _compute_forecast_count(self):
         """Подсчет количества прогнозов команды"""
         for team in self:
-            forecasts = self.env['sale.forecast'].search([('team_id', '=', team.id)])
-            team.forecast_count = len(forecasts)
-            team.active_forecasts_count = len(forecasts.filtered(lambda f: f.state in ['draft', 'review', 'approved']))
+            team.forecast_count = len(team.forecast_ids)
+            team.active_forecasts_count = len(team.forecast_ids.filtered(
+                lambda f: f.state in ['draft', 'planning', 'review', 'approved']
+            ))
 
     def action_view_forecasts(self):
         """Открыть прогнозы команды"""

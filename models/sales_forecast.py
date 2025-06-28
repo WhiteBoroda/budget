@@ -16,12 +16,17 @@ class SaleForecast(models.Model):
 
     def _compute_display_name(self):
         for record in self:
-            team_name = record.team_id.name if record.team_id else 'Без команди'
-            period_name = record.period_id.name if record.period_id else 'Без періоду'
-            channel_name = dict(record._fields['channel'].selection).get(record.channel, record.channel)
-            record.display_name = f"{team_name} - {channel_name} ({period_name})"
+            if record.team_id and record.period_id and record.channel:
+                team_name = record.team_id.name
+                period_name = record.period_id.name
+                channel_name = dict(record._fields['channel'].selection).get(record.channel, record.channel)
+                record.display_name = f"{team_name} - {channel_name} ({period_name})"
+            elif record.name and record.name != '/':
+                record.display_name = record.name
+            else:
+                record.display_name = "Новий прогноз"
 
-    display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
+    display_name = fields.Char('Назва', compute='_compute_display_name', store=True)
 
     # Основні параметри
     period_id = fields.Many2one('budget.period', 'Період планування', required=True, index=True)
@@ -85,9 +90,16 @@ class SaleForecast(models.Model):
                                    compute='_compute_conversion', store=True)
     sales_cycle_days = fields.Integer('Тривалість циклу продажів, днів')
 
-    # Зв'язок з ЦБО
+    # Інтеграція з проектами та ЦБО
+    project_id = fields.Many2one('project.project', 'Проект',
+                                 help="Прогноз продажів може бути прив'язаний до конкретного проекту")
+
     cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО',
-                             related='team_id.responsibility_center_id', store=True, readonly=True)
+                             help="Центр бюджетної відповідальності, до якого належить прогноз")
+
+    # Географічні параметри
+    country_id = fields.Many2one('res.country', 'Країна')
+    state_id = fields.Many2one('res.country.state', 'Область/Штат')
 
     # Організаційні поля
     company_id = fields.Many2one('res.company', 'Підприємство', required=True,
@@ -115,7 +127,6 @@ class SaleForecast(models.Model):
     @api.model
     def create(self, vals):
         if vals.get('name', '/') == '/':
-            # Sequence создается в data/ir_sequence_data.xml с code='sale.forecast'
             vals['name'] = self.env['ir.sequence'].next_by_code('sale.forecast') or '/'
         return super().create(vals)
 
@@ -150,6 +161,9 @@ class SaleForecast(models.Model):
         if self.team_id:
             self.channel = self.team_id.default_forecast_channel or 'direct'
             self.customer_segment = self.team_id.default_customer_segment or 'existing'
+            # Встановлюємо ЦБО з команди, якщо є
+            if self.team_id.responsibility_center_id:
+                self.cbo_id = self.team_id.responsibility_center_id
             # Встановлюємо відповідального за бюджет команди, якщо є
             if self.team_id.budget_responsible_user_id:
                 self.user_id = self.team_id.budget_responsible_user_id
@@ -323,6 +337,90 @@ class SaleForecastLine(models.Model):
             self.probability = self.opportunity_id.probability
             self.expected_date = self.opportunity_id.date_deadline
             self.description = self.opportunity_id.name or "З CRM можливості"
+
+
+class ProjectProject(models.Model):
+    """Расширение проектов для интеграции с прогнозами продаж"""
+    _inherit = 'project.project'
+
+    # Связь с ЦБО
+    responsibility_center_id = fields.Many2one(
+        'budget.responsibility.center',
+        'Центр бюджетної відповідальності',
+        help="ЦБО, до якого належить цей проект"
+    )
+
+    # Настройки продаж
+    is_sales_project = fields.Boolean(
+        'Проект продажів',
+        help="Цей проект пов'язаний з прогнозуванням продажів"
+    )
+
+    # Вычисляемые поля
+    forecast_count = fields.Integer('Кількість прогнозів', compute='_compute_forecast_count')
+    total_forecast_amount = fields.Monetary('Загальний прогноз', compute='_compute_forecast_totals',
+                                            currency_field='currency_id')
+
+    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+
+    @api.depends('name')
+    def _compute_forecast_count(self):
+        """Подсчет количества прогнозов проекта"""
+        for project in self:
+            forecasts = self.env['sale.forecast'].search([('project_id', '=', project.id)])
+            project.forecast_count = len(forecasts)
+
+    @api.depends('name')
+    def _compute_forecast_totals(self):
+        """Подсчет общих сумм прогнозов"""
+        for project in self:
+            forecasts = self.env['sale.forecast'].search([
+                ('project_id', '=', project.id),
+                ('state', 'in', ['approved', 'archived'])
+            ])
+            project.total_forecast_amount = sum(forecasts.mapped('total_forecast_amount'))
+
+    def action_view_forecasts(self):
+        """Открыть прогнозы проекта"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': f'Прогнози проекту {self.name}',
+            'res_model': 'sale.forecast',
+            'view_mode': 'kanban,tree,form',
+            'domain': [('project_id', '=', self.id)],
+            'context': {
+                'default_project_id': self.id,
+                'default_cbo_id': self.responsibility_center_id.id if self.responsibility_center_id else False,
+                'default_forecast_scope': 'project',
+            }
+        }
+
+    def action_create_forecast(self):
+        """Быстрое создание прогноза для проекта"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Створити прогноз для проекту',
+            'res_model': 'sales.plan.wizard',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_project_id': self.id,
+                'default_forecast_scope': 'project',
+                'default_cbo_id': self.responsibility_center_id.id if self.responsibility_center_id else False,
+                'default_company_id': self.company_id.id if self.company_id else False,
+            }
+        }
+
+    @api.onchange('is_sales_project')
+    def _onchange_is_sales_project(self):
+        """При включении флага продажного проекта предлагаем создать прогноз"""
+        if self.is_sales_project and not self.forecast_count:
+            return {
+                'warning': {
+                    'title': 'Створення прогнозу',
+                    'message': 'Цей проект позначено як проект продажів. Рекомендуємо створити прогноз продажів для цього проекту.'
+                }
+            }
 
 
 class SaleForecastTemplate(models.Model):

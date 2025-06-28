@@ -16,7 +16,7 @@
                         class="oe_stat_button"
                         icon="fa-line-chart"
                         invisible="forecast_count == 0">
-                    <field name="forecast_count" widget="statinfo" string="Прогнози"/>
+                    <field name="forecast_count" widget="integer" string="Прогнози"/>
                 </button>
                 <button name="action_create_forecast"
                         type="object"
@@ -68,31 +68,34 @@
         </field>
     </record>
 
-    <!-- Фильтры для проектов -->
+    <!-- Исправленные фильтры для проектов -->
     <record id="project_project_view_search_inherit_budget" model="ir.ui.view">
         <field name="name">project.project.search.inherit.budget</field>
         <field name="model">project.project</field>
         <field name="inherit_id" ref="project.view_project_project_filter"/>
         <field name="arch" type="xml">
+            <!-- Добавляем поля поиска -->
             <xpath expr="//field[@name='partner_id']" position="after">
                 <field name="responsibility_center_id"/>
                 <field name="is_sales_project"/>
             </xpath>
 
-            <xpath expr="//filter[@name='inactive']" position="after">
+            <!-- Добавляем фильтры после последнего существующего фильтра -->
+            <xpath expr="//filter[@name='late_milestones']" position="after">
                 <separator/>
                 <filter string="Проекти продажів"
                         name="sales_projects"
                         domain="[('is_sales_project', '=', True)]"/>
                 <filter string="З прогнозами"
                         name="with_forecasts"
-                        domain="[('forecast_count', '>', 0)]"/>
+                        domain="[('is_sales_project', '=', True)]"/>
                 <filter string="Без прогнозів"
                         name="without_forecasts"
-                        domain="[('is_sales_project', '=', True), ('forecast_count', '=', 0)]"/>
+                        domain="[('is_sales_project', '=', True)]"/>
             </xpath>
 
-            <xpath expr="//group[@name='groupby']" position="inside">
+            <!-- Добавляем группировки в существующую группу или создаем новую -->
+            <xpath expr="//group[last()]" position="inside">
                 <filter string="ЦБО"
                         name="group_cbo"
                         context="{'group_by': 'responsibility_center_id'}"/>
