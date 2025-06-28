@@ -13,10 +13,19 @@
             <field name="implementation">standard</field>
         </record>
 
-        <record id="seq_sales_plan" model="ir.sequence">
-            <field name="name">Послідовність планів продажів</field>
-            <field name="code">budget.sales.plan</field>
-            <field name="prefix">ПП/%(year)s/</field>
+        <record id="seq_sales_forecast" model="ir.sequence">
+            <field name="name">Послідовність прогнозів продажів</field>
+            <field name="code">sale.forecast</field>
+            <field name="prefix">ПР/%(year)s/</field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <record id="seq_budget_execution" model="ir.sequence">
+            <field name="name">Послідовність виконання бюджету</field>
+            <field name="code">budget.execution</field>
+            <field name="prefix">ВБ/%(year)s/</field>
             <field name="padding">4</field>
             <field name="number_increment">1</field>
             <field name="implementation">standard</field>

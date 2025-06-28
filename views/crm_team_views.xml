@@ -16,7 +16,7 @@
                         class="oe_stat_button"
                         icon="fa-line-chart"
                         invisible="forecast_count == 0">
-                    <field name="forecast_count" widget="statinfo" string="Прогнози"/>
+                    <field name="forecast_count" widget="integer" string="Прогнози"/>
                 </button>
                 <button name="action_create_forecast"
                         type="object"
@@ -38,6 +38,35 @@
                         <field name="default_customer_segment"/>
                     </group>
                 </group>
+            </xpath>
+
+            <!-- Добавляем страницу с прогнозами в notebook -->
+            <xpath expr="//notebook" position="inside">
+                <page string="Бюджетування та прогнози">
+                    <group>
+                        <group string="Налаштування бюджетування">
+                            <field name="budget_responsible_user_id"/>
+                            <field name="auto_create_forecasts"/>
+                        </group>
+                    </group>
+
+                    <group string="Прогнози продаж">
+                        <button name="action_view_forecasts"
+                                string="Переглянути прогнози"
+                                type="object"
+                                class="btn-primary"
+                                invisible="forecast_count == 0"/>
+                        <field name="forecast_ids" nolabel="1">
+                            <tree limit="5">
+                                <field name="period_id"/>
+                                <field name="channel"/>
+                                <field name="total_forecast_amount"/>
+                                <field name="state"/>
+                                <field name="user_id"/>
+                            </tree>
+                        </field>
+                    </group>
+                </page>
             </xpath>
 
         </field>
@@ -79,6 +108,45 @@ for team in records:
             'default_customer_segment': team.default_customer_segment or 'existing',
             'default_cbo_id': team.responsibility_center_id.id if team.responsibility_center_id else False,
         }
+    }
+        </field>
+    </record>
+
+    <!-- Дополнительные действия в команде продаж -->
+    <record id="action_create_forecast_for_team" model="ir.actions.server">
+        <field name="name">Створити прогноз для команди</field>
+        <field name="model_id" ref="crm.model_crm_team"/>
+        <field name="binding_model_id" ref="crm.model_crm_team"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+if record:
+    # Находим текущий период планирования
+    current_period = env['budget.period'].search([
+        ('date_start', '&lt;=', fields.Date.today()),
+        ('date_end', '&gt;=', fields.Date.today()),
+        ('state', 'in', ['draft', 'planning'])
+    ], limit=1)
+
+    if not current_period:
+        raise UserError('Не знайдено активного періоду для планування')
+
+    # Создаем прогноз для команды
+    forecast = env['sale.forecast'].create({
+        'period_id': current_period.id,
+        'team_id': record.id,
+        'user_id': env.user.id,
+        'channel': 'direct',  # По умолчанию
+        'forecast_base': 'manual',
+    })
+
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Новий прогноз',
+        'res_model': 'sale.forecast',
+        'res_id': forecast.id,
+        'view_mode': 'form',
+        'target': 'current',
     }
         </field>
     </record>

@@ -35,4 +35,16 @@
               parent="menu_budget_root"
               sequence="99"/>
 
+    <!-- Добавляем отсутствующие подменю -->
+    <menuitem id="menu_budget_wizards"
+              name="Мастера"
+              parent="menu_budget_config"
+              sequence="80"/>
+
+    <!-- Корневое меню для прогнозов продаж (подменю основного меню Бюджетування) -->
+    <menuitem id="menu_sale_forecast_root"
+              name="Прогнози продажів"
+              parent="menu_budget_root"
+              sequence="15"/>
+
 </odoo>

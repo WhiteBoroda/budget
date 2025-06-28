@@ -11,6 +11,9 @@ class BudgetPlan(models.Model):
     _order = 'period_id desc, cbo_id, budget_type_id'
     _inherit = ['mail.thread', 'mail.activity.mixin']
 
+    # Автонумерація
+    name = fields.Char('Номер', required=True, copy=False, readonly=True, default='/')
+
     def _compute_display_name(self):
         for record in self:
             budget_type_name = record.budget_type_id.name if record.budget_type_id else 'Без типу'
@@ -21,9 +24,9 @@ class BudgetPlan(models.Model):
     display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
 
     # Основні параметри
-    period_id = fields.Many2one('budget.period', 'Період', required=True)
-    cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО', required=True)
-    budget_type_id = fields.Many2one('budget.type', 'Тип бюджету', required=True)
+    period_id = fields.Many2one('budget.period', 'Період', required=True, index=True)
+    cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО', required=True, index=True)
+    budget_type_id = fields.Many2one('budget.type', 'Тип бюджету', required=True, index=True)
 
     # Автоматичне визначення рівня на основі ЦБО
     budget_level = fields.Selection(related='cbo_id.budget_level', store=True, readonly=True)
@@ -36,28 +39,28 @@ class BudgetPlan(models.Model):
         ('revision', 'Доопрацювання'),
         ('executed', 'Виконується'),
         ('closed', 'Закритий')
-    ], 'Статус', default='draft', required=True, tracking=True)
+    ], 'Статус', default='draft', required=True, tracking=True, index=True)
 
     # Фінансові показники
-    planned_amount = fields.Monetary('Планова сума', compute='_compute_totals', store=True)
-    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True)
-    committed_amount = fields.Monetary('Зарезервована сума', compute='_compute_committed_amount', store=True)
-    available_amount = fields.Monetary('Доступна сума', compute='_compute_available_amount', store=True)
+    planned_amount = fields.Monetary('Планова сума', compute='_compute_totals', store=True, currency_field='currency_id')
+    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True, currency_field='currency_id')
+    committed_amount = fields.Monetary('Зарезервована сума', compute='_compute_committed_amount', store=True, currency_field='currency_id')
+    available_amount = fields.Monetary('Доступна сума', compute='_compute_available_amount', store=True, currency_field='currency_id')
 
-    variance_amount = fields.Monetary('Відхилення', compute='_compute_variance', store=True)
+    variance_amount = fields.Monetary('Відхилення', compute='_compute_variance', store=True, currency_field='currency_id')
     variance_percent = fields.Float('Відхилення, %', compute='_compute_variance', store=True)
     execution_percent = fields.Float('Виконання, %', compute='_compute_execution', store=True)
 
     # Відповідальні особи
     responsible_user_id = fields.Many2one('res.users', 'Відповідальний планувальник',
-                                          required=True, default=lambda self: self.env.user)
+                                          required=True, default=lambda self: self.env.user, index=True)
     coordinator_user_id = fields.Many2one('res.users', 'Координатор')
     approver_user_id = fields.Many2one('res.users', 'Затверджувач')
     approved_by_id = fields.Many2one('res.users', 'Затверджено')
 
     # Організаційні зв'язки
     company_id = fields.Many2one('res.company', 'Підприємство', required=True,
-                                 default=lambda self: self.env.company)
+                                 default=lambda self: self.env.company, index=True)
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
 
     # Зв'язок з прогнозами продажів (замість sales_plan_id)
@@ -76,7 +79,7 @@ class BudgetPlan(models.Model):
     consolidation_method = fields.Selection(related='cbo_id.consolidation_method', readonly=True)
 
     # Метадані планування
-    submission_deadline = fields.Date('Крайній термін подання', required=True)
+    submission_deadline = fields.Date('Крайній термін подання', required=True, default=fields.Date.today)
     approval_date = fields.Datetime('Дата затвердження')
 
     # Налаштування версійності
@@ -91,6 +94,12 @@ class BudgetPlan(models.Model):
     budget_currency_setting_id = fields.Many2one('budget.currency.setting', 'Валютні налаштування')
 
     notes = fields.Text('Примітки та обґрунтування')
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', '/') == '/':
+            vals['name'] = self.env['ir.sequence'].next_by_code('budget.plan') or '/'
+        return super().create(vals)
 
     @api.depends('line_ids.planned_amount')
     def _compute_totals(self):
@@ -212,6 +221,7 @@ class BudgetPlan(models.Model):
     def action_create_revision(self):
         """Створення ревізії бюджету"""
         new_version = self.copy({
+            'name': '/',
             'version': f"{self.version}.rev",
             'state': 'draft',
             'is_baseline': False,
@@ -308,9 +318,9 @@ class BudgetPlanLine(models.Model):
     description = fields.Char('Опис', required=True)
 
     # Фінансові показники
-    planned_amount = fields.Monetary('Планова сума', required=True)
-    committed_amount = fields.Monetary('Зарезервована сума')
-    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True)
+    planned_amount = fields.Monetary('Планова сума', required=True, currency_field='currency_id')
+    committed_amount = fields.Monetary('Зарезервована сума', currency_field='currency_id')
+    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True, currency_field='currency_id')
 
     # Розрахунки
     calculation_basis = fields.Text('Основа розрахунку')
@@ -325,7 +335,7 @@ class BudgetPlanLine(models.Model):
 
     # Деталізація для розрахунків
     quantity = fields.Float('Кількість')
-    unit_price = fields.Monetary('Ціна за одиницю')
+    unit_price = fields.Monetary('Ціна за одиницю', currency_field='currency_id')
     percentage_base = fields.Float('Відсоток від бази')
 
     # Прив'язка до прогнозу продажів

@@ -1,25 +1,27 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.2.0.1',
+    'version': '17.0.2.0.2',
     'category': 'Accounting/Management',
     'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО та інтеграцією з прогнозами продажів',
     'description': """
 Система бюджетування для групи компаній "Хлебодар"
 
-Оновлена функціональність v2.0:
+Оновлена функціональність v2.0.2:
 * Гнучка структура ЦБО (кластери, напрямки, бренди, департаменти)
 * Інтеграція з модулем Sales через прогнози продажів
 * Багаторівнева система бюджетування
 * Автоматична консолідація бюджетів
 * Розширені можливості планування та контролю
 * Валютні налаштування для міжнародного бізнесу
+* Виправлено для Odoo 17 EE
 """,
     'author': 'HD Digital Solution',
     'website': 'https://hd-group.ua',
     'license': 'LGPL-3',
     'depends': [
         'base',
+        'web',
         'account',
         'sale',
         'sale_management',
@@ -46,7 +48,6 @@
         'views/sales_forecast_views.xml',
         'views/crm_team_views.xml',
         'views/project_views.xml',
-        'views/crm_team_extension_views.xml',
         'views/budget_plan_views.xml',
         'views/budget_execution_views.xml',
         'views/budget_dashboard_views.xml',

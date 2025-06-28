@@ -4,133 +4,205 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 
 
-class SalesForecast(models.Model):
-    """Прогноз продажів - розширення стандартної моделі Sales"""
+class SaleForecast(models.Model):
+    """Прогноз продажів"""
     _name = 'sale.forecast'
     _description = 'Прогноз продажів'
-    _order = 'period_id desc, team_id, product_category_id'
+    _order = 'period_id desc, team_id'
     _inherit = ['mail.thread', 'mail.activity.mixin']
+
+    # Автонумерація
+    name = fields.Char('Номер', required=True, copy=False, readonly=True, default='/')
 
     def _compute_display_name(self):
         for record in self:
             team_name = record.team_id.name if record.team_id else 'Без команди'
             period_name = record.period_id.name if record.period_id else 'Без періоду'
-            record.display_name = f"Прогноз {team_name} - {period_name}"
+            channel_name = dict(record._fields['channel'].selection).get(record.channel, record.channel)
+            record.display_name = f"{team_name} - {channel_name} ({period_name})"
 
     display_name = fields.Char('Назва', compute='_compute_display_name', store=False)
 
     # Основні параметри
-    period_id = fields.Many2one('budget.period', 'Період', required=True)
-    team_id = fields.Many2one('crm.team', 'Команда продажів', required=True)
-    user_id = fields.Many2one('res.users', 'Відповідальний', required=True, default=lambda self: self.env.user)
+    period_id = fields.Many2one('budget.period', 'Період планування', required=True, index=True)
+    team_id = fields.Many2one('crm.team', 'Команда продажів', required=True, index=True)
+    user_id = fields.Many2one('res.users', 'Відповідальний', required=True,
+                              default=lambda self: self.env.user, index=True)
 
-    # Інтеграція з проектами
-    project_id = fields.Many2one('project.project', 'Проект',
-                                 help="Прогноз продажів може бути прив'язаний до конкретного проекту")
-
-    # Інтеграція з ЦБО
-    cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО',
-                             help="Центр бюджетної відповідальності, до якого належить прогноз")
-
-    # Географія та сегментація
-    country_id = fields.Many2one('res.country', 'Країна')
-    state_id = fields.Many2one('res.country.state', 'Область/Штат')
-
-    # Канали продажів
+    # Канали та сегменти
     channel = fields.Selection([
         ('direct', 'Прямі продажі'),
-        ('retail', 'Роздрібна мережа'),
-        ('wholesale', 'Оптові продажі'),
-        ('online', 'Онлайн'),
-        ('partner', 'Партнерський канал'),
+        ('retail', 'Роздрібна торгівля'),
+        ('wholesale', 'Оптова торгівля'),
+        ('online', 'Онлайн продажі'),
+        ('partner', 'Через партнерів'),
         ('export', 'Експорт'),
-        ('b2b', 'B2B'),
-        ('b2c', 'B2C'),
-        ('other', 'Інше')
-    ], 'Канал продажів', required=True)
+        ('b2b', 'B2B продажі'),
+        ('b2c', 'B2C продажі')
+    ], 'Канал продажів', required=True, default='direct', index=True)
 
-    # Сегментація клієнтів
     customer_segment = fields.Selection([
         ('new', 'Нові клієнти'),
         ('existing', 'Існуючі клієнти'),
         ('vip', 'VIP клієнти'),
-        ('corporate', 'Корпоративні'),
-        ('retail', 'Роздрібні'),
-        ('government', 'Державні')
-    ], 'Сегмент клієнтів')
+        ('corporate', 'Корпоративні клієнти'),
+        ('retail', 'Роздрібні клієнти')
+    ], 'Сегмент клієнтів', required=True, default='existing')
 
+    # Статус та схвалення
     state = fields.Selection([
         ('draft', 'Чернетка'),
-        ('review', 'На розгляді'),
+        ('planning', 'Планування'),
+        ('review', 'На перевірці'),
         ('approved', 'Затверджений'),
         ('revision', 'Доопрацювання'),
-        ('locked', 'Заблокований')
-    ], 'Статус', default='draft', required=True, tracking=True)
+        ('archived', 'Архівний')
+    ], 'Статус', default='draft', required=True, tracking=True, index=True)
 
-    # Підсумкові показники
-    total_forecast_amount = fields.Monetary('Загальний прогноз', compute='_compute_totals', store=True)
-    total_forecast_qty = fields.Float('Загальна кількість', compute='_compute_totals', store=True)
-    total_margin = fields.Monetary('Загальна маржа', compute='_compute_totals', store=True)
-    margin_percent = fields.Float('Маржинальність, %', compute='_compute_totals', store=True)
+    # Підходи до прогнозування
+    forecast_base = fields.Selection([
+        ('manual', 'Ручне планування'),
+        ('historical', 'На основі історії'),
+        ('market_research', 'Дослідження ринку'),
+        ('pipeline', 'На основі воронки продажів'),
+        ('mixed', 'Змішаний підхід')
+    ], 'Основа прогнозу', required=True, default='manual')
 
-    currency_id = fields.Many2one('res.currency', 'Валюта',
-                                  default=lambda self: self.env.company.currency_id)
-    company_id = fields.Many2one('res.company', 'Підприємство',
-                                 default=lambda self: self.env.company)
+    # Фінансові показники - з compute та store=True
+    total_forecast_amount = fields.Monetary('Загальна сума прогнозу',
+                                            compute='_compute_totals', store=True, currency_field='currency_id')
+    total_forecast_qty = fields.Float('Загальна кількість',
+                                      compute='_compute_totals', store=True)
+
+    # Середні показники
+    avg_deal_size = fields.Monetary('Середній розмір угоди',
+                                    compute='_compute_averages', store=True, currency_field='currency_id')
+    deals_count = fields.Integer('Кількість угод',
+                                 compute='_compute_averages', store=True)
+
+    # Конверсії та ефективність
+    conversion_rate = fields.Float('Коефіцієнт конверсії, %',
+                                   compute='_compute_conversion', store=True)
+    sales_cycle_days = fields.Integer('Тривалість циклу продажів, днів')
+
+    # Зв'язок з ЦБО
+    cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО',
+                             related='team_id.responsibility_center_id', store=True, readonly=True)
+
+    # Організаційні поля
+    company_id = fields.Many2one('res.company', 'Підприємство', required=True,
+                                 default=lambda self: self.env.company, index=True)
+    currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
 
     # Лінії прогнозу
-    line_ids = fields.One2many('sale.forecast.line', 'forecast_id', 'Позиції прогнозу')
+    forecast_line_ids = fields.One2many('sale.forecast.line', 'forecast_id', 'Позиції прогнозу')
 
-    # Аналітичні дані
-    previous_period_sales = fields.Monetary('Продажі попереднього періоду', readonly=True)
-    growth_rate = fields.Float('Темп росту, %', compute='_compute_growth_rate', store=True)
-
-    # Базис для прогнозування
-    forecast_base = fields.Selection([
-        ('manual', 'Ручний ввід'),
-        ('historical', 'Історичні дані'),
-        ('pipeline', 'Pipeline продажів'),
-        ('market', 'Ринкові дані'),
-        ('combined', 'Комбінований')
-    ], 'Базис прогнозування', default='manual')
-
-    # Налаштування затвердження
+    # Дедлайни та дати
+    submission_deadline = fields.Date('Крайній термін подання', default=fields.Date.today)
+    approved_date = fields.Datetime('Дата затвердження')
     approved_by_id = fields.Many2one('res.users', 'Затверджено')
-    approval_date = fields.Datetime('Дата затвердження')
 
-    notes = fields.Text('Примітки')
+    # Примітки та обґрунтування
+    methodology_notes = fields.Text('Методологія прогнозування')
+    market_assumptions = fields.Text('Припущення щодо ринку')
+    risk_factors = fields.Text('Фактори ризику')
 
-    @api.depends('line_ids.forecast_amount', 'line_ids.forecast_qty', 'line_ids.margin_amount')
+    notes = fields.Text('Додаткові примітки')
+
+    # Шаблони прогнозів
+    template_id = fields.Many2one('sale.forecast.template', 'Шаблон прогнозу')
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', '/') == '/':
+            # Sequence создается в data/ir_sequence_data.xml с code='sale.forecast'
+            vals['name'] = self.env['ir.sequence'].next_by_code('sale.forecast') or '/'
+        return super().create(vals)
+
+    @api.depends('forecast_line_ids.forecast_amount', 'forecast_line_ids.forecast_qty')
     def _compute_totals(self):
         for record in self:
-            record.total_forecast_amount = sum(record.line_ids.mapped('forecast_amount'))
-            record.total_forecast_qty = sum(record.line_ids.mapped('forecast_qty'))
-            record.total_margin = sum(record.line_ids.mapped('margin_amount'))
-            if record.total_forecast_amount:
-                record.margin_percent = (record.total_margin / record.total_forecast_amount) * 100
-            else:
-                record.margin_percent = 0.0
+            record.total_forecast_amount = sum(record.forecast_line_ids.mapped('forecast_amount'))
+            record.total_forecast_qty = sum(record.forecast_line_ids.mapped('forecast_qty'))
 
-    @api.depends('total_forecast_amount', 'previous_period_sales')
-    def _compute_growth_rate(self):
+    @api.depends('forecast_line_ids.forecast_amount')
+    def _compute_averages(self):
         for record in self:
-            if record.previous_period_sales:
-                record.growth_rate = ((record.total_forecast_amount - record.previous_period_sales) /
-                                      record.previous_period_sales) * 100
+            lines_count = len(record.forecast_line_ids)
+            record.deals_count = lines_count
+            if lines_count > 0:
+                record.avg_deal_size = record.total_forecast_amount / lines_count
             else:
-                record.growth_rate = 0.0
+                record.avg_deal_size = 0.0
 
-    def action_submit_for_review(self):
-        """Подача на розгляд"""
+    @api.depends('forecast_line_ids.probability')
+    def _compute_conversion(self):
+        for record in self:
+            if record.forecast_line_ids:
+                avg_probability = sum(record.forecast_line_ids.mapped('probability')) / len(record.forecast_line_ids)
+                record.conversion_rate = avg_probability
+            else:
+                record.conversion_rate = 0.0
+
+    @api.onchange('team_id')
+    def _onchange_team_id(self):
+        """Автоматичне заповнення полів на основі команди"""
+        if self.team_id:
+            self.channel = self.team_id.default_forecast_channel or 'direct'
+            self.customer_segment = self.team_id.default_customer_segment or 'existing'
+            # Встановлюємо відповідального за бюджет команди, якщо є
+            if self.team_id.budget_responsible_user_id:
+                self.user_id = self.team_id.budget_responsible_user_id
+
+    @api.onchange('template_id')
+    def _onchange_template_id(self):
+        """Застосування шаблону прогнозу"""
+        if self.template_id:
+            # Очищуємо існуючі лінії
+            self.forecast_line_ids = [(5, 0, 0)]
+
+            # Створюємо нові лінії на основі шаблону
+            lines_data = []
+            for template_line in self.template_id.line_ids:
+                lines_data.append((0, 0, {
+                    'product_id': template_line.product_id.id,
+                    'product_category_id': template_line.product_category_id.id,
+                    'forecast_qty': template_line.default_qty,
+                    'forecast_price': template_line.default_price,
+                    'probability': template_line.default_probability,
+                    'description': template_line.description,
+                }))
+
+            self.forecast_line_ids = lines_data
+            self.methodology_notes = self.template_id.methodology_notes
+
+    def action_start_planning(self):
+        """Початок планування"""
+        self.state = 'planning'
+        self.message_post(body="Розпочато планування прогнозу")
+
+    def action_submit_review(self):
+        """Відправка на перевірку"""
+        if not self.forecast_line_ids:
+            raise ValidationError('Неможливо відправити порожній прогноз на перевірку!')
+
         self.state = 'review'
-        self.message_post(body="Прогноз подано на розгляд")
+        self.message_post(body="Прогноз відправлено на перевірку")
+
+        # Сповіщення менеджера команди
+        if self.team_id.user_id:
+            self.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=self.team_id.user_id.id,
+                summary=f'Перевірка прогнозу: {self.display_name}'
+            )
 
     def action_approve(self):
         """Затвердження прогнозу"""
         self.write({
             'state': 'approved',
             'approved_by_id': self.env.user.id,
-            'approval_date': fields.Datetime.now()
+            'approved_date': fields.Datetime.now(),
         })
         self.message_post(body="Прогноз затверджено")
 
@@ -139,149 +211,165 @@ class SalesForecast(models.Model):
         self.state = 'revision'
         self.message_post(body="Прогноз відправлено на доопрацювання")
 
-    def action_lock(self):
-        """Блокування прогнозу"""
-        self.state = 'locked'
+        # Сповіщення відповідального
+        if self.user_id:
+            self.activity_schedule(
+                'mail.mail_activity_data_todo',
+                user_id=self.user_id.id,
+                summary=f'Доопрацювання прогнозу: {self.display_name}'
+            )
 
-    def copy_from_previous_period(self, growth_factor=1.0):
-        """Копіювання з попереднього періоду"""
-        # Логіка копіювання з попереднього періоду
-        pass
+    def action_archive(self):
+        """Архівування прогнозу"""
+        self.state = 'archived'
+
+    def action_duplicate_forecast(self):
+        """Дублювання прогнозу"""
+        new_forecast = self.copy({
+            'name': '/',
+            'state': 'draft',
+            'approved_by_id': False,
+            'approved_date': False,
+        })
+
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Копія прогнозу',
+            'res_model': 'sale.forecast',
+            'res_id': new_forecast.id,
+            'view_mode': 'form',
+            'target': 'current'
+        }
 
 
-class SalesForecastLine(models.Model):
-    """Позиції прогнозу продажів"""
+class SaleForecastLine(models.Model):
+    """Лінії прогнозу продажів"""
     _name = 'sale.forecast.line'
-    _description = 'Позиції прогнозу продажів'
+    _description = 'Лінії прогнозу продажів'
 
     forecast_id = fields.Many2one('sale.forecast', 'Прогноз', required=True, ondelete='cascade')
 
-    # Товар та категорія
+    # Продукт або категорія
     product_id = fields.Many2one('product.product', 'Товар')
-    product_category_id = fields.Many2one('product.category', 'Категорія товару')
-    product_brand = fields.Char('Бренд')
+    product_category_id = fields.Many2one('product.category', 'Категорія товарів')
+
+    description = fields.Char('Опис', required=True)
 
     # Прогнозні показники
-    forecast_qty = fields.Float('Прогнозна кількість', required=True)
-    forecast_price = fields.Monetary('Прогнозна ціна', required=True)
-    forecast_amount = fields.Monetary('Прогнозна сума', compute='_compute_forecast_amount', store=True)
+    forecast_qty = fields.Float('Прогнозна кількість', required=True, default=1.0)
+    forecast_price = fields.Monetary('Прогнозна ціна', required=True, currency_field='currency_id')
+    forecast_amount = fields.Monetary('Прогнозна сума', compute='_compute_forecast_amount',
+                                      store=True, currency_field='currency_id')
 
-    # Собівартість та маржа
-    cost_price = fields.Monetary('Собівартість')
-    margin_amount = fields.Monetary('Маржа', compute='_compute_margin', store=True)
-    margin_percent = fields.Float('Маржа, %', compute='_compute_margin', store=True)
+    # Ймовірність та конверсія
+    probability = fields.Float('Ймовірність, %', default=50.0,
+                               help="Ймовірність реалізації прогнозу у відсотках")
+    weighted_amount = fields.Monetary('Зважена сума', compute='_compute_weighted_amount',
+                                      store=True, currency_field='currency_id')
 
-    # Знижки та умови
-    discount_percent = fields.Float('Знижка, %', default=0.0)
-    return_percent = fields.Float('Відсоток повернень, %', default=0.0)
+    # Часові рамки
+    expected_date = fields.Date('Очікувана дата')
+    sales_stage = fields.Selection([
+        ('lead', 'Лід'),
+        ('opportunity', 'Можливість'),
+        ('quotation', 'Пропозиція'),
+        ('negotiation', 'Переговори'),
+        ('closing', 'Закриття')
+    ], 'Стадія продажів', default='opportunity')
 
-    # Валюта
-    currency_id = fields.Many2one('res.currency', related='forecast_id.currency_id', readonly=True)
+    # Клієнтська база
+    partner_id = fields.Many2one('res.partner', 'Клієнт')
+    partner_category = fields.Selection([
+        ('new', 'Новий клієнт'),
+        ('existing', 'Існуючий клієнт'),
+        ('potential', 'Потенційний клієнт')
+    ], 'Категорія клієнта', default='existing')
 
-    # Аналітика
-    analytic_account_id = fields.Many2one('account.analytic.account', 'Аналітичний рахунок')
+    # Зв'язок з CRM
+    opportunity_id = fields.Many2one('crm.lead', 'Можливість в CRM')
 
-    # Додаткова інформація
-    confidence_level = fields.Selection([
-        ('low', 'Низький (50-70%)'),
-        ('medium', 'Середній (70-85%)'),
-        ('high', 'Високий (85-95%)'),
-        ('certain', 'Впевнений (95%+)')
-    ], 'Рівень впевненості', default='medium')
+    currency_id = fields.Many2one('res.currency', related='forecast_id.company_id.currency_id', readonly=True)
+
+    # Аналітичні поля
+    region = fields.Char('Регіон')
+    sales_person_id = fields.Many2one('res.users', 'Менеджер з продажів')
 
     notes = fields.Text('Примітки')
 
-    @api.depends('forecast_qty', 'forecast_price', 'discount_percent')
+    @api.depends('forecast_qty', 'forecast_price')
     def _compute_forecast_amount(self):
         for line in self:
-            amount = line.forecast_qty * line.forecast_price
-            if line.discount_percent:
-                amount *= (1 - line.discount_percent / 100)
-            line.forecast_amount = amount
+            line.forecast_amount = line.forecast_qty * line.forecast_price
 
-    @api.depends('forecast_amount', 'cost_price', 'forecast_qty')
-    def _compute_margin(self):
+    @api.depends('forecast_amount', 'probability')
+    def _compute_weighted_amount(self):
         for line in self:
-            total_cost = line.cost_price * line.forecast_qty
-            line.margin_amount = line.forecast_amount - total_cost
-            if line.forecast_amount:
-                line.margin_percent = (line.margin_amount / line.forecast_amount) * 100
-            else:
-                line.margin_percent = 0.0
+            line.weighted_amount = line.forecast_amount * (line.probability / 100)
+
+    @api.onchange('product_id')
+    def _onchange_product_id(self):
+        """Автоматичне заповнення полів на основі товару"""
+        if self.product_id:
+            self.description = self.product_id.name
+            self.forecast_price = self.product_id.list_price
+            self.product_category_id = self.product_id.categ_id
+
+    @api.onchange('opportunity_id')
+    def _onchange_opportunity_id(self):
+        """Підтягування даних з CRM можливості"""
+        if self.opportunity_id:
+            self.partner_id = self.opportunity_id.partner_id
+            self.forecast_amount = self.opportunity_id.expected_revenue
+            self.probability = self.opportunity_id.probability
+            self.expected_date = self.opportunity_id.date_deadline
+            self.description = self.opportunity_id.name or "З CRM можливості"
 
 
-class SalesForecastTemplate(models.Model):
+class SaleForecastTemplate(models.Model):
     """Шаблони прогнозів продажів"""
     _name = 'sale.forecast.template'
-    _description = 'Шаблони прогнозів продажів'
+    _description = 'Шаблон прогнозу продажів'
 
     name = fields.Char('Назва шаблону', required=True)
     description = fields.Text('Опис')
 
-    team_id = fields.Many2one('crm.team', 'Команда продажів')
+    # Застосування
+    team_ids = fields.Many2many('crm.team', string='Команди продажів')
     channel = fields.Selection([
         ('direct', 'Прямі продажі'),
-        ('retail', 'Роздрібна мережа'),
-        ('wholesale', 'Оптові продажі'),
-        ('online', 'Онлайн'),
-        ('partner', 'Партнерський канал'),
+        ('retail', 'Роздрібна торгівля'),
+        ('wholesale', 'Оптова торгівля'),
+        ('online', 'Онлайн продажі'),
+        ('partner', 'Через партнерів'),
         ('export', 'Експорт'),
-        ('b2b', 'B2B'),
-        ('b2c', 'B2C'),
-        ('other', 'Інше')
+        ('b2b', 'B2B продажі'),
+        ('b2c', 'B2C продажі')
     ], 'Канал продажів')
 
-    # Шаблонні лінії - ИСПРАВЛЕНО НАЗВАНИЕ ПОЛЯ
-    template_line_ids = fields.One2many('sale.forecast.template.line', 'template_id', 'Позиції шаблону')
+    # Лінії шаблону
+    line_ids = fields.One2many('sale.forecast.template.line', 'template_id', 'Позиції шаблону')
+
+    # Методологічні примітки
+    methodology_notes = fields.Text('Методологічні примітки')
 
     active = fields.Boolean('Активний', default=True)
 
-    def create_forecast_from_template(self, period_id, team_id=None):
-        """Створення прогнозу з шаблону"""
-        forecast_vals = {
-            'period_id': period_id,
-            'team_id': team_id or self.team_id.id,
-            'channel': self.channel,
-            'forecast_base': 'manual',
-            'user_id': self.env.user.id,
-        }
 
-        forecast = self.env['sale.forecast'].create(forecast_vals)
-
-        # Копіюємо лінії - ИСПРАВЛЕНО НАЗВАНИЕ ПОЛЯ
-        for template_line in self.template_line_ids:
-            line_vals = {
-                'forecast_id': forecast.id,
-                'product_id': template_line.product_id.id,
-                'product_category_id': template_line.product_category_id.id,
-                'forecast_qty': template_line.default_qty,
-                'forecast_price': template_line.default_price,
-                'cost_price': template_line.cost_price,
-                'confidence_level': template_line.confidence_level,
-            }
-            self.env['sale.forecast.line'].create(line_vals)
-
-        return forecast
-
-
-class SalesForecastTemplateLine(models.Model):
-    """Позиції шаблону прогнозу"""
+class SaleForecastTemplateLine(models.Model):
+    """Лінії шаблону прогнозу"""
     _name = 'sale.forecast.template.line'
-    _description = 'Позиції шаблону прогнозу'
+    _description = 'Лінія шаблону прогнозу'
 
     template_id = fields.Many2one('sale.forecast.template', 'Шаблон', required=True, ondelete='cascade')
+
     product_id = fields.Many2one('product.product', 'Товар')
-    product_category_id = fields.Many2one('product.category', 'Категорія товару')
+    product_category_id = fields.Many2one('product.category', 'Категорія товарів')
 
-    default_qty = fields.Float('Кількість за замовчуванням')
-    default_price = fields.Monetary('Ціна за замовчуванням')
-    cost_price = fields.Monetary('Собівартість')
+    description = fields.Char('Опис', required=True)
 
-    confidence_level = fields.Selection([
-        ('low', 'Низький'),
-        ('medium', 'Середній'),
-        ('high', 'Високий'),
-        ('certain', 'Впевнений')
-    ], 'Рівень впевненості', default='medium')
+    # Значення за замовчуванням
+    default_qty = fields.Float('Кількість за замовчуванням', default=1.0)
+    default_price = fields.Float('Ціна за замовчуванням')
+    default_probability = fields.Float('Ймовірність за замовчуванням, %', default=50.0)
 
-    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+    sequence = fields.Integer('Послідовність', default=10)
