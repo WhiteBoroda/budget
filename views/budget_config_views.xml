@@ -268,7 +268,7 @@
               action="action_budget_period"
               sequence="30"/>
 
-    <!-- Валютні налаштування -->
+    <!-- Tree view валютных настроек -->
     <record id="view_budget_currency_setting_tree" model="ir.ui.view">
         <field name="name">budget.currency.setting.tree</field>
         <field name="model">budget.currency.setting</field>
@@ -278,51 +278,149 @@
                 <field name="base_currency_id"/>
                 <field name="reporting_currency_id"/>
                 <field name="use_planned_rates"/>
-                <field name="planning_rate"/>
+                <field name="planning_rate" invisible="not use_planned_rates"/>
+                <field name="cbo_count" string="Кількість ЦБО"/>
                 <field name="active"/>
             </tree>
         </field>
     </record>
 
+    <!-- Form view валютных настроек -->
     <record id="view_budget_currency_setting_form" model="ir.ui.view">
         <field name="name">budget.currency.setting.form</field>
         <field name="model">budget.currency.setting</field>
         <field name="arch" type="xml">
             <form>
                 <sheet>
+                    <div class="oe_title">
+                        <label for="name" class="oe_edit_only"/>
+                        <h1>
+                            <field name="name" placeholder="Назва налаштування"/>
+                        </h1>
+                    </div>
+
                     <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="base_currency_id"/>
-                            <field name="reporting_currency_id"/>
-                        </group>
-                        <group>
-                            <field name="use_planned_rates"/>
-                            <field name="planning_rate" invisible="not use_planned_rates"/>
+                        <group string="Валютні налаштування">
+                            <field name="base_currency_id" options="{'no_create': True}"/>
+                            <field name="reporting_currency_id" options="{'no_create': True}"/>
                             <field name="active"/>
                         </group>
+                        <group string="Планові курси">
+                            <field name="use_planned_rates"/>
+                            <field name="planning_rate"
+                                   invisible="not use_planned_rates"
+                                   attrs="{'required': [('use_planned_rates', '=', True)]}"/>
+                        </group>
                     </group>
-                    <group string="ЦБО які використовують ці налаштування">
-                        <field name="cbo_ids" nolabel="1">
-                            <tree>
-                                <field name="code"/>
-                                <field name="name"/>
-                                <field name="cbo_type"/>
-                                <field name="budget_level"/>
-                            </tree>
-                        </field>
-                    </group>
+
+                    <notebook>
+                        <page string="ЦБО які використовують ці налаштування">
+                            <div class="oe_subtitle">
+                                <p>Оберіть ЦБО, які будуть використовувати ці валютні налаштування для бюджетного планування</p>
+                            </div>
+                            <field name="cbo_ids" nolabel="1" widget="many2many" options="{'no_create': True}">
+                                <tree editable="false" decoration-info="budget_level == 'strategic'"
+                                      decoration-success="budget_level == 'tactical'"
+                                      decoration-warning="budget_level == 'operational'"
+                                      decoration-muted="budget_level == 'functional'">
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="cbo_type"/>
+                                    <field name="budget_level"/>
+                                    <field name="business_segment"/>
+                                    <field name="responsible_user_id"/>
+                                    <field name="country_id"/>
+                                    <field name="active" invisible="1"/>
+                                </tree>
+                                <form>
+                                    <group>
+                                        <group>
+                                            <field name="code"/>
+                                            <field name="name"/>
+                                            <field name="cbo_type"/>
+                                            <field name="budget_level"/>
+                                        </group>
+                                        <group>
+                                            <field name="business_segment"/>
+                                            <field name="responsible_user_id"/>
+                                            <field name="country_id"/>
+                                            <field name="region"/>
+                                        </group>
+                                    </group>
+                                </form>
+                            </field>
+
+                            <!-- Статистика -->
+                            <div class="row mt16" invisible="not cbo_ids">
+                                <div class="col-md-12">
+                                    <div class="alert alert-info" role="alert">
+                                        <strong>Статистика:</strong> Обрано ЦБО: <span class="badge badge-primary"><field name="cbo_count" readonly="1"/></span>
+                                        <br/>
+                                        <small>Ці ЦБО будуть використовувати зазначені валютні налаштування при створенні бюджетів</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </page>
+                        <page string="Додаткова інформація">
+                            <group>
+                                <group string="Інформація про курси">
+                                    <div class="alert alert-info" role="alert" invisible="not base_currency_id or not reporting_currency_id or base_currency_id == reporting_currency_id">
+                                        <p><strong>Поточний курс:</strong> Отримується автоматично з курсів валют системи</p>
+                                        <p><strong>Плановий курс:</strong> Використовується для бюджетного планування</p>
+                                    </div>
+                                    <div class="alert alert-warning" role="alert" invisible="reporting_currency_id">
+                                        <p>Якщо валюта звітності не вказана, використовуватиметься базова валюта</p>
+                                    </div>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
 
+    <!-- Search view -->
+    <record id="view_budget_currency_setting_search" model="ir.ui.view">
+        <field name="name">budget.currency.setting.search</field>
+        <field name="model">budget.currency.setting</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="name"/>
+                <field name="base_currency_id"/>
+                <field name="reporting_currency_id"/>
+
+                <separator/>
+                <filter string="Активні" name="active" domain="[('active', '=', True)]"/>
+                <filter string="З плановими курсами" name="with_planned_rates" domain="[('use_planned_rates', '=', True)]"/>
+
+                <group expand="0" string="Групувати за">
+                    <filter string="Базова валюта" name="group_base_currency" context="{'group_by': 'base_currency_id'}"/>
+                    <filter string="Валюта звітності" name="group_reporting_currency" context="{'group_by': 'reporting_currency_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- Action -->
     <record id="action_budget_currency_setting" model="ir.actions.act_window">
         <field name="name">Валютні налаштування</field>
         <field name="res_model">budget.currency.setting</field>
         <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть валютні налаштування для бюджетування!
+            </p>
+            <p>
+                Валютні налаштування дозволяють:
+                <ul>
+                    <li>Використовувати різні валюти для планування та звітності</li>
+                    <li>Встановлювати планові курси валют</li>
+                    <li>Призначати різні налаштування різним ЦБО</li>
+                </ul>
+            </p>
+        </field>
     </record>
-
     <menuitem id="menu_budget_currency_setting"
               name="Валютні налаштування"
               parent="menu_budget_config"

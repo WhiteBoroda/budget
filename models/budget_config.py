@@ -250,8 +250,9 @@ class BudgetCurrency(models.Model):
     """Валютні налаштування для бюджетування"""
     _name = 'budget.currency.setting'
     _description = 'Валютні налаштування бюджету'
+    _rec_name = 'name'
 
-    name = fields.Char('Назва', required=True)
+    name = fields.Char('Назва налаштування', required=True, compute='_compute_name', store=True)
     base_currency_id = fields.Many2one('res.currency', 'Базова валюта', required=True)
     reporting_currency_id = fields.Many2one('res.currency', 'Валюта звітності')
 
@@ -264,4 +265,38 @@ class BudgetCurrency(models.Model):
                                string='ЦБО',
                                help="ЦБО які використовують ці налаштування")
 
+    cbo_count = fields.Integer('Кількість ЦБО', compute='_compute_cbo_count', store=True)
+
     active = fields.Boolean('Активний', default=True)
+
+    @api.depends('base_currency_id', 'reporting_currency_id')
+    def _compute_name(self):
+        """Автоматичне формування назви"""
+        for record in self:
+            if record.base_currency_id:
+                name = f"Налаштування {record.base_currency_id.name}"
+                if record.reporting_currency_id and record.reporting_currency_id != record.base_currency_id:
+                    name += f" → {record.reporting_currency_id.name}"
+                record.name = name
+            else:
+                record.name = "Нове налаштування"
+
+    @api.depends('cbo_ids')
+    def _compute_cbo_count(self):
+        """Підрахунок кількості ЦБО"""
+        for record in self:
+            record.cbo_count = len(record.cbo_ids)
+
+    @api.onchange('base_currency_id', 'reporting_currency_id')
+    def _onchange_currencies(self):
+        """При зміні валют пересчитуємо плановий курс"""
+        if self.base_currency_id and self.reporting_currency_id and self.base_currency_id != self.reporting_currency_id:
+            # Можна додати логіку отримання поточного курсу
+            pass
+
+    @api.constrains('planning_rate')
+    def _check_planning_rate(self):
+        """Перевірка планового курсу"""
+        for record in self:
+            if record.use_planned_rates and record.planning_rate <= 0:
+                raise ValidationError('Плановий курс повинен бути більше нуля!')
