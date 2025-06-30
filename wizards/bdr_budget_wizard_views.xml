@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- wizards/bdr_budget_wizard_views.xml -->
+
+    <!-- Форма майстра роботи з БДР -->
+    <record id="view_bdr_budget_wizard_form" model="ir.ui.view">
+        <field name="name">bdr.budget.wizard.form</field>
+        <field name="model">bdr.budget.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Майстер роботи з БДР (Бюджет доходів і витрат)">
+                <div class="alert alert-info">
+                    <h4>💼 Робота з БДР (Бюджет доходів і витрат)</h4>
+                    <p>Цей майстер дозволяє імпортувати структуру БДР з Excel файлів та створювати на їх основі детальні бюджети в системі.</p>
+                </div>
+
+                <group>
+                    <group string="🔧 Тип операції">
+                        <field name="operation_type" widget="radio"/>
+                    </group>
+                </group>
+
+                <!-- Секція імпорту -->
+                <group string="📥 Параметри імпорту" invisible="operation_type != 'import'">
+                    <group string="📂 Файл БДР">
+                        <field name="import_file" widget="binary" filename="filename"
+                               help="Завантажте Excel файл з БДР вашого підприємства"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="sheet_name" placeholder="БДР"/>
+                        <field name="start_row"/>
+                    </group>
+                    <group string="🏢 Параметри бюджету">
+                        <field name="period_id" options="{'no_create': True}"/>
+                        <field name="company_id" options="{'no_create': True}"/>
+                        <field name="cbo_id" options="{'no_create': True}"
+                               domain="[('company_ids', 'in', [company_id])]"/>
+                        <field name="currency_multiplier"/>
+                    </group>
+                </group>
+
+                <!-- Секція експорту -->
+                <group string="📤 Параметри експорту" invisible="operation_type != 'export'">
+                    <group string="🗓️ Період та організація">
+                        <field name="period_id" options="{'no_create': True}"/>
+                        <field name="company_id" options="{'no_create': True}"/>
+                        <field name="sheet_name" placeholder="БДР"/>
+                    </group>
+                    <group string="⚙️ Налаштування експорту">
+                        <field name="currency_multiplier"/>
+                        <field name="include_history"/>
+                    </group>
+                </group>
+
+                <!-- Детальні налаштування -->
+                <notebook>
+                    <page string="🗂️ Структура колонок БДР" invisible="operation_type == 'analyze'">
+                        <div class="alert alert-info">
+                            <strong>📋 Структура Excel файлу БДР:</strong>
+                            <p>Вкажіть в яких колонках розташовані дані у вашому файлі БДР</p>
+                        </div>
+
+                        <group>
+                            <group string="📊 Основні колонки">
+                                <field name="item_column" placeholder="A"/>
+                                <field name="total_column" placeholder="N"/>
+                            </group>
+                        </group>
+
+                        <group string="📅 Помісячні дані">
+                            <group string="Січень - Червень">
+                                <field name="jan_column" placeholder="B"/>
+                                <field name="feb_column" placeholder="C"/>
+                                <field name="mar_column" placeholder="D"/>
+                                <field name="apr_column" placeholder="E"/>
+                                <field name="may_column" placeholder="F"/>
+                                <field name="jun_column" placeholder="G"/>
+                            </group>
+                            <group string="Липень - Грудень">
+                                <field name="jul_column" placeholder="H"/>
+                                <field name="aug_column" placeholder="I"/>
+                                <field name="sep_column" placeholder="J"/>
+                                <field name="oct_column" placeholder="K"/>
+                                <field name="nov_column" placeholder="L"/>
+                                <field name="dec_column" placeholder="M"/>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="⚙️ Додаткові налаштування" invisible="operation_type == 'analyze'">
+                        <group>
+                            <group string="🔄 Обробка даних">
+                                <field name="create_monthly_budgets"/>
+                                <field name="update_existing"/>
+                                <field name="auto_categorize"/>
+                            </group>
+                        </group>
+
+                        <div class="alert alert-warning">
+                            <h5>⚠️ Налаштування обробки:</h5>
+                            <ul>
+                                <li><strong>Помісячні бюджети:</strong> Створює окремі бюджети для кожного місяця</li>
+                                <li><strong>Оновити існуючі:</strong> Оновлює наявні бюджети замість створення нових</li>
+                                <li><strong>Автокатегоризація:</strong> Автоматично визначає категорії витрат за ключовими словами</li>
+                            </ul>
+                        </div>
+                    </page>
+
+                    <page string="📊 Статистика" invisible="not total_income and not total_expenses">
+                        <group>
+                            <group string="💰 Фінансові показники">
+                                <field name="total_income" widget="monetary"/>
+                                <field name="total_expenses" widget="monetary"/>
+                                <field name="net_profit" widget="monetary"/>
+                                <field name="currency_id" invisible="1"/>
+                            </group>
+                        </group>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="alert alert-success" invisible="net_profit &lt;= 0">
+                                    <strong>✅ Прибутковість:</strong> Підприємство отримує прибуток
+                                </div>
+                                <div class="alert alert-danger" invisible="net_profit &gt; 0">
+                                    <strong>❌ Збитковість:</strong> Підприємство несе збитки
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>📈 Показники рентабельності:</h6>
+                                        <p invisible="total_income == 0">
+                                            Маржа: <span t-esc="round((net_profit / total_income) * 100, 2) if total_income != 0 else 0"/>%
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </page>
+
+                    <page string="👁️ Попередній перегляд" invisible="not preview_data">
+                        <div class="alert alert-info">
+                            <strong>📋 Структура БДР:</strong>
+                            <p>Попередній перегляд даних з вашого файлу БДР</p>
+                        </div>
+                        <field name="preview_data" widget="text" readonly="1" nolabel="1"/>
+                    </page>
+
+                    <page string="✅ Результати" invisible="not import_summary">
+                        <div class="alert alert-success">
+                            <strong>🎯 Результат операції:</strong>
+                        </div>
+                        <field name="import_summary" widget="text" readonly="1" nolabel="1"/>
+                    </page>
+
+                    <page string="📥 Завантаження" invisible="not result_file">
+                        <group>
+                            <field name="result_file" widget="binary"
+                                   filename="result_filename" readonly="1"/>
+                            <field name="result_filename" invisible="1"/>
+                        </group>
+                    </page>
+
+                    <page string="📖 Інструкція">
+                        <div class="container-fluid">
+                            <div class="alert alert-info">
+                                <h4>📋 Інструкція роботи з БДР</h4>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>📂 Структура файлу БДР:</h5>
+                                    <table class="table table-sm table-bordered">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th>Колонка</th>
+                                                <th>Дані</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr><td>A</td><td>Назва статті БДР</td></tr>
+                                            <tr><td>B-M</td><td>Помісячні суми</td></tr>
+                                            <tr><td>N</td><td>Разом за рік</td></tr>
+                                        </tbody>
+                                    </table>
+
+                                    <h5>🏗️ Розділи БДР:</h5>
+                                    <ul>
+                                        <li><strong>Доходи:</strong> Виручка, послуги, інші доходи</li>
+                                        <li><strong>Прямі витрати:</strong> Собівартість, матеріали</li>
+                                        <li><strong>Операційні:</strong> ФОТ, оренда, комунальні</li>
+                                        <li><strong>Адміністративні:</strong> Управлінські витрати</li>
+                                        <li><strong>Фінансові:</strong> Відсотки, курсові різниці</li>
+                                    </ul>
+                                </div>
+
+                                <div class="col-md-6">
+                                    <h5>⚡ Можливості системи:</h5>
+                                    <ul>
+                                        <li>✅ <strong>Імпорт БДР:</strong> Завантаження з Excel</li>
+                                        <li>✅ <strong>Автокатегоризація:</strong> Автоматичне визначення категорій</li>
+                                        <li>✅ <strong>Помісячне планування:</strong> Деталізація по місяцях</li>
+                                        <li>✅ <strong>Мультивалютність:</strong> Підтримка різних валют</li>
+                                        <li>✅ <strong>Експорт звітів:</strong> Створення звітних форм</li>
+                                        <li>✅ <strong>Аналіз даних:</strong> Перевірка коректності</li>
+                                    </ul>
+
+                                    <h5>🎯 Алгоритм роботи:</h5>
+                                    <ol>
+                                        <li>Завантажте Excel файл з БДР</li>
+                                        <li>Натисніть "Попередній перегляд"</li>
+                                        <li>Перевірте структуру та дані</li>
+                                        <li>Налаштуйте параметри імпорту</li>
+                                        <li>Виконайте імпорт БДР</li>
+                                        <li>Перевірте створені бюджети</li>
+                                    </ol>
+                                </div>
+                            </div>
+
+                            <div class="alert alert-warning">
+                                <h5>⚠️ Важливі моменти:</h5>
+                                <ul>
+                                    <li>Файл повинен мати стандартну структуру БДР</li>
+                                    <li>Статті БДР групуються по розділах (доходи, витрати)</li>
+                                    <li>Суми можуть бути в грн, тис.грн або млн.грн</li>
+                                    <li>Система автоматично створює відповідні типи бюджетів</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </page>
+                </notebook>
+
+                <footer>
+                    <!-- Кнопки для імпорту -->
+                    <button name="action_preview_bdr"
+                            string="👁️ Попередній перегляд"
+                            type="object"
+                            class="btn-info"
+                            invisible="operation_type != 'import' or not import_file"/>
+
+                    <button name="action_import_bdr"
+                            string="📥 Імпортувати БДР"
+                            type="object"
+                            class="btn-primary"
+                            invisible="operation_type != 'import' or not import_file"/>
+
+                    <button name="action_analyze_bdr"
+                            string="🔍 Аналізувати БДР"
+                            type="object"
+                            class="btn-warning"
+                            invisible="operation_type != 'analyze' and operation_type != 'import'"/>
+
+                    <!-- Кнопки для експорту -->
+                    <button name="action_export_bdr"
+                            string="📤 Експортувати БДР"
+                            type="object"
+                            class="btn-success"
+                            invisible="operation_type != 'export'"/>
+
+                    <!-- Додаткові дії -->
+                    <button name="action_create_bdr_template"
+                            string="🗂️ Створити шаблони БДР"
+                            type="object"
+                            class="btn-secondary"/>
+
+                    <button string="Закрити"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для wizard -->
+    <record id="action_bdr_budget_wizard" model="ir.actions.act_window">
+        <field name="name">Робота з БДР (Бюджет доходів і витрат)</field>
+        <field name="res_model">bdr.budget.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_bdr_budget_wizard_form"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Робота з БДР (Бюджет доходів і витрат)
+            </p>
+            <p>
+                Цей майстер дозволяє:
+                <ul>
+                    <li>Імпортувати БДР з Excel файлів</li>
+                    <li>Створювати деталізовані бюджети</li>
+                    <li>Експортувати дані у формат БДР</li>
+                    <li>Аналізувати структуру доходів і витрат</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <!-- Меню для БДР -->
+    <menuitem id="menu_bdr_budget_wizard"
+              name="💼 БДР (Доходи і витрати)"
+              parent="menu_budget_planning"
+              action="action_bdr_budget_wizard"
+              sequence="40"/>
+
+    <!-- Server Action для швидкого імпорту БДР -->
+    <record id="action_quick_import_bdr" model="ir.actions.server">
+        <field name="name">Швидкий імпорт БДР</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Імпорт БДР',
+    'res_model': 'bdr.budget.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'default_operation_type': 'import'}
+}
+        </field>
+    </record>
+
+    <!-- Action для аналізу БДР -->
+    <record id="action_analyze_bdr_quick" model="ir.actions.server">
+        <field name="name">Аналіз структури БДР</field>
+        <field name="model_id" ref="model_budget_period"/>
+        <field name="binding_model_id" ref="model_budget_period"/>
+        <field name="binding_view_types">list,form</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.
