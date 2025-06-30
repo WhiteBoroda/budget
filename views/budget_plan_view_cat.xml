@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_plan_views.xml - ОНОВЛЕНА ВЕРСІЯ -->
+
+    <!-- ОНОВЛЕНА ФОРМА БЮДЖЕТНОГО ПЛАНУ -->
+    <record id="view_budget_plan_form_with_categories" model="ir.ui.view">
+        <field name="name">budget.plan.form.with.categories</field>
+        <field name="model">budget.plan</field>
+        <field name="inherit_id" ref="view_budget_plan_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Додаємо кнопку оновлення облікових даних -->
+            <xpath expr="//header" position="inside">
+                <button name="action_update_accounting_data"
+                        string="🔄 Оновити облікові дані"
+                        type="object"
+                        class="btn-secondary"
+                        groups="account.group_account_user"
+                        help="Оновити рахунки згідно з поточними зопоставленнями"/>
+            </xpath>
+
+            <!-- Замінюємо notebook з позиціями бюджету -->
+            <xpath expr="//notebook/page[@string='Позиції бюджету']" position="replace">
+                <page string="💰 Позиції бюджету">
+                    <div class="alert alert-info" role="alert">
+                        <strong>Спрощене введення:</strong> Оберіть категорію витрат та центр витрат.
+                        Облікові рахунки визначаться автоматично згідно з налаштуваннями.
+                        <button name="action_update_accounting_data" type="object"
+                                class="btn btn-sm btn-outline-primary ml-2"
+                                groups="account.group_account_user">
+                            Оновити рахунки
+                        </button>
+                    </div>
+
+                    <field name="line_ids"
+                           context="{'default_calculation_method': 'manual'}"
+                           mode="tree">
+                        <tree editable="bottom" decoration-muted="is_consolidation">
+                            <!-- СПРОЩЕНІ ПОЛЯ для користувачів -->
+                            <field name="budget_category_id"
+                                   string="📂 Категорія витрат"
+                                   options="{'no_create': True, 'no_edit': True}"
+                                   required="1"/>
+
+                            <field name="cost_center_id"
+                                   string="🏢 Центр витрат"
+                                   options="{'no_create': True, 'no_edit': True}"/>
+
+                            <field name="description"
+                                   string="📝 Опис"
+                                   required="1"/>
+
+                            <!-- ФІНАНСОВІ ПОЛЯ -->
+                            <field name="quantity" string="Кіл-ть"/>
+                            <field name="unit_price" string="Ціна"/>
+                            <field name="planned_amount"
+                                   string="💰 Планова сума"
+                                   sum="Загалом"/>
+
+                            <!-- ВИКОНАННЯ -->
+                            <field name="committed_amount"
+                                   string="🔒 Зарезервовано"
+                                   optional="show"/>
+                            <field name="actual_amount"
+                                   string="✅ Фактично"
+                                   optional="show"/>
+
+                            <!-- ОБЛІКОВІ ПОЛЯ (для бухгалтерів) -->
+                            <field name="account_id"
+                                   string="🧾 Рахунок"
+                                   optional="hide"
+                                   groups="account.group_account_user"
+                                   readonly="1"/>
+                            <field name="analytic_account_id"
+                                   string="📊 Аналітика"
+                                   optional="hide"
+                                   groups="account.group_account_user"
+                                   readonly="1"/>
+
+                            <!-- ТЕХНІЧНІ ПОЛЯ -->
+                            <field name="calculation_method" optional="hide"/>
+                            <field name="is_consolidation" invisible="1"/>
+                        </tree>
+
+                        <!-- ДЕТАЛЬНА ФОРМА ПОЗИЦІЇ -->
+                        <form>
+                            <sheet>
+                                <group>
+                                    <group string="🏷️ Що витрачаємо?">
+                                        <field name="budget_category_id"
+                                               options="{'no_create': True}"/>
+                                        <field name="cost_center_id"
+                                               options="{'no_create': True}"/>
+                                        <field name="description"/>
+                                    </group>
+
+                                    <group string="💰 Планування">
+                                        <field name="quantity"/>
+                                        <field name="unit_price"/>
+                                        <field name="planned_amount"
+                                               class="oe_inline"
+                                               style="font-size: 16px; font-weight: bold;"/>
+                                        <field name="calculation_method"/>
+                                    </group>
+                                </group>
+
+                                <group string="📋 Обґрунтування">
+                                    <field name="calculation_basis" nolabel="1"
+                                           placeholder="Як розраховано цю суму?"/>
+                                </group>
+
+                                <notebook>
+                                    <page string="💼 Виконання">
+                                        <group>
+                                            <group string="Витрачено">
+                                                <field name="committed_amount"/>
+                                                <field name="actual_amount"/>
+                                            </group>
+                                            <group string="Аналітика">
+                                                <field name="department_id"/>
+                                                <field name="project_id"/>
+                                            </group>
+                                        </group>
+                                    </page>
+
+                                    <page string="🧾 Облікові дані"
+                                          groups="account.group_account_user">
+                                        <div class="alert alert-warning">
+                                            <strong>Увага:</strong> Ці поля заповнюються автоматично
+                                            на основі зопоставлень категорій з рахунками.
+                                        </div>
+                                        <group>
+                                            <group string="Рахунки">
+                                                <field name="account_id"
+                                                       options="{'no_create': True}"/>
+                                                <field name="analytic_account_id"
+                                                       options="{'no_create': True}"/>
+                                            </group>
+                                            <group string="Ко

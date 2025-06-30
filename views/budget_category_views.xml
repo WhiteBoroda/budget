@@ -1,0 +1,294 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_category_views.xml -->
+
+    <!-- КАТЕГОРІЇ БЮДЖЕТУ -->
+    <record id="view_budget_category_tree" model="ir.ui.view">
+        <field name="name">budget.category.tree</field>
+        <field name="model">budget.category</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="parent_id"/>
+                <field name="budget_type_ids" widget="many2many_tags"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_category_form" model="ir.ui.view">
+        <field name="name">budget.category.form</field>
+        <field name="model">budget.category</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Основна інформація">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="parent_id"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Налаштування">
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="active"/>
+                            <field name="default_account_id" options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group string="Опис">
+                        <field name="description" nolabel="1"/>
+                    </group>
+
+                    <group string="Типи бюджетів">
+                        <field name="budget_type_ids" nolabel="1" widget="many2many_tags"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Зопоставлення рахунків">
+                            <field name="account_mapping_ids">
+                                <tree editable="bottom">
+                                    <field name="company_id"/>
+                                    <field name="cbo_id"/>
+                                    <field name="cost_center_id"/>
+                                    <field name="account_id" required="1"/>
+                                    <field name="analytic_account_id"/>
+                                    <field name="priority"/>
+                                    <field name="active" widget="boolean_toggle"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <page string="Підкатегорії">
+                            <field name="child_ids" readonly="1">
+                                <tree>
+                                    <field name="code"/>
+                                    <field name="name"/>
+                                    <field name="active"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_category" model="ir.actions.act_window">
+        <field name="name">Категорії бюджету</field>
+        <field name="res_model">budget.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть категорії бюджетних витрат!
+            </p>
+            <p>
+                Категорії спрощують введення бюджетів і дозволяють
+                уникнути вибору складних облікових рахунків.
+            </p>
+        </field>
+    </record>
+
+    <!-- ЦЕНТРИ ВИТРАТ -->
+    <record id="view_budget_cost_center_tree" model="ir.ui.view">
+        <field name="name">budget.cost.center.tree</field>
+        <field name="model">budget.cost.center</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="sequence" widget="handle"/>
+                <field name="code"/>
+                <field name="name"/>
+                <field name="cbo_id"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_cost_center_form" model="ir.ui.view">
+        <field name="name">budget.cost.center.form</field>
+        <field name="model">budget.cost.center</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Основна інформація">
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="sequence"/>
+                        </group>
+                        <group string="Організаційні зв'язки">
+                            <field name="company_id" options="{'no_create': True}"/>
+                            <field name="cbo_id" options="{'no_create': True}"/>
+                            <field name="department_id" options="{'no_create': True}"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+
+                    <group string="Облікові налаштування">
+                        <field name="analytic_account_id" options="{'no_create': True}"/>
+                    </group>
+
+                    <group string="Опис">
+                        <field name="description" nolabel="1"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_budget_cost_center" model="ir.actions.act_window">
+        <field name="name">Центри витрат</field>
+        <field name="res_model">budget.cost.center</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- ОНОВЛЕНА ФОРМА ЛІНІЙ БЮДЖЕТУ -->
+    <record id="view_budget_plan_line_simplified_tree" model="ir.ui.view">
+        <field name="name">budget.plan.line.simplified.tree</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">15</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom" decoration-muted="is_consolidation">
+                <!-- СПРОЩЕНІ ПОЛЯ -->
+                <field name="budget_category_id" string="Категорія витрат"
+                       options="{'no_create': True}"/>
+                <field name="cost_center_id" string="Центр витрат"
+                       options="{'no_create': True}"/>
+                <field name="description" string="Опис"/>
+
+                <!-- ФІНАНСОВІ ПОЛЯ -->
+                <field name="quantity"/>
+                <field name="unit_price"/>
+                <field name="planned_amount"/>
+                <field name="committed_amount"/>
+                <field name="actual_amount"/>
+
+                <!-- ТЕХНІЧНІ ПОЛЯ (можна приховати) -->
+                <field name="category_code" optional="hide"/>
+                <field name="cost_center_code" optional="hide"/>
+                <field name="account_id" optional="hide" readonly="1"/>
+                <field name="analytic_account_id" optional="hide" readonly="1"/>
+                <field name="calculation_method" optional="hide"/>
+                <field name="is_consolidation" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="view_budget_plan_line_simplified_form" model="ir.ui.view">
+        <field name="name">budget.plan.line.simplified.form</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">15</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <group string="Що витрачаємо?">
+                            <field name="budget_category_id" options="{'no_create': True}"/>
+                            <field name="cost_center_id" options="{'no_create': True}"/>
+                            <field name="description"/>
+                        </group>
+
+                        <group string="Скільки витрачаємо?">
+                            <field name="quantity"/>
+                            <field name="unit_price"/>
+                            <field name="planned_amount"/>
+                            <field name="calculation_method"/>
+                        </group>
+                    </group>
+
+                    <group string="Розрахунки та обґрунтування">
+                        <field name="calculation_basis" nolabel="1"/>
+                        <field name="notes" nolabel="1"/>
+                    </group>
+
+                    <notebook>
+                        <page string="Облікові дані" groups="account.group_account_user">
+                            <group>
+                                <group string="Автоматично визначені рахунки">
+                                    <field name="account_id" readonly="1"/>
+                                    <field name="analytic_account_id" readonly="1"/>
+                                </group>
+                                <group string="Технічна інформація">
+                                    <field name="category_code" readonly="1"/>
+                                    <field name="cost_center_code" readonly="1"/>
+                                    <field name="is_consolidation" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="Виконання">
+                            <group>
+                                <group>
+                                    <field name="committed_amount"/>
+                                    <field name="actual_amount"/>
+                                </group>
+                                <group>
+                                    <field name="department_id"/>
+                                    <field name="project_id"/>
+                                </group>
+                            </group>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ЗОПОСТАВЛЕННЯ КАТЕГОРІЙ З РАХУНКАМИ -->
+    <record id="view_budget_category_account_mapping_tree" model="ir.ui.view">
+        <field name="name">budget.category.account.mapping.tree</field>
+        <field name="model">budget.category.account.mapping</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom">
+                <field name="category_id"/>
+                <field name="company_id"/>
+                <field name="cbo_id"/>
+                <field name="cost_center_id"/>
+                <field name="account_id"/>
+                <field name="analytic_account_id"/>
+                <field name="priority"/>
+                <field name="active" widget="boolean_toggle"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_budget_category_account_mapping" model="ir.actions.act_window">
+        <field name="name">Зопоставлення рахунків</field>
+        <field name="res_model">budget.category.account.mapping</field>
+        <field name="view_mode">tree</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Налаштуйте зопоставлення категорій з рахунками!
+            </p>
+            <p>
+                Тут ви можете налаштувати які облікові рахунки
+                використовувати для кожної категорії бюджету.
+            </p>
+        </field>
+    </record>
+
+    <!-- МЕНЮ -->
+    <menuitem id="menu_budget_category"
+              name="📂 Категорії витрат"
+              parent="menu_budget_config"
+              action="action_budget_category"
+              sequence="60"/>
+
+    <menuitem id="menu_budget_cost_center"
+              name="🏢 Центри витрат"
+              parent="menu_budget_config"
+              action="action_budget_cost_center"
+              sequence="65"/>
+
+    <menuitem id="menu_budget_mapping"
+              name="🔗 Зопоставлення рахунків"
+              parent="menu_budget_config"
+              action="action_budget_category_account_mapping"
+              sequence="70"
+              groups="account.group_account_manager"/>
+
+</odoo>

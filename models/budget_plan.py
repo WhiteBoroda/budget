@@ -36,6 +36,12 @@ class BudgetPlan(models.Model):
     # Автоматичне визначення рівня на основі ЦБО
     budget_level = fields.Selection(related='cbo_id.budget_level', store=True, readonly=True)
 
+    cbo_domain = fields.Char(
+        string='Домен ЦБО',
+        compute='_compute_cbo_domain',
+        store=False
+    )
+
     # ИСПРАВЛЕНО для Odoo 17: убираем states из поля state
     state = fields.Selection([
         ('draft', 'Чернетка'),
@@ -107,6 +113,7 @@ class BudgetPlan(models.Model):
     notes = fields.Text('Примітки та обґрунтування')
 
     # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+
     @api.depends('state')
     def _compute_is_readonly(self):
         """Определяет можно ли редактировать бюджет"""
@@ -415,3 +422,5 @@ class BudgetPlanLine(models.Model):
             self.description = f"На основі прогнозу: {forecast_line.product_id.name or forecast_line.product_category_id.name}"
             self.calculation_basis = f"Прогноз: {forecast_line.forecast_qty} x {forecast_line.forecast_price}"
             self.calculation_method = 'sales_forecast'
+
+
