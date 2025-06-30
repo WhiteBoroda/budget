@@ -84,7 +84,8 @@ class BudgetDashboard(models.Model):
 
     name = fields.Char('Назва', default='Панель бюджетування')
     period_id = fields.Many2one('budget.period', 'Поточний період')
-
+    company_id = fields.Many2one('res.company', 'Підприємство',
+                                 default=lambda self: self.env.company)
     # Статистичні поля
     total_budgets = fields.Integer('Загальна кількість бюджетів', compute='_compute_statistics')
     approved_budgets = fields.Integer('Затверджені бюджети', compute='_compute_statistics')
@@ -95,7 +96,27 @@ class BudgetDashboard(models.Model):
     total_actual = fields.Monetary('Загальна фактична сума', compute='_compute_amounts')
     total_variance = fields.Monetary('Загальне відхилення', compute='_compute_amounts')
 
+    execution_percent = fields.Float('Виконання, %', compute='_compute_execution_percent')
+    variance_amount = fields.Monetary('Сума відхилення', compute='_compute_amounts')
+    variance_percent = fields.Float('Відхилення, %', compute='_compute_variance_percent')
+
     currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+
+    @api.depends('total_planned', 'total_actual')
+    def _compute_execution_percent(self):
+        for record in self:
+            if record.total_planned:
+                record.execution_percent = (record.total_actual / record.total_planned) * 100
+            else:
+                record.execution_percent = 0.0
+
+    @api.depends('total_planned', 'total_actual')
+    def _compute_variance_percent(self):
+        for record in self:
+            if record.total_planned:
+                record.variance_percent = ((record.total_actual - record.total_planned) / record.total_planned) * 100
+            else:
+                record.variance_percent = 0.0
 
     @api.depends('period_id')
     def _compute_statistics(self):
@@ -125,6 +146,7 @@ class BudgetDashboard(models.Model):
                 record.total_planned = sum(approved_budgets.mapped('planned_amount'))
                 record.total_actual = sum(approved_budgets.mapped('actual_amount'))
                 record.total_variance = record.total_actual - record.total_planned
+                record.variance_amount = record.total_variance
             else:
                 record.total_planned = 0
                 record.total_actual = 0
@@ -141,6 +163,32 @@ class BudgetDashboard(models.Model):
             'context': {'default_period_id': self.period_id.id if self.period_id else False}
         }
 
+    def action_view_all_budgets(self):
+        """Перегляд всіх бюджетів"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Всі бюджети',
+            'res_model': 'budget.plan',
+            'view_mode': 'kanban,tree,form',
+            'domain': [('period_id', '=', self.period_id.id)] if self.period_id else [],
+            'context': {'default_period_id': self.period_id.id if self.period_id else False}
+        }
+
+    def action_quick_create_budget(self):
+        """Швидке створення бюджету"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Створити бюджет',
+            'res_model': 'budget.plan',
+            'view_mode': 'form',
+            'target': 'new',
+            'context': {
+                'default_period_id': self.period_id.id if self.period_id else False,
+                'default_state': 'draft',
+                'form_view_initial_mode': 'edit'
+            }
+        }
+
     def action_view_overdue(self):
         """Перегляд прострочених бюджетів"""
         return {
@@ -153,6 +201,17 @@ class BudgetDashboard(models.Model):
                 ('state', '!=', 'approved'),
                 ('period_id', '=', self.period_id.id) if self.period_id else ('id', '>', 0)
             ]
+        }
+
+    def action_analytics(self):
+        """Відкрити аналітику"""
+        return {
+            'type': 'ir.actions.act_window',
+            'name': 'Аналітика бюджетів',
+            'res_model': 'budget.analysis',
+            'view_mode': 'graph,pivot,tree',
+            'domain': [('period_id', '=', self.period_id.id)] if self.period_id else [],
+            'context': {'search_default_group_type': 1}
         }
 
 

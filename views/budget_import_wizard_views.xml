@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- wizards/budget_import_wizard_views.xml -->
+
+    <!-- Форма мастера импорта бюджетов -->
+    <record id="view_budget_import_wizard_form" model="ir.ui.view">
+        <field name="name">budget.import.wizard.form</field>
+        <field name="model">budget.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Імпорт бюджету з Excel">
+                <group>
+                    <group string="Файл для імпорту">
+                        <field name="name"/>
+                        <field name="import_file" widget="binary" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                    </group>
+                    <group string="Параметри бюджету">
+                        <field name="period_id" options="{'no_create': True}"/>
+                        <field name="budget_type_id" options="{'no_create': True}"/>
+                        <field name="cbo_id" options="{'no_create': True}"/>
+                        <field name="company_id" options="{'no_create': True}"/>
+                    </group>
+                </group>
+
+                <group>
+                    <group string="Налаштування Excel">
+                        <field name="sheet_name"/>
+                        <field name="start_row"/>
+                    </group>
+                    <group string="Маппінг колонок">
+                        <field name="description_column"/>
+                        <field name="amount_column"/>
+                        <field name="quantity_column"/>
+                        <field name="price_column"/>
+                    </group>
+                </group>
+
+                <group>
+                    <group string="Додаткові налаштування">
+                        <field name="skip_empty_rows"/>
+                        <field name="auto_create_accounts"/>
+                        <field name="default_calculation_method"/>
+                    </group>
+                    <group string="Валідація">
+                        <field name="validate_amounts"/>
+                        <field name="min_amount" invisible="not validate_amounts"/>
+                        <field name="max_amount" invisible="not validate_amounts"/>
+                    </group>
+                </group>
+
+                <notebook>
+                    <page string="Попередній перегляд" invisible="not preview_data">
+                        <group>
+                            <field name="preview_data" widget="text" readonly="1" nolabel="1"/>
+                        </group>
+                    </page>
+                    <page string="Результат імпорту" invisible="not import_summary">
+                        <group>
+                            <field name="import_summary" widget="text" readonly="1" nolabel="1"/>
+                        </group>
+                    </page>
+                    <page string="Інструкції">
+                        <div class="alert alert-info">
+                            <h4>Інструкція з імпорту бюджетів:</h4>
+                            <ul>
+                                <li><strong>Формат файлу:</strong> Excel (.xlsx)</li>
+                                <li><strong>Структура:</strong> Кожна строка = одна позиція бюджету</li>
+                                <li><strong>Обов'язкові колонки:</strong> Опис та Сума</li>
+                                <li><strong>Додаткові колонки:</strong> Кількість, Ціна за одиницю</li>
+                            </ul>
+
+                            <h5>Приклад структури Excel:</h5>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>A</th><th>B (Опис)</th><th>C (Кількість)</th><th>D (Ціна)</th><th>E (Сума)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1</td><td>Запчастини на ВТ</td><td>39.32</td><td>1250</td><td>150200</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2</td><td>Обслуговування програм</td><td>337.5</td><td>1000</td><td>337500</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5>Автоматичне визначення:</h5>
+                            <ul>
+                                <li><strong>Тип бюджету:</strong> За назвою файлу (ІТ, ФОТ, маркетинг)</li>
+                                <li><strong>Рахунки:</strong> За ключовими словами в описі</li>
+                                <li><strong>ЦБО:</strong> За назвою файлу (УК, ПП)</li>
+                            </ul>
+                        </div>
+                    </page>
+                </notebook>
+
+                <footer>
+                    <button name="action_preview_data"
+                            string="Попередній перегляд"
+                            type="object"
+                            class="btn-info"/>
+                    <button name="action_import_budget"
+                            string="Імпортувати бюджет"
+                            type="object"
+                            class="btn-primary"/>
+                    <button name="action_download_template"
+                            string="Завантажити шаблон"
+                            type="object"
+                            class="btn-secondary"/>
+                    <button string="Скасувати"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для мастера импорта -->
+    <record id="action_budget_import_wizard" model="ir.actions.act_window">
+        <field name="name">Імпорт бюджету з Excel</field>
+        <field name="res_model">budget.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_budget_import_wizard_form"/>
+    </record>
+
+    <!-- Меню для импорта -->
+    <menuitem id="menu_budget_import"
+              name="📁 Імпорт з Excel"
+              parent="menu_budget_planning"
+              action="action_budget_import_wizard"
+              sequence="30"/>
+
+    <!-- Server Action для быстрого импорта -->
+    <record id="action_quick_import_budget" model="ir.actions.server">
+        <field name="name">Швидкий імпорт бюджету</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Імпорт бюджету з Excel',
+    'res_model': 'budget.import.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+}
+        </field>
+    </record>
+
+</odoo>

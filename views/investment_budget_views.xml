@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/investment_budget_views.xml -->
+
+    <!-- Форма мастера работы с инвестиционными бюджетами -->
+    <record id="view_investment_budget_wizard_form" model="ir.ui.view">
+        <field name="name">investment.budget.wizard.form</field>
+        <field name="model">investment.budget.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Інвестиційні бюджети ГК Хлебодар">
+                <group>
+                    <group string="Тип операції">
+                        <field name="operation_type" widget="radio"/>
+                    </group>
+                </group>
+
+                <!-- Импорт из Excel -->
+                <group string="Імпорт з Excel" invisible="operation_type != 'import'">
+                    <group>
+                        <field name="import_file" widget="binary" filename="filename"/>
+                        <field name="filename" invisible="1"/>
+                        <field name="period_id" options="{'no_create': True}"/>
+                    </group>
+                    <group>
+                        <field name="sheet_name"/>
+                        <field name="include_history"/>
+                    </group>
+                </group>
+
+                <!-- Экспорт в Excel -->
+                <group string="Експорт в Excel" invisible="operation_type != 'export'">
+                    <group>
+                        <field name="period_id" options="{'no_create': True}"/>
+                        <field name="include_all_companies"/>
+                        <field name="company_ids" widget="many2many_tags"
+                               invisible="include_all_companies"/>
+                    </group>
+                    <group>
+                        <field name="currency_display"/>
+                        <field name="include_history"/>
+                        <field name="sheet_name"/>
+                    </group>
+                </group>
+
+                <!-- Результат импорта -->
+                <group string="Результат імпорту" invisible="not import_summary">
+                    <field name="import_summary" widget="text" readonly="1" nolabel="1"/>
+                </group>
+
+                <!-- Результат экспорта -->
+                <group string="Завантажити файл" invisible="not result_file">
+                    <field name="result_file" widget="binary"
+                           filename="result_filename" readonly="1"/>
+                    <field name="result_filename" invisible="1"/>
+                </group>
+
+                <notebook>
+                    <page string="Інструкція по інвестиційним бюджетам">
+                        <div class="alert alert-info">
+                            <h4>📊 Структура інвестиційного бюджету ГК "Хлебодар":</h4>
+
+                            <h5>🏗️ Типи проектів:</h5>
+                            <ul>
+                                <li><strong>Бюджет 24:</strong> Основні інвестиційні проекти</li>
+                                <li><strong>Бюджет 20-ОС:</strong> Капітальні вкладення в ОС</li>
+                                <li><strong>Бюджет 21-ОС:</strong> Малоцінні інвестиції</li>
+                            </ul>
+
+                            <h5>📋 Структура Excel файлу:</h5>
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>A</th><th>B</th><th>C</th><th>D</th><th>E</th><th>F</th><th>G-R</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>№ пп</td>
+                                        <td>Назва проекту</td>
+                                        <td>Сума проекту</td>
+                                        <td>Оплачено 2023</td>
+                                        <td>Оплачено 2024</td>
+                                        <td>Залишок</td>
+                                        <td>Помісячно</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5>🎯 Можливості системи:</h5>
+                            <ul>
+                                <li><strong>Імпорт:</strong> Завантаження проектів з Excel в Odoo</li>
+                                <li><strong>Експорт:</strong> Формування звіту в оригінальному форматі</li>
+                                <li><strong>Проекти:</strong> Автоматичне створення інвестиційних проектів</li>
+                                <li><strong>Планування:</strong> Помісячна розбивка по задачах</li>
+                                <li><strong>Контроль:</strong> Відстеження виконання та витрат</li>
+                                <li><strong>Консолідація:</strong> Зведення по всіх підприємствах</li>
+                            </ul>
+
+                            <h5>📈 Приклад використання:</h5>
+                            <ol>
+                                <li>Завантажуйте Excel файл з інвестиційними проектами</li>
+                                <li>Система створює проекти та бюджети автоматично</li>
+                                <li>Ведіть облік виконання в Odoo</li>
+                                <li>Експортуйте звіти в форматі ГК для керівництва</li>
+                            </ol>
+
+                            <div class="alert alert-warning mt-3">
+                                <strong>⚠️ Важливо:</strong> Файл повинен мати структуру як в оригінальному
+                                шаблоні ГК "Хлебодар" з листами "Бюджет 24", "Бюджет 20-ОС", "Бюджет 21-ОС"
+                            </div>
+                        </div>
+                    </page>
+
+                    <page string="Приклад структури">
+                        <div>
+                            <h4>💰 Приклад інвестиційних проектів:</h4>
+                            <table class="table table-bordered">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>№</th>
+                                        <th>Назва проекту</th>
+                                        <th>Сума, тис.грн</th>
+                                        <th>Статус</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>1.</td>
+                                        <td>Придбання пакувального комплексу БАЗИС</td>
+                                        <td>5,448.56</td>
+                                        <td>В процесі</td>
+                                    </tr>
+                                    <tr>
+                                        <td>1.1.</td>
+                                        <td>Придбання обладнання</td>
+                                        <td>5,348.56</td>
+                                        <td>Виконано</td>
+                                    </tr>
+                                    <tr>
+                                        <td>1.2.</td>
+                                        <td>Доставка, монтаж, ПНР</td>
+                                        <td>100.00</td>
+                                        <td>Планується</td>
+                                    </tr>
+                                    <tr>
+                                        <td>2.</td>
+                                        <td>Впровадження IP телефонії</td>
+                                        <td>27.60</td>
+                                        <td>Виконано</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+
+                            <h5>📅 Помісячна розбивка автоматично розподіляється по:</h5>
+                            <ul>
+                                <li>Задачам проекту в Odoo</li>
+                                <li>Плановим платежам</li>
+                                <li>Етапам виконання</li>
+                                <li>Звітним періодам</li>
+                            </ul>
+                        </div>
+                    </page>
+                </notebook>
+
+                <footer>
+                    <button name="action_import_investment_budget"
+                            string="📥 Імпортувати з Excel"
+                            type="object"
+                            class="btn-primary"
+                            invisible="operation_type != 'import'"/>
+
+                    <button name="action_export_investment_budget"
+                            string="📤 Експортувати в Excel"
+                            type="object"
+                            class="btn-success"
+                            invisible="operation_type != 'export'"/>
+
+                    <button string="Закрити"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для мастера -->
+    <record id="action_investment_budget_wizard" model="ir.actions.act_window">
+        <field name="name">Інвестиційні бюджети ГК Хлебодар</field>
+        <field name="res_model">investment.budget.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_investment_budget_wizard_form"/>
+    </record>
+
+    <!-- Меню для инвестиционных бюджетов -->
+    <menuitem id="menu_investment_budget"
+              name="🏗️ Інвестиційні бюджети"
+              parent="menu_budget_planning"
+              action="action_investment_budget_wizard"
+              sequence="35"/>
+
+    <!-- Server Action для быстрого доступа -->
+    <record id="action_quick_investment_import" model="ir.actions.server">
+        <field name="name">Швидкий імпорт інвестиційного бюджету</field>
+        <field name="model_id" ref="project.model_project_project"/>
+        <field name="binding_model_id" ref="project.model_project_project"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Імпорт інвестиційного бюджету',
+    'res_model': 'investment.budget.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {'default_operation_type': 'import'}
+}
+        </field>
+    </record>
+
+    <!-- Отчет инвестиционных проектов -->
+    <record id="view_investment_projects_tree" model="ir.ui.view">
+        <field name="name">investment.projects.tree</field>
+        <field name="model">project.project</field>
+        <field name="arch" type="xml">
+            <tree decoration-info="stage_id.name == 'В процесі'"
+                  decoration-success="stage_id.name == 'Виконано'"
+                  decoration-warning="stage_id.name == 'Планується'">
+                <field name="name"/>
+                <field name="partner_id"/>
+                <field name="date_start"/>
+                <field name="user_id"/>
+                <field name="stage_id"/>
+                <field name="task_count"/>
+                <field name="company_id" groups="base.group_multi_company"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="action_investment_projects" model="ir.actions.act_window">
+        <field name="name">Інвестиційні проекти</field>
+        <field name="res_model">project.project</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="domain">[('name', 'ilike', 'інвест'), '|', ('name', 'ilike', 'придбання'), ('name', 'ilike', 'впровадження')]</field>
+        <field name="context">{'search_default_group_stage': 1}</field>
+        <field name="view_id" ref="view_investment_projects_tree"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть ваш перший інвестиційний проект!
+            </p>
+            <p>
+                Інвестиційні проекти можна:
+                <ul>
+                    <li>Імпортувати з Excel файлів ГК</li>
+                    <li>Створювати вручну</li>
+                    <li>Планувати помісячно</li>
+                    <li>Контролювати виконання</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <menuitem id="menu_investment_projects"
+              name="📈 Інвестиційні проекти"
+              parent="menu_budget_execution"
+              action="action_investment_projects"
+              sequence="15"/>
+
+</odoo>

@@ -53,6 +53,8 @@
         'views/budget_dashboard_views.xml',
         'views/budget_analysis_views.xml',
         'views/budget_notification_views.xml',
+        'views/budget_import_wizard_views.xml',
+        'views/investment_budget_views.xml'
         'views/budget_reports_views.xml',
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
