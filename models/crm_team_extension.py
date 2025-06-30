@@ -54,6 +54,7 @@ class CrmTeam(models.Model):
     forecast_count = fields.Integer(
         'Кількість прогнозів',
         compute='_compute_forecast_count',
+        store=True,  # ДОДАНО: Зберігати в базі даних для пошуку
         help="Загальна кількість прогнозів для цієї команди"
     )
 

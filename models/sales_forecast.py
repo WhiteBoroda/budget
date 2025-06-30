@@ -79,6 +79,10 @@ class SaleForecast(models.Model):
     total_forecast_qty = fields.Float('Загальна кількість',
                                       compute='_compute_totals', store=True)
 
+    # ДОДАНО: Поля для маржі на рівні прогнозу
+    total_margin = fields.Monetary('Загальна маржа', compute='_compute_totals_margin', store=True, currency_field='currency_id')
+    margin_percent = fields.Float('Маржинальність, %', compute='_compute_totals_margin', store=True)
+
     # Середні показники
     avg_deal_size = fields.Monetary('Середній розмір угоди',
                                     compute='_compute_averages', store=True, currency_field='currency_id')
@@ -152,6 +156,19 @@ class SaleForecast(models.Model):
         for record in self:
             record.total_forecast_amount = sum(record.forecast_line_ids.mapped('forecast_amount'))
             record.total_forecast_qty = sum(record.forecast_line_ids.mapped('forecast_qty'))
+
+    @api.depends('forecast_line_ids.forecast_amount', 'forecast_line_ids.margin_percent')
+    def _compute_totals_margin(self):
+        for record in self:
+            total_margin_amount = 0.0
+            for line in record.forecast_line_ids:
+                total_margin_amount += line.forecast_amount * (line.margin_percent / 100.0)
+            record.total_margin = total_margin_amount
+
+            if record.total_forecast_amount:
+                record.margin_percent = (record.total_margin / record.total_forecast_amount) * 100
+            else:
+                record.margin_percent = 0.0
 
     @api.depends('forecast_line_ids.forecast_amount')
     def _compute_averages(self):
@@ -292,6 +309,9 @@ class SaleForecastLine(models.Model):
     forecast_amount = fields.Monetary('Прогнозна сума', compute='_compute_forecast_amount',
                                       store=True, currency_field='currency_id')
 
+    # ДОДАНО: Маржа на рівні позиції
+    margin_percent = fields.Float('Маржа, %', default=25.0, help="Валова маржа для даної позиції прогнозу")
+
     # Ймовірність та конверсія
     probability = fields.Float('Ймовірність, %', default=50.0,
                                help="Ймовірність реалізації прогнозу у відсотках")
@@ -327,7 +347,7 @@ class SaleForecastLine(models.Model):
 
     notes = fields.Text('Примітки')
 
-    # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+    # ДОДАНО для Odoo 17: computed поля вместо states
     @api.depends('forecast_id.state')
     def _compute_is_editable(self):
         """Определяет можно ли редактировать строку"""

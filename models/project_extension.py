@@ -22,9 +22,9 @@ class ProjectProject(models.Model):
     forecast_ids = fields.One2many('sale.forecast', 'project_id', string='Прогнози продажів')
 
     # Вычисляемые поля
-    forecast_count = fields.Integer('Кількість прогнозів', compute='_compute_forecast_stats')
+    forecast_count = fields.Integer('Кількість прогнозів', compute='_compute_forecast_stats', store=True) # ДОДАНО: store=True
     total_forecast_amount = fields.Monetary('Сума прогнозів', compute='_compute_forecast_stats',
-                                           currency_field='currency_id')
+                                           currency_field='currency_id', store=True) # ДОДАНО: store=True
 
     @api.depends('forecast_ids')
     def _compute_forecast_stats(self):

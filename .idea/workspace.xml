@@ -36,6 +36,9 @@
     &quot;accountId&quot;: &quot;dc03bfcc-4402-4817-b4bc-9e4a83dada9a&quot;
   }
 }</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/models/crm_team_extension.py" root0="SKIP_INSPECTION" />
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -79,7 +82,7 @@
       <option name="presentableId" value="Default" />
       <updated>1750862056000</updated>
       <workItem from="1750862057033" duration="154873000" />
-      <workItem from="1751132088783" duration="10273000" />
+      <workItem from="1751132088783" duration="13834000" />
     </task>
     <servers />
   </component>

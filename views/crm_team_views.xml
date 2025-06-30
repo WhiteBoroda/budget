@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- views/crm_team_views.xml - ВИПРАВЛЕНА ВЕРСІЯ -->
-
-    <!-- Розширення форми команди продаж - ВИПРАВЛЕНО -->
     <record id="crm_team_view_form_inherit_budget" model="ir.ui.view">
         <field name="name">crm.team.form.inherit.budget</field>
         <field name="model">crm.team</field>
         <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- ВИПРАВЛЕНО: Додаємо кнопки в header статистики -->
             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button name="action_view_forecasts"
                         type="object"
@@ -21,23 +17,19 @@
                 <button name="action_create_forecast"
                         type="object"
                         class="oe_stat_button"
-                        icon="fa-plus"
-                        attrs="{'invisible': [('id', '=', False)]}">
-                    <div class="o_field_widget o_stat_info">
+                        icon="fa-plus"> <div class="o_field_widget o_stat_info">
                         <span class="o_stat_text">Створити</span>
                         <span class="o_stat_text">прогноз</span>
                     </div>
                 </button>
             </xpath>
 
-            <!-- ВИПРАВЛЕНО: Додаємо поля в основну групу після існуючих полів -->
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="responsibility_center_id" options="{'no_create': True}"/>
                 <field name="default_forecast_channel"/>
                 <field name="default_customer_segment"/>
             </xpath>
 
-            <!-- ВИПРАВЛЕНО: Додаємо нову вкладку в notebook -->
             <xpath expr="//notebook" position="inside">
                 <page string="Бюджетування та прогнози" groups="budget.group_budget_user">
                     <group>
@@ -82,13 +74,11 @@
         </field>
     </record>
 
-    <!-- ВИПРАВЛЕНО: Розширення tree view команд продаж -->
     <record id="crm_team_view_tree_inherit_budget" model="ir.ui.view">
         <field name="name">crm.team.tree.inherit.budget</field>
         <field name="model">crm.team</field>
         <field name="inherit_id" ref="sales_team.crm_team_view_tree"/>
         <field name="arch" type="xml">
-            <!-- ВИПРАВЛЕНО: Додаємо поля після існуючих -->
             <xpath expr="//field[@name='user_id']" position="after">
                 <field name="responsibility_center_id"/>
                 <field name="forecast_count"/>
@@ -97,20 +87,17 @@
         </field>
     </record>
 
-    <!-- ВИПРАВЛЕНО: Розширення пошуку для команд продаж -->
     <record id="crm_team_view_search_inherit_budget" model="ir.ui.view">
         <field name="name">crm.team.search.inherit.budget</field>
         <field name="model">crm.team</field>
         <field name="inherit_id" ref="sales_team.crm_team_view_search"/>
         <field name="arch" type="xml">
-            <!-- Додаємо поля пошуку -->
             <xpath expr="//field[@name='name']" position="after">
                 <field name="responsibility_center_id"/>
                 <field name="default_forecast_channel"/>
             </xpath>
 
-            <!-- Додаємо фільтри -->
-            <xpath expr="//filter[@name='active']" position="after">
+            <xpath expr="/search" position="inside">
                 <separator/>
                 <filter string="З ЦБО"
                         name="with_cbo"
@@ -121,9 +108,8 @@
                 <filter string="Мої команди"
                         name="my_teams"
                         domain="['|', ('user_id', '=', uid), ('member_ids', 'in', [uid])]"/>
-            </xpath>
+                </xpath>
 
-            <!-- Додаємо групування -->
             <xpath expr="//group" position="inside">
                 <filter string="За ЦБО"
                         name="group_cbo"
@@ -135,7 +121,6 @@
         </field>
     </record>
 
-    <!-- Server action для створення прогнозу з команди - ВИПРАВЛЕНО -->
     <record id="action_create_forecast_from_team" model="ir.actions.server">
         <field name="name">Створити прогноз для команди</field>
         <field name="model_id" ref="sales_team.model_crm_team"/>
@@ -196,7 +181,6 @@ for team in records:
         </field>
     </record>
 
-    <!-- НОВИЙ: Action для перегляду команд з інтеграцією бюджетування -->
     <record id="action_crm_teams_with_budget" model="ir.actions.act_window">
         <field name="name">Команди продажів</field>
         <field name="res_model">crm.team</field>
@@ -220,14 +204,6 @@ for team in records:
         </field>
     </record>
 
-    <!-- НОВИЙ: Меню для інтегрованих команд продажів -->
-    <menuitem id="menu_budget_sales_teams"
-              name="📊 Команди продажів"
-              parent="menu_budget_planning"
-              action="action_crm_teams_with_budget"
-              sequence="12"/>
-
-    <!-- НОВИЙ: Dashboard для команд з прогнозами -->
     <record id="action_crm_teams_dashboard" model="ir.actions.act_window">
         <field name="name">Дашборд команд продажів</field>
         <field name="res_model">crm.team</field>
