@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- views/budget_plan_views.xml - ОНОВЛЕНА ВЕРСІЯ -->
+    <!-- views/budget_plan_views.xml - ОНОВЛЕНА ВЕРСІЯ З КАТЕГОРІЯМИ -->
 
     <!-- ОНОВЛЕНА ФОРМА БЮДЖЕТНОГО ПЛАНУ -->
     <record id="view_budget_plan_form_with_categories" model="ir.ui.view">
@@ -136,4 +136,360 @@
                                                 <field name="analytic_account_id"
                                                        options="{'no_create': True}"/>
                                             </group>
-                                            <group string="Ко
+                                            <group string="Коди">
+                                                <field name="category_code" readonly="1"/>
+                                                <field name="cost_center_code" readonly="1"/>
+                                                <field name="is_consolidation" readonly="1"/>
+                                            </group>
+                                        </group>
+                                    </page>
+
+                                    <page string="📈 Прогноз продажів"
+                                          invisible="not sales_forecast_line_id">
+                                        <group string="Зв'язок з прогнозом">
+                                            <field name="sales_forecast_line_id" readonly="1"/>
+                                        </group>
+                                    </page>
+
+                                    <page string="📝 Примітки">
+                                        <field name="notes" nolabel="1"/>
+                                    </page>
+                                </notebook>
+                            </sheet>
+                        </form>
+                    </field>
+                </page>
+            </xpath>
+
+        </field>
+    </record>
+
+    <!-- СПРОЩЕНИЙ TREE VIEW ДЛЯ ЗВИЧАЙНИХ КОРИСТУВАЧІВ -->
+    <record id="view_budget_plan_line_simplified_tree" model="ir.ui.view">
+        <field name="name">budget.plan.line.simplified.tree</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">15</field>
+        <field name="arch" type="xml">
+            <tree editable="bottom" decoration-muted="is_consolidation">
+                <!-- ОСНОВНІ ПОЛЯ -->
+                <field name="budget_category_id" string="📂 Категорія"
+                       options="{'no_create': True}"/>
+                <field name="cost_center_id" string="🏢 Центр витрат"
+                       options="{'no_create': True}"/>
+                <field name="description" string="📝 Опис"/>
+
+                <!-- ПЛАНУВАННЯ -->
+                <field name="quantity" string="Кіл-ть"/>
+                <field name="unit_price" string="Ціна за од."/>
+                <field name="planned_amount" string="💰 Планова сума" sum="Разом"/>
+
+                <!-- ВИКОНАННЯ -->
+                <field name="committed_amount" string="🔒 Зарезервовано" optional="hide"/>
+                <field name="actual_amount" string="✅ Фактично" optional="hide"/>
+
+                <!-- ТЕХНІЧНІ ПОЛЯ -->
+                <field name="category_code" optional="hide"/>
+                <field name="cost_center_code" optional="hide"/>
+                <field name="calculation_method" optional="hide"/>
+
+                <!-- ОБЛІКОВІ ПОЛЯ (ТІЛЬКИ ДЛЯ БУХГАЛТЕРІВ) -->
+                <field name="account_id" optional="hide"
+                       groups="account.group_account_user" readonly="1"/>
+                <field name="analytic_account_id" optional="hide"
+                       groups="account.group_account_user" readonly="1"/>
+
+                <!-- СЛУЖБОВІ ПОЛЯ -->
+                <field name="is_consolidation" invisible="1"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- РОЗШИРЕНА ФОРМА ДЛЯ АДМІНІСТРАТОРІВ -->
+    <record id="view_budget_plan_line_admin_form" model="ir.ui.view">
+        <field name="name">budget.plan.line.admin.form</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">5</field>
+        <field name="groups_id" eval="[(6, 0, [ref('account.group_account_manager')])]"/>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="description" placeholder="Опис статті бюджету..."/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="🏷️ Категоризація">
+                            <field name="budget_category_id"/>
+                            <field name="cost_center_id"/>
+                            <field name="category_code" readonly="1"/>
+                            <field name="cost_center_code" readonly="1"/>
+                        </group>
+
+                        <group string="💰 Фінансові показники">
+                            <field name="quantity"/>
+                            <field name="unit_price"/>
+                            <field name="planned_amount" class="oe_inline"
+                                   style="font-size: 16px; font-weight: bold;"/>
+                            <field name="currency_id" invisible="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="🧾 Облікові дані">
+                            <field name="account_id"/>
+                            <field name="analytic_account_id"/>
+                        </group>
+
+                        <group string="⚙️ Методологія">
+                            <field name="calculation_method"/>
+                            <field name="percentage_base"
+                                   invisible="calculation_method != 'percentage'"/>
+                        </group>
+                    </group>
+
+                    <group string="💼 Організаційна аналітика">
+                        <group>
+                            <field name="department_id"/>
+                            <field name="project_id"/>
+                        </group>
+                        <group>
+                            <field name="sales_forecast_line_id"/>
+                            <field name="is_consolidation"/>
+                        </group>
+                    </group>
+
+                    <notebook>
+                        <page string="📊 Виконання">
+                            <group>
+                                <group string="Заплановано">
+                                    <field name="planned_amount" readonly="1"/>
+                                </group>
+                                <group string="Фактично">
+                                    <field name="committed_amount"/>
+                                    <field name="actual_amount"/>
+                                </group>
+                            </group>
+
+                            <group string="📈 Розрахунки">
+                                <field name="calculation_basis" nolabel="1"/>
+                            </group>
+                        </page>
+
+                        <page string="🔗 Зв'язки">
+                            <group>
+                                <group string="Проект">
+                                    <field name="project_id"/>
+                                </group>
+                                <group string="Прогноз продажів">
+                                    <field name="sales_forecast_line_id"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="📝 Додаткова інформація">
+                            <field name="notes" nolabel="1"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW ДЛЯ КАТЕГОРІЙ -->
+    <record id="view_budget_plan_line_kanban" model="ir.ui.view">
+        <field name="name">budget.plan.line.kanban</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_mobile">
+                <field name="budget_category_id"/>
+                <field name="cost_center_id"/>
+                <field name="description"/>
+                <field name="planned_amount"/>
+                <field name="actual_amount"/>
+                <field name="is_consolidation"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_content">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <span t-if="record.budget_category_id.raw_value">
+                                                📂 <t t-esc="record.budget_category_id.value"/>
+                                            </span>
+                                        </strong>
+                                        <small class="o_kanban_record_subtitle text-muted">
+                                            <span t-if="record.cost_center_id.raw_value">
+                                                🏢 <t t-esc="record.cost_center_id.value"/>
+                                            </span>
+                                        </small>
+                                    </div>
+                                </div>
+
+                                <div class="o_kanban_record_body">
+                                    <field name="description"/>
+
+                                    <div class="row mt8">
+                                        <div class="col-6">
+                                            <strong>Планово:</strong><br/>
+                                            <field name="planned_amount" widget="monetary"/>
+                                        </div>
+                                        <div class="col-6">
+                                            <strong>Фактично:</strong><br/>
+                                            <field name="actual_amount" widget="monetary"/>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="o_kanban_record_bottom" t-if="record.is_consolidation.raw_value">
+                                    <div class="oe_kanban_bottom_left">
+                                        <span class="badge badge-info">Консолідація</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- SEARCH VIEW З КАТЕГОРІЯМИ -->
+    <record id="view_budget_plan_line_search_categories" model="ir.ui.view">
+        <field name="name">budget.plan.line.search.categories</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <search>
+                <field name="description"/>
+                <field name="budget_category_id"/>
+                <field name="cost_center_id"/>
+                <field name="account_id"/>
+                <field name="planned_amount"/>
+
+                <separator/>
+                <filter string="З категоріями" name="with_categories"
+                        domain="[('budget_category_id', '!=', False)]"/>
+                <filter string="Без категорій" name="without_categories"
+                        domain="[('budget_category_id', '=', False)]"/>
+                <filter string="З центром витрат" name="with_cost_center"
+                        domain="[('cost_center_id', '!=', False)]"/>
+                <filter string="Консолідаційні" name="consolidation"
+                        domain="[('is_consolidation', '=', True)]"/>
+
+                <separator/>
+                <filter string="Великі суми (>100к)" name="big_amounts"
+                        domain="[('planned_amount', '>', 100000)]"/>
+                <filter string="Без обліку" name="no_account"
+                        domain="[('account_id', '=', False)]"/>
+
+                <group expand="0" string="Групувати за">
+                    <filter string="Категорія витрат" name="group_category"
+                            context="{'group_by': 'budget_category_id'}"/>
+                    <filter string="Центр витрат" name="group_cost_center"
+                            context="{'group_by': 'cost_center_id'}"/>
+                    <filter string="Рахунок" name="group_account"
+                            context="{'group_by': 'account_id'}"/>
+                    <filter string="Метод розрахунку" name="group_method"
+                            context="{'group_by': 'calculation_method'}"/>
+                    <filter string="Підрозділ" name="group_department"
+                            context="{'group_by': 'department_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <!-- ACTION ДЛЯ ЛІНІЙ БЮДЖЕТУ З КАТЕГОРІЯМИ -->
+    <record id="action_budget_lines_with_categories" model="ir.actions.act_window">
+        <field name="name">Позиції бюджетів (з категоріями)</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{'search_default_with_categories': 1}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Управління позиціями бюджетів через категорії!
+            </p>
+            <p>
+                Система категорій спрощує:
+                <ul>
+                    <li>Введення бюджетних позицій</li>
+                    <li>Автоматичне зопоставлення з рахунками</li>
+                    <li>Аналіз витрат по категоріях</li>
+                    <li>Консолідацію бюджетів</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <!-- МЕНЮ ДЛЯ РОБОТИ З КАТЕГОРІЯМИ -->
+    <menuitem id="menu_budget_lines_categories"
+              name="📂 Позиції з категоріями"
+              parent="menu_budget_planning"
+              action="action_budget_lines_with_categories"
+              sequence="28"/>
+
+    <!-- SERVER ACTION ДЛЯ ОНОВЛЕННЯ ОБЛІКОВИХ ДАНИХ -->
+    <record id="action_update_accounting_data_bulk" model="ir.actions.server">
+        <field name="name">Оновити облікові дані</field>
+        <field name="model_id" ref="model_budget_plan_line"/>
+        <field name="binding_model_id" ref="model_budget_plan_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+for line in records:
+    line._compute_accounting_data()
+
+if records:
+    env.cr.commit()
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Оновлено!',
+        'message': f'Облікові дані оновлено для {len(records)} позицій',
+        'type': 'success',
+    }
+}
+        </field>
+    </record>
+
+    <!-- WIZARD ДЛЯ МАСОВОГО ПРИЗНАЧЕННЯ КАТЕГОРІЙ -->
+    <record id="view_budget_assign_categories_wizard" model="ir.ui.view">
+        <field name="name">budget.assign.categories.wizard</field>
+        <field name="model">budget.assign.categories.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Масове призначення категорій">
+                <group>
+                    <group string="Цільові позиції">
+                        <field name="line_ids" widget="many2many_tags" readonly="1"/>
+                        <field name="line_count" readonly="1"/>
+                    </group>
+                    <group string="Призначити">
+                        <field name="budget_category_id"/>
+                        <field name="cost_center_id"/>
+                        <field name="update_accounts"/>
+                    </group>
+                </group>
+
+                <div class="alert alert-info">
+                    <strong>Інформація:</strong> Будуть оновлені всі обрані позиції бюджету.
+                    Якщо увімкнено "Оновити рахунки", то облікові рахунки будуть
+                    перевизначені згідно з новими категоріями.
+                </div>
+
+                <footer>
+                    <button name="action_assign_categories"
+                            string="Призначити категорії"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Скасувати"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

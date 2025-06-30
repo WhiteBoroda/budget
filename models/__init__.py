@@ -7,3 +7,4 @@ from . import budget_plan
 from . import budget_execution
 from . import budget_analysis
 from . import budget_template
+from . import budget_category

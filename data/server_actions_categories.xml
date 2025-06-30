@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Server Actions для работы с категориями -->
+
+    <!-- Action для массового назначения категорий -->
+    <record id="action_assign_categories_wizard" model="ir.actions.server">
+        <field name="name">📂 Призначити категорії</field>
+        <field name="model_id" ref="model_budget_plan_line"/>
+        <field name="binding_model_id" ref="model_budget_plan_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = {
+        'type': 'ir.actions.act_window',
+        'name': 'Призначити категорії',
+        'res_model': 'budget.assign.categories.wizard',
+        'view_mode': 'form',
+        'target': 'new',
+        'context': {
+            'default_line_ids': [(6, 0, records.ids)],
+            'active_model': 'budget.plan.line',
+            'active_ids': records.ids,
+        }
+    }
+else:
+    raise UserError('Оберіть позиції бюджету для призначення категорій')
+        </field>
+    </record>
+
+    <!-- Action для очистки категорий -->
+    <record id="action_clear_categories" model="ir.actions.server">
+        <field name="name">🗑️ Очистити категорії</field>
+        <field name="model_id" ref="model_budget_plan_line"/>
+        <field name="binding_model_id" ref="model_budget_plan_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    editable_lines = records.filtered(lambda l: l.plan_id.state in ['draft', 'planning', 'revision'])
+
+    if editable_lines:
+        editable_lines.write({
+            'budget_category_id': False,
+            'cost_center_id': False,
+        })
+
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Категорії очищено',
+                'message': f'Категорії очищено для {len(editable_lines)} позицій',
+                'type': 'success',
+            }
+        }
+    else:
+        raise UserError('Немає позицій, які можна редагувати')
+else:
+    raise UserError('Оберіть позиції бюджету')
+        </field>
+    </record>
+
+    <!-- Action для автоматического определения категорий -->
+    <record id="action_auto_detect_categories" model="ir.actions.server">
+        <field name="name">🤖 Автовизначення категорій</field>
+        <field name="model_id" ref="model_budget_plan_line"/>
+        <field name="binding_model_id" ref="model_budget_plan_line"/>
+        <field name="binding_view_types">list</field>
+        <field name="state">code</field>
+        <field name="code">
+def auto_detect_category(description):
+    """Простое автоматическое определение категории по описанию"""
+    if not description:
+        return None
+
+    desc_lower = description.lower()
+
+    # Маппинг ключевых слов к категориям
+    category_mapping = {
+        'запчаст': 'spare_parts',
+        'ремонт': 'maintenance',
+        'програм': 'software',
+        'связь': 'communication',
+        'интернет': 'communication',
+        'мобильн': 'communication',
+        'командир': 'travel',
+        'канцтовар': 'office_supplies',
+        'электроэнерг': 'utilities',
+        'газ': 'utilities',
+        'вода': 'utilities',
+        'зарплат': 'salary',
+        'премии': 'salary',
+        'обучение': 'training',
+        'реклам': 'marketing',
+    }
+
+    # Находим категорию по коду
+    for keyword, category_code in category_mapping.items():
+        if keyword in desc_lower:
+            category = env['budget.category'].search([
+                ('code', 'ilike', category_code)
+            ], limit=1)
+            if category:
+                return category.id
+    return None
+
+if records:
+    updated_count = 0
+    editable_lines = records.filtered(lambda l: l.plan_id.state in ['draft', 'planning', 'revision'])
+
+    for line in editable_lines:
+        if not line.budget_category_id:  # Только если категория не назначена
+            category_id = auto_detect_category(line.description)
+            if category_id:
+                line.write({'budget_category_id': category_id})
+                line._compute_accounting_data()  # Обновляем счета
+                updated_count += 1
+
+    action = {
+        'type': 'ir.actions.client',
+        'tag': 'display_notification',
+        'params': {
+            'title': 'Автовизначення завершено',
+            'message': f'Категорії визначено для {updated_count} позицій з {len(editable_lines)}',
+            'type': 'info' if updated_count > 0 else 'warning',
+        }
+    }
+else:
+    raise UserError('Оберіть позиції бюджету')
+        </field>
+    </record>
+
+    <!-- Action для копирования категорий из шаблона -->
+    <record id="action_copy_categories_from_template" model="ir.actions.server">
+        <field name="name">📋 Копіювати з шаблону</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+if record and record.budget_type_id:
+    # Ищем шаблон для данного типа бюджета
+    template = env['budget.template'].search([
+        ('budget_type_id', '=', record.budget_type_id.id),
+        ('is_default', '=', True)
+    ], limit=1)
+
+    if not template:
+        template = env['budget.template'].search([
+            ('budget_type_id', '=', record.budget_type_id.id)
+        ], limit=1)
+
+    if template:
+        # Создаем позиции из шаблона
+        created_lines = 0
+        for template_line in template.line_ids:
+            # Проверяем, нет ли уже такой позиции
+            existing = record.line_ids.filtered(
+                lambda l: l.description == template_line.description
+            )
+
+            if not existing:
+                env['budget.plan.line'].create({
+                    'plan_id': record.id,
+                    'description': template_line.description,
+                    'budget_category_id': template_line.budget_category_id.id if hasattr(template_line, 'budget_category_id') else False,
+                    'quantity': template_line.default_quantity,
+                    'unit_price': template_line.default_unit_price,
+                    'planned_amount': template_line.default_quantity * template_line.default_unit_price,
+                    'calculation_method': template_line.calculation_method,
+                    'notes': f'Створено з шаблону: {template.name}',
+                })
+                created_lines += 1
+
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Шаблон застосовано',
+                'message': f'Створено {created_lines} позицій з шаблону "{template.name}"',
+                'type': 'success',
+            }
+        }
+    else:
+        action = {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Шаблон не знайдено',
+                'message': f'Не знайдено шаблон для типу бюджету "{record.budget_type_id.name}"',
+                'type': 'warning',
+            }
+        }
+else:
+    raise UserError('Оберіть бюджет з визначеним типом')
+        </field>
+    </record>
+
+</odoo>

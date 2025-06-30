@@ -1,13 +1,21 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.2.1.0',
+    'version': '17.0.2.2.0',
     'category': 'Accounting/Management',
-    'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО та інтеграцією з прогнозами продажів',
+    'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО, категоріями витрат та інтеграцією з прогнозами продажів',
     'description': """
 Система бюджетування для групи компаній "Хлебодар"
 
-Оновлена функціональність v2.0.2:
+Оновлена функціональність v2.2.0:
+* Система категорій бюджетних витрат (замість прямих рахунків)
+* Центри витрат для спрощеної аналітики  
+* Автоматичне зопоставлення категорій з обліковими рахунками
+* Масове призначення категорій через wizard
+* Автоматичне визначення категорій по ключових словах
+* Шаблони бюджетів з категоріями
+* Спрощений інтерфейс для звичайних користувачів
+* Розширений інтерфейс для бухгалтерів та адміністраторів
 * Гнучка структура ЦБО (кластери, напрямки, бренди, департаменти)
 * Інтеграція з модулем Sales через прогнози продажів
 * Багаторівнева система бюджетування
@@ -36,24 +44,28 @@
         # 1. БЕЗПЕКА (завжди першою)
         'security/budget_security.xml',
         'security/ir.model.access.csv',
+        'security/ir.model.access_categories.csv',  # ДОДАНО: права для категорій
 
         # 2. ПОСЛІДОВНОСТІ (потрібні для моделей)
         'data/ir_sequence_data.xml',
 
         # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
         'views/budget_config_views.xml',
+        'views/budget_category_views.xml',  # ДОДАНО: категорії витрат
         'views/sales_forecast_views.xml',
         'views/crm_team_views.xml',
         'views/project_views.xml',
         'views/budget_plan_views.xml',
+        'views/budget_plan_views_cat.xml',  # ДОДАНО: представлення з категоріями
         'views/budget_execution_views.xml',
         'views/budget_dashboard_views.xml',
         'views/budget_analysis_views.xml',
         'views/budget_notification_views.xml',
-        'views/investment_budget_views.xml', # Додана кома тут
+        'views/investment_budget_views.xml',
         'views/budget_reports_views.xml',
         'views/budget_template_views.xml',
         'views/forecast_analysis_views.xml',
+        'views/budget_categories_reports.xml',  # ДОДАНО: звіти по категоріях
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
 
@@ -63,9 +75,10 @@
         'wizards/budget_import_wizard_views.xml',
         'wizards/sales_plan_wizard_views.xml',
         'wizards/budget_period_wizard_views.xml',
+        'wizards/budget_assign_categories_wizard_views.xml',  # ДОДАНО: wizard категорій
 
         # 3. МЕНЮ (базова структура) - ПЕРЕНЕСЕНО СЮДИ, ПІСЛЯ ВСІХ ДІЙ
-        'views/menu_views.xml', # menu_views.xml перенесено сюди
+        'views/menu_views.xml',
 
         # 6. ЗВІТИ
         'report/budget_report_templates.xml',
@@ -73,6 +86,8 @@
         # 7. БАЗОВІ ДАНІ (після всіх представлень і wizards)
         'data/budget_types_data.xml',
         'data/responsibility_centers_data.xml',
+        'data/budget_categories_demo_data.xml',  # ДОДАНО: демо категорії витрат
+        'data/server_actions_categories.xml',  # ДОДАНО: server actions для категорій
 
         # 8. ШАБЛОНИ ПОШТИ та АВТОМАТИЗАЦІЯ (наприкінці)
         'data/mail_template_data.xml',
@@ -93,9 +108,10 @@
         ],
         # Дополнительно: стили для отчетов PDF
         'web.report_assets_common': [
-            'budget/static/src/css/budget_reports.css',  # если будет создан
+            'budget/static/src/css/budget_reports.css',
         ],
-    },    'qweb': [],
+    },
+    'qweb': [],
     'installable': True,
     'auto_install': False,
     'application': True,

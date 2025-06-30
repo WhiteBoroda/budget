@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- views/budget_categories_reports.xml -->
+
+    <!-- АНАЛІЗ БЮДЖЕТУ ПО КАТЕГОРІЯХ -->
+    <record id="view_budget_analysis_by_categories_graph" model="ir.ui.view">
+        <field name="name">budget.plan.line.categories.graph</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <graph string="Аналіз витрат по категоріях" type="pie">
+                <field name="budget_category_id"/>
+                <field name="planned_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_budget_analysis_by_categories_pivot" model="ir.ui.view">
+        <field name="name">budget.plan.line.categories.pivot</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Зведення по категоріях">
+                <field name="budget_category_id" type="row"/>
+                <field name="cost_center_id" type="row"/>
+                <field name="plan_id" type="col"/>
+                <field name="planned_amount" type="measure"/>
+                <field name="actual_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <!-- ACTION ДЛЯ АНАЛІЗУ ПО КАТЕГОРІЯХ -->
+    <record id="action_budget_analysis_by_categories" model="ir.actions.act_window">
+        <field name="name">📊 Аналіз по категоріях витрат</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="domain">[('budget_category_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_group_category': 1,
+            'graph_measure': 'planned_amount'
+        }</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_budget_analysis_by_categories_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_budget_analysis_by_categories_pivot')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_budget_plan_line_simplified_tree')})]"/>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Аналіз витрат по категоріях
+            </p>
+            <p>
+                Тут ви можете проаналізувати структуру витрат:
+                <ul>
+                    <li>По категоріях витрат</li>
+                    <li>По центрах витрат</li>
+                    <li>По бюджетних періодах</li>
+                    <li>Порівняти план та факт</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <!-- ЗВІТ ПО ЦЕНТРАХ ВИТРАТ -->
+    <record id="view_cost_centers_analysis_graph" model="ir.ui.view">
+        <field name="name">budget.plan.line.cost.centers.graph</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <graph string="Аналіз по центрах витрат" type="bar">
+                <field name="cost_center_id"/>
+                <field name="planned_amount" type="measure"/>
+                <field name="actual_amount" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="action_cost_centers_analysis" model="ir.actions.act_window">
+        <field name="name">🏢 Аналіз по центрах витрат</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="domain">[('cost_center_id', '!=', False)]</field>
+        <field name="context">{
+            'search_default_group_cost_center': 1,
+            'graph_measure': 'planned_amount'
+        }</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_cost_centers_analysis_graph')}),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_budget_analysis_by_categories_pivot')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_budget_plan_line_simplified_tree')})]"/>
+    </record>
+
+    <!-- ЗВІТ ПО КАТЕГОРІЯХ ТА ТИПАХ БЮДЖЕТІВ -->
+    <record id="view_categories_budget_types_pivot" model="ir.ui.view">
+        <field name="name">budget.categories.types.pivot</field>
+        <field name="model">budget.plan.line</field>
+        <field name="arch" type="xml">
+            <pivot string="Категорії по типах бюджетів">
+                <field name="plan_id" type="row"/>
+                <field name="budget_category_id" type="col"/>
+                <field name="planned_amount" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="action_categories_budget_types_analysis" model="ir.actions.act_window">
+        <field name="name">📋 Категорії по типах бюджетів</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="domain">[('budget_category_id', '!=', False)]</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'pivot', 'view_id': ref('view_categories_budget_types_pivot')}),
+            (0, 0, {'view_mode': 'graph', 'view_id': ref('view_budget_analysis_by_categories_graph')}),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_budget_plan_line_simplified_tree')})]"/>
+    </record>
+
+    <!-- КОНТРОЛЬ ЯКОСТІ КАТЕГОРИЗАЦІЇ -->
+    <record id="action_budget_lines_without_categories" model="ir.actions.act_window">
+        <field name="name">⚠️ Позиції без категорій</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('budget_category_id', '=', False), ('is_consolidation', '=', False)]</field>
+        <field name="context">{
+            'search_default_group_plan': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Всі позиції мають категорії! ✅
+            </p>
+            <p>
+                Тут відображаються позиції бюджету без призначених категорій.
+                Використовуйте масове призначення для швидкого оновлення.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_budget_lines_without_accounts" model="ir.actions.act_window">
+        <field name="name">🧾 Позиції без рахунків</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('account_id', '=', False), ('is_consolidation', '=', False)]</field>
+        <field name="context">{
+            'search_default_group_plan': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Всі позиції мають рахунки! ✅
+            </p>
+            <p>
+                Тут відображаються позиції без облікових рахунків.
+                Перевірте зопоставлення категорій з рахунками.
+            </p>
+        </field>
+    </record>
+
+    <!-- МЕНЮ ДЛЯ ЗВІТІВ ПО КАТЕГОРІЯХ -->
+    <menuitem id="menu_budget_categories_analysis"
+              name="📂 Аналіз по категоріях"
+              parent="menu_budget_reports"
+              sequence="40"/>
+
+    <menuitem id="menu_budget_analysis_by_categories"
+              name="Витрати по категоріях"
+              parent="menu_budget_categories_analysis"
+              action="action_budget_analysis_by_categories"
+              sequence="10"/>
+
+    <menuitem id="menu_cost_centers_analysis"
+              name="По центрах витрат"
+              parent="menu_budget_categories_analysis"
+              action="action_cost_centers_analysis"
+              sequence="20"/>
+
+    <menuitem id="menu_categories_budget_types_analysis"
+              name="Категорії по типах бюджетів"
+              parent="menu_budget_categories_analysis"
+              action="action_categories_budget_types_analysis"
+              sequence="30"/>
+
+    <!-- МЕНЮ КОНТРОЛЮ ЯКОСТІ -->
+    <menuitem id="menu_budget_quality_control"
+              name="🔍 Контроль якості"
+              parent="menu_budget_reports"
+              sequence="50"/>
+
+    <menuitem id="menu_budget_lines_without_categories"
+              name="Без категорій"
+              parent="menu_budget_quality_control"
+              action="action_budget_lines_without_categories"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_lines_without_accounts"
+              name="Без рахунків"
+              parent="menu_budget_quality_control"
+              action="action_budget_lines_without_accounts"
+              sequence="20"/>
+
+</odoo>

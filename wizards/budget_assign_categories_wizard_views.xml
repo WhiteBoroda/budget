@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- wizards/budget_assign_categories_wizard_views.xml -->
+
+    <!-- Form view для wizard назначения категорий -->
+    <record id="view_budget_assign_categories_wizard_form" model="ir.ui.view">
+        <field name="name">budget.assign.categories.wizard.form</field>
+        <field name="model">budget.assign.categories.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Масове призначення категорій">
+                <div class="alert alert-info">
+                    <h4>📂 Масове призначення категорій бюджету</h4>
+                    <p>Цей майстер дозволяє швидко призначити категорії витрат та центри витрат для кількох позицій бюджету одночасно.</p>
+                </div>
+
+                <group>
+                    <group string="📋 Обрані позиції">
+                        <field name="line_count" readonly="1"/>
+                        <field name="line_ids" widget="many2many_tags" readonly="1"/>
+                    </group>
+                    <group string="🏷️ Категоризація">
+                        <field name="budget_category_id"
+                               options="{'no_create': True}"
+                               required="1"/>
+                        <field name="cost_center_id"
+                               options="{'no_create': True}"/>
+                        <field name="update_accounts"/>
+                    </group>
+                </group>
+
+                <!-- Предпросмотр обновлений -->
+                <group string="📊 Попередній перегляд"
+                       invisible="not budget_category_id">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="alert alert-success">
+                                <strong>✅ Буде оновлено:</strong>
+                                <ul>
+                                    <li>Категорія витрат: <field name="budget_category_id" readonly="1" nolabel="1"/></li>
+                                    <li t-if="cost_center_id">Центр витрат: <field name="cost_center_id" readonly="1" nolabel="1"/></li>
+                                    <li t-if="update_accounts">Облікові рахунки: автоматично</li>
+                                </ul>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="alert alert-warning">
+                                <strong>⚠️ Увага:</strong>
+                                <ul>
+                                    <li>Будуть оновлені всі обрані позиції</li>
+                                    <li>Попередні категорії будуть замінені</li>
+                                    <li invisible="not update_accounts">Рахунки будуть перевизначені</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </group>
+
+                <!-- Додаткова інформація про категорію -->
+                <notebook invisible="not budget_category_id">
+                    <page string="📝 Інформація про категорію">
+                        <group>
+                            <group string="Деталі категорії">
+                                <label for="budget_category_id.code" string="Код:"/>
+                                <span>
+                                    <field name="budget_category_id" readonly="1" invisible="1"/>
+                                    <!-- Тут буде відображено інформацію про категорію -->
+                                </span>
+                            </group>
+                        </group>
+                    </page>
+
+                    <page string="🔗 Зопоставлення рахунків">
+                        <div class="alert alert-info">
+                            <p>При оновленні рахунків система автоматично визначить найкращі облікові рахунки на основі:</p>
+                            <ul>
+                                <li>Категорії витрат</li>
+                                <li>Центру витрат</li>
+                                <li>Підприємства</li>
+                                <li>ЦБО</li>
+                            </ul>
+                        </div>
+                    </page>
+                </notebook>
+
+                <footer>
+                    <button name="action_assign_categories"
+                            string="📂 Призначити категорії"
+                            type="object"
+                            class="btn-primary"
+                            confirm="Ви впевнені, що хочете оновити категорії для всіх обраних позицій?"/>
+
+                    <button string="Скасувати"
+                            class="btn-default"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action для wizard -->
+    <record id="action_budget_assign_categories_wizard" model="ir.actions.act_window">
+        <field name="name">Призначити категорії</field>
+        <field name="res_model">budget.assign.categories.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+</odoo>
