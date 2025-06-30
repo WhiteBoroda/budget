@@ -309,7 +309,7 @@
                             <field name="use_planned_rates"/>
                             <field name="planning_rate"
                                    invisible="not use_planned_rates"
-                                   attrs="{'required': [('use_planned_rates', '=', True)]}"/>
+                                   required="use_planned_rates"/>
                         </group>
                     </group>
 

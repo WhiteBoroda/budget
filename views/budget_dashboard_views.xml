@@ -1,107 +1,249 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Представления и действия для панели управления бюджетами -->
 
+    <!-- Новые действия для Odoo 17 -->
+    <record id="action_budget_quick_create" model="ir.actions.act_window">
+        <field name="name">Швидке створення бюджету</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="context">{
+            'default_state': 'draft',
+            'form_view_initial_mode': 'edit',
+            'quick_create': True
+        }</field>
+    </record>
+
+    <!-- Действие для просмотра просроченных бюджетов -->
+    <record id="action_budget_overdue" model="ir.actions.act_window">
+        <field name="name">Прострочені бюджети</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[
+            ('submission_deadline', '&lt;', context_today().strftime('%Y-%m-%d')),
+            ('state', '!=', 'approved')
+        ]</field>
+        <field name="context">{
+            'search_default_group_by_cbo': 1
+        }</field>
+    </record>
+
+    <!-- Действие для панели управления -->
+    <record id="action_budget_dashboard" model="ir.actions.act_window">
+        <field name="name">Панель управління бюджетами</field>
+        <field name="res_model">budget.dashboard</field>
+        <field name="view_mode">kanban,form</field>
+        <field name="target">current</field>
+        <field name="context">{
+            'dashboard_mode': True
+        }</field>
+    </record>
+
+    <!-- Dashboard Kanban View -->
+    <record id="view_budget_dashboard_kanban" model="ir.ui.view">
+        <field name="name">budget.dashboard.kanban</field>
+        <field name="model">budget.dashboard</field>
+        <field name="arch" type="xml">
+            <kanban class="o_budget_dashboard_kanban" create="false" edit="false">
+                <field name="period_id"/>
+                <field name="total_budgets"/>
+                <field name="approved_budgets"/>
+                <field name="pending_budgets"/>
+                <field name="overdue_budgets"/>
+                <field name="total_planned"/>
+                <field name="total_actual"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="budget-dashboard">
+                            <div class="dashboard-header">
+                                <h1>📊 Панель управління бюджетами</h1>
+                                <div class="subtitle">
+                                    Період: <t t-esc="record.period_id.value"/>
+                                </div>
+                            </div>
+
+                            <div class="budget-stats-grid">
+                                <!-- Загальна кількість бюджетів -->
+                                <div class="budget-stat-card total">
+                                    <div class="stat-icon">📋</div>
+                                    <div class="stat-number">
+                                        <t t-esc="record.total_budgets.value"/>
+                                    </div>
+                                    <div class="stat-label">Всього бюджетів</div>
+                                </div>
+
+                                <!-- Затверджені бюджети -->
+                                <div class="budget-stat-card approved">
+                                    <div class="stat-icon">✅</div>
+                                    <div class="stat-number">
+                                        <t t-esc="record.approved_budgets.value"/>
+                                    </div>
+                                    <div class="stat-label">Затверджені</div>
+                                </div>
+
+                                <!-- Очікують затвердження -->
+                                <div class="budget-stat-card pending">
+                                    <div class="stat-icon">⏳</div>
+                                    <div class="stat-number">
+                                        <t t-esc="record.pending_budgets.value"/>
+                                    </div>
+                                    <div class="stat-label">Очікують</div>
+                                </div>
+
+                                <!-- Прострочені -->
+                                <div class="budget-stat-card overdue">
+                                    <div class="stat-icon">⚠️</div>
+                                    <div class="stat-number">
+                                        <t t-esc="record.overdue_budgets.value"/>
+                                    </div>
+                                    <div class="stat-label">Прострочені</div>
+                                </div>
+                            </div>
+
+                            <!-- Фінансова інформація -->
+                            <div class="row mt-3">
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>💰 Планова сума</h4>
+                                        <h3>
+                                            <t t-esc="record.total_planned.value"/> грн
+                                        </h3>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="text-center">
+                                        <h4>📈 Фактична сума</h4>
+                                        <h3>
+                                            <t t-esc="record.total_actual.value"/> грн
+                                        </h3>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Дії -->
+                            <div class="budget-action-buttons">
+                                <button type="object"
+                                        name="action_view_all_budgets"
+                                        class="budget-btn primary">
+                                    📋 Всі бюджети
+                                </button>
+                                <button type="object"
+                                        name="action_quick_create_budget"
+                                        class="budget-btn success">
+                                    ➕ Створити бюджет
+                                </button>
+                                <button type="object"
+                                        name="action_view_overdue"
+                                        class="budget-btn warning"
+                                        invisible="overdue_budgets == 0">
+                                    ⚠️ Прострочені
+                                </button>
+                                <button type="object"
+                                        name="action_analytics"
+                                        class="budget-btn primary">
+                                    📊 Аналітика
+                                </button>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- Dashboard Form View -->
     <record id="view_budget_dashboard_form" model="ir.ui.view">
         <field name="name">budget.dashboard.form</field>
         <field name="model">budget.dashboard</field>
         <field name="arch" type="xml">
-            <form>
+            <form create="false" edit="false">
                 <sheet>
                     <div class="oe_title">
-                        <h1>Панель керування бюджетуванням</h1>
+                        <h1>📊 Панель управління бюджетами</h1>
                     </div>
+
                     <group>
-                        <field name="period_id"/>
+                        <group string="Період">
+                            <field name="period_id" options="{'no_create': True}"/>
+                            <field name="company_id" options="{'no_create': True}"/>
+                        </group>
+                        <group string="Загальна статистика">
+                            <field name="total_budgets"/>
+                            <field name="approved_budgets"/>
+                            <field name="pending_budgets"/>
+                            <field name="overdue_budgets"/>
+                        </group>
                     </group>
 
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="row">
-                                <div class="col-3">
-                                    <div class="card bg-primary text-white">
-                                        <div class="card-body">
-                                            <h4><field name="total_budgets" readonly="1"/></h4>
-                                            <p>Загалом бюджетів</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card bg-success text-white">
-                                        <div class="card-body">
-                                            <h4><field name="approved_budgets" readonly="1"/></h4>
-                                            <p>Затверджено</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card bg-warning text-white">
-                                        <div class="card-body">
-                                            <h4><field name="pending_budgets" readonly="1"/></h4>
-                                            <p>На узгодженні</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-3">
-                                    <div class="card bg-danger text-white">
-                                        <div class="card-body">
-                                            <h4><field name="overdue_budgets" readonly="1"/></h4>
-                                            <p>Прострочено</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <group>
+                        <group string="Фінансові показники">
+                            <field name="total_planned" widget="monetary"/>
+                            <field name="total_actual" widget="monetary"/>
+                            <field name="execution_percent" widget="percentage"/>
+                        </group>
+                        <group string="Відхилення">
+                            <field name="variance_amount" widget="monetary"/>
+                            <field name="variance_percent" widget="percentage"/>
+                        </group>
+                    </group>
 
-                    <div class="row mt32">
-                        <div class="col-4">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5>Фінансові показники</h5>
-                                </div>
-                                <div class="card-body">
-                                    <p><strong>Планово:</strong> <field name="total_planned" widget="monetary" readonly="1"/></p>
-                                    <p><strong>Фактично:</strong> <field name="total_actual" widget="monetary" readonly="1"/></p>
-                                    <p><strong>Відхилення:</strong> <field name="total_variance" widget="monetary" readonly="1"/></p>
+                    <notebook>
+                        <page string="Швидкі дії">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="quick-forecast-widget">
+                                        <h3>🚀 Швидкі дії</h3>
+                                        <div class="budget-action-buttons">
+                                            <button name="action_view_all_budgets"
+                                                    type="object"
+                                                    class="budget-btn primary">
+                                                📋 Переглянути всі бюджети
+                                            </button>
+                                            <button name="action_quick_create_budget"
+                                                    type="object"
+                                                    class="budget-btn success">
+                                                ➕ Створити новий бюджет
+                                            </button>
+                                            <button name="action_view_overdue"
+                                                    type="object"
+                                                    class="budget-btn warning"
+                                                    invisible="overdue_budgets == 0">
+                                                ⚠️ Прострочені бюджети (<field name="overdue_budgets"/>)
+                                            </button>
+                                            <button name="action_analytics"
+                                                    type="object"
+                                                    class="budget-btn primary">
+                                                📊 Детальна аналітика
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-8">
-                            <div class="card">
-                                <div class="card-header">
-                                    <h5>Швидкі дії</h5>
-                                </div>
-                                <div class="card-body">
-                                    <button name="action_view_budgets"
-                                            type="object"
-                                            class="btn btn-primary mr8 mb8">
-                                        Переглянути всі бюджети
-                                    </button>
-                                    <button name="action_view_overdue"
-                                            type="object"
-                                            class="btn btn-danger mr8 mb8">
-                                        Прострочені бюджети
-                                    </button>
+                        </page>
+
+                        <page string="Аналітика">
+                            <div class="row">
+                                <div class="col-12">
+                                    <!-- Здесь можно добавить графики и аналитику -->
+                                    <div class="alert alert-info">
+                                        <h4>📈 Аналітичні дані</h4>
+                                        <p>Детальну аналітику можна переглянути в розділі "Аналіз бюджетів"</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
+                        </page>
+                    </notebook>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <record id="action_budget_dashboard" model="ir.actions.act_window">
-        <field name="name">Панель бюджетування</field>
-        <field name="res_model">budget.dashboard</field>
-        <field name="view_mode">form</field>
-        <field name="target">current</field>
-        <field name="context">{'form_view_initial_mode': 'readonly'}</field>
-    </record>
-
+    <!-- Меню для панели управления -->
     <menuitem id="menu_budget_dashboard"
-              name="Панель керування"
-              parent="menu_budget_root"
+              name="📊 Панель управління"
+              parent="menu_budget_main"
               action="action_budget_dashboard"
               sequence="5"/>
+
 </odoo>

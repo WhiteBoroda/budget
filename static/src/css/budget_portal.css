@@ -1,0 +1,474 @@
+/* static/src/css/budget_portal.css */
+/* Стили для портальной части системы бюджетирования */
+
+/* ===== ОБЩИЕ СТИЛИ ПОРТАЛА ===== */
+.budget-portal-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.budget-portal-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.budget-portal-header h1 {
+    font-size: 2.5rem;
+    font-weight: 300;
+    margin-bottom: 10px;
+}
+
+.budget-portal-header .subtitle {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+/* ===== КАРТОЧКИ БЮДЖЕТОВ ===== */
+.budget-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.budget-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    border-left: 4px solid #ddd;
+}
+
+.budget-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.budget-card.draft { border-left-color: #6c757d; }
+.budget-card.planning { border-left-color: #007bff; }
+.budget-card.coordination { border-left-color: #ffc107; }
+.budget-card.approved { border-left-color: #28a745; }
+.budget-card.executed { border-left-color: #17a2b8; }
+.budget-card.closed { border-left-color: #343a40; }
+
+.budget-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.budget-card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.budget-card-status {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.budget-card-status.draft { background: #6c757d; color: white; }
+.budget-card-status.planning { background: #007bff; color: white; }
+.budget-card-status.coordination { background: #ffc107; color: #212529; }
+.budget-card-status.approved { background: #28a745; color: white; }
+.budget-card-status.executed { background: #17a2b8; color: white; }
+.budget-card-status.closed { background: #343a40; color: white; }
+
+.budget-card-meta {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.budget-card-meta span {
+    margin-right: 15px;
+}
+
+.budget-card-amount {
+    font-size: 1.4rem;
+    font-weight: bold;
+    color: #28a745;
+    margin-bottom: 15px;
+}
+
+.budget-card-progress {
+    margin-bottom: 15px;
+}
+
+.budget-card-progress-label {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+    color: #6c757d;
+}
+
+.budget-card-progress-bar {
+    height: 8px;
+    background-color: #e9ecef;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.budget-card-progress-fill {
+    height: 100%;
+    transition: width 0.5s ease;
+}
+
+.budget-card-progress-fill.low { background-color: #dc3545; }
+.budget-card-progress-fill.medium { background-color: #ffc107; }
+.budget-card-progress-fill.high { background-color: #28a745; }
+.budget-card-progress-fill.over { background-color: #17a2b8; }
+
+.budget-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.budget-card-btn {
+    flex: 1;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+    text-align: center;
+    display: inline-block;
+}
+
+.budget-card-btn.primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.budget-card-btn.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.budget-card-btn.secondary {
+    background-color: #6c757d;
+    color: white;
+}
+
+.budget-card-btn:hover {
+    opacity: 0.9;
+    transform: scale(1.02);
+}
+
+/* ===== ФИЛЬТРЫ И ПОИСК ===== */
+.budget-filters {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.budget-filters h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.budget-filters-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto;
+    gap: 15px;
+    align-items: end;
+}
+
+.budget-filter-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.budget-filter-group label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.budget-filter-input {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.budget-filter-input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+}
+
+.budget-filter-btn {
+    padding: 8px 16px;
+    background-color: #667eea;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.budget-filter-btn:hover {
+    background-color: #5a6fd8;
+}
+
+/* ===== СТАТИСТИЧЕСКАЯ ПАНЕЛЬ ===== */
+.budget-stats-portal {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.budget-stat-portal {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.budget-stat-portal .icon {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.budget-stat-portal .number {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #2c3e50;
+    margin-bottom: 5px;
+}
+
+.budget-stat-portal .label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ===== УВЕДОМЛЕНИЯ ===== */
+.budget-notifications {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.budget-notifications-header {
+    padding: 15px 20px;
+    border-bottom: 1px solid #eee;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.budget-notification-item {
+    padding: 15px 20px;
+    border-bottom: 1px solid #f8f9fa;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.budget-notification-item:last-child {
+    border-bottom: none;
+}
+
+.budget-notification-icon {
+    font-size: 1.2rem;
+}
+
+.budget-notification-icon.warning { color: #ffc107; }
+.budget-notification-icon.danger { color: #dc3545; }
+.budget-notification-icon.info { color: #17a2b8; }
+.budget-notification-icon.success { color: #28a745; }
+
+.budget-notification-content {
+    flex: 1;
+}
+
+.budget-notification-title {
+    font-weight: 500;
+    margin-bottom: 2px;
+}
+
+.budget-notification-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+}
+
+.budget-notification-time {
+    color: #adb5bd;
+    font-size: 0.8rem;
+}
+
+/* ===== АДАПТИВНОСТЬ ===== */
+@media (max-width: 768px) {
+    .budget-portal-container {
+        padding: 10px;
+    }
+
+    .budget-cards-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .budget-filters-row {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .budget-stats-portal {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .budget-card-actions {
+        flex-direction: column;
+    }
+
+    .budget-portal-header h1 {
+        font-size: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .budget-stats-portal {
+        grid-template-columns: 1fr;
+    }
+
+    .budget-card {
+        padding: 15px;
+    }
+
+    .budget-portal-header {
+        padding: 20px;
+    }
+
+    .budget-portal-header h1 {
+        font-size: 1.8rem;
+    }
+}
+
+/* ===== ФОРМА БЫСТРОГО СОЗДАНИЯ ===== */
+.budget-quick-create {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.budget-quick-create h3 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.budget-quick-create-form {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.budget-quick-create-form .form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.budget-quick-create-form label {
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.budget-quick-create-form input,
+.budget-quick-create-form select {
+    padding: 8px 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.budget-quick-create-actions {
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 15px;
+}
+
+/* ===== ПУСТЫЕ СОСТОЯНИЯ ===== */
+.budget-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #6c757d;
+}
+
+.budget-empty-state .icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.budget-empty-state h3 {
+    margin-bottom: 10px;
+    color: #2c3e50;
+}
+
+.budget-empty-state p {
+    margin-bottom: 20px;
+}
+
+/* ===== ТЕМНАЯ ТЕМА ===== */
+@media (prefers-color-scheme: dark) {
+    .budget-portal-container {
+        background-color: #1a1a1a;
+        color: #e9ecef;
+    }
+
+    .budget-card,
+    .budget-filters,
+    .budget-stat-portal,
+    .budget-notifications,
+    .budget-quick-create {
+        background-color: #2c3e50;
+        color: #e9ecef;
+    }
+
+    .budget-card-title,
+    .budget-filters h3,
+    .budget-quick-create h3 {
+        color: #e9ecef;
+    }
+
+    .budget-filter-input {
+        background-color: #34495e;
+        border-color: #4a6741;
+        color: #e9ecef;
+    }
+
+    .budget-notification-item {
+        border-bottom-color: #34495e;
+    }
+}

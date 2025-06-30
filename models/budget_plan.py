@@ -36,6 +36,7 @@ class BudgetPlan(models.Model):
     # Автоматичне визначення рівня на основі ЦБО
     budget_level = fields.Selection(related='cbo_id.budget_level', store=True, readonly=True)
 
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из поля state
     state = fields.Selection([
         ('draft', 'Чернетка'),
         ('planning', 'Планування'),
@@ -46,13 +47,18 @@ class BudgetPlan(models.Model):
         ('closed', 'Закритий')
     ], 'Статус', default='draft', required=True, tracking=True, index=True)
 
-    # Фінансові показники
-    planned_amount = fields.Monetary('Планова сума', compute='_compute_totals', store=True, currency_field='currency_id')
-    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True, currency_field='currency_id')
-    committed_amount = fields.Monetary('Зарезервована сума', compute='_compute_committed_amount', store=True, currency_field='currency_id')
-    available_amount = fields.Monetary('Доступна сума', compute='_compute_available_amount', store=True, currency_field='currency_id')
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из финансовых полей
+    planned_amount = fields.Monetary('Планова сума', compute='_compute_totals', store=True,
+                                     currency_field='currency_id')
+    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True,
+                                    currency_field='currency_id')
+    committed_amount = fields.Monetary('Зарезервована сума', compute='_compute_committed_amount', store=True,
+                                       currency_field='currency_id')
+    available_amount = fields.Monetary('Доступна сума', compute='_compute_available_amount', store=True,
+                                       currency_field='currency_id')
 
-    variance_amount = fields.Monetary('Відхилення', compute='_compute_variance', store=True, currency_field='currency_id')
+    variance_amount = fields.Monetary('Відхилення', compute='_compute_variance', store=True,
+                                      currency_field='currency_id')
     variance_percent = fields.Float('Відхилення, %', compute='_compute_variance', store=True)
     execution_percent = fields.Float('Виконання, %', compute='_compute_execution', store=True)
 
@@ -99,6 +105,23 @@ class BudgetPlan(models.Model):
     budget_currency_setting_id = fields.Many2one('budget.currency.setting', 'Валютні налаштування')
 
     notes = fields.Text('Примітки та обґрунтування')
+
+    # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+    @api.depends('state')
+    def _compute_is_readonly(self):
+        """Определяет можно ли редактировать бюджет"""
+        for plan in self:
+            plan.is_readonly = plan.state in ['approved', 'executed', 'closed']
+
+    is_readonly = fields.Boolean('Тільки для читання', compute='_compute_is_readonly')
+
+    @api.depends('state')
+    def _compute_can_edit_lines(self):
+        """Определяет можно ли редактировать строки бюджета"""
+        for plan in self:
+            plan.can_edit_lines = plan.state in ['draft', 'planning', 'revision']
+
+    can_edit_lines = fields.Boolean('Можна редагувати позиції', compute='_compute_can_edit_lines')
 
     @api.model
     def create(self, vals):
@@ -322,10 +345,11 @@ class BudgetPlanLine(models.Model):
 
     description = fields.Char('Опис', required=True)
 
-    # Фінансові показники
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из финансовых полей
     planned_amount = fields.Monetary('Планова сума', required=True, currency_field='currency_id')
     committed_amount = fields.Monetary('Зарезервована сума', currency_field='currency_id')
-    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True, currency_field='currency_id')
+    actual_amount = fields.Monetary('Фактична сума', compute='_compute_actual_amount', store=True,
+                                    currency_field='currency_id')
 
     # Розрахунки
     calculation_basis = fields.Text('Основа розрахунку')
@@ -356,6 +380,15 @@ class BudgetPlanLine(models.Model):
     is_consolidation = fields.Boolean('Консолідаційна лінія', default=False)
 
     notes = fields.Text('Примітки')
+
+    # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+    @api.depends('plan_id.state')
+    def _compute_is_editable(self):
+        """Определяет можно ли редактировать строку"""
+        for line in self:
+            line.is_editable = line.plan_id.state in ['draft', 'planning', 'revision']
+
+    is_editable = fields.Boolean('Можна редагувати', compute='_compute_is_editable')
 
     @api.depends('plan_id')
     def _compute_actual_amount(self):

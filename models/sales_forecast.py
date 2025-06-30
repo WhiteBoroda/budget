@@ -54,7 +54,7 @@ class SaleForecast(models.Model):
         ('retail', 'Роздрібні клієнти')
     ], 'Сегмент клієнтів', required=True, default='existing')
 
-    # Статус та схвалення
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из поля state
     state = fields.Selection([
         ('draft', 'Чернетка'),
         ('planning', 'Планування'),
@@ -73,7 +73,7 @@ class SaleForecast(models.Model):
         ('mixed', 'Змішаний підхід')
     ], 'Основа прогнозу', required=True, default='manual')
 
-    # Фінансові показники - з compute та store=True
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из финансовых полей
     total_forecast_amount = fields.Monetary('Загальна сума прогнозу',
                                             compute='_compute_totals', store=True, currency_field='currency_id')
     total_forecast_qty = fields.Float('Загальна кількість',
@@ -123,6 +123,23 @@ class SaleForecast(models.Model):
 
     # Шаблони прогнозів
     template_id = fields.Many2one('sale.forecast.template', 'Шаблон прогнозу')
+
+    # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+    @api.depends('state')
+    def _compute_can_edit(self):
+        """Определяет можно ли редактировать прогноз"""
+        for forecast in self:
+            forecast.can_edit = forecast.state in ['draft', 'planning', 'revision']
+
+    can_edit = fields.Boolean('Можна редагувати', compute='_compute_can_edit')
+
+    @api.depends('state')
+    def _compute_is_readonly(self):
+        """Определяет является ли прогноз только для чтения"""
+        for forecast in self:
+            forecast.is_readonly = forecast.state in ['approved', 'archived']
+
+    is_readonly = fields.Boolean('Тільки для читання', compute='_compute_is_readonly')
 
     @api.model
     def create(self, vals):
@@ -269,7 +286,7 @@ class SaleForecastLine(models.Model):
 
     description = fields.Char('Опис', required=True)
 
-    # Прогнозні показники
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из полей
     forecast_qty = fields.Float('Прогнозна кількість', required=True, default=1.0)
     forecast_price = fields.Monetary('Прогнозна ціна', required=True, currency_field='currency_id')
     forecast_amount = fields.Monetary('Прогнозна сума', compute='_compute_forecast_amount',
@@ -310,6 +327,15 @@ class SaleForecastLine(models.Model):
 
     notes = fields.Text('Примітки')
 
+    # ДОБАВЛЕНО для Odoo 17: computed поля вместо states
+    @api.depends('forecast_id.state')
+    def _compute_is_editable(self):
+        """Определяет можно ли редактировать строку"""
+        for line in self:
+            line.is_editable = line.forecast_id.state in ['draft', 'planning', 'revision']
+
+    is_editable = fields.Boolean('Можна редагувати', compute='_compute_is_editable')
+
     @api.depends('forecast_qty', 'forecast_price')
     def _compute_forecast_amount(self):
         for line in self:
@@ -337,90 +363,6 @@ class SaleForecastLine(models.Model):
             self.probability = self.opportunity_id.probability
             self.expected_date = self.opportunity_id.date_deadline
             self.description = self.opportunity_id.name or "З CRM можливості"
-
-
-class ProjectProject(models.Model):
-    """Расширение проектов для интеграции с прогнозами продаж"""
-    _inherit = 'project.project'
-
-    # Связь с ЦБО
-    responsibility_center_id = fields.Many2one(
-        'budget.responsibility.center',
-        'Центр бюджетної відповідальності',
-        help="ЦБО, до якого належить цей проект"
-    )
-
-    # Настройки продаж
-    is_sales_project = fields.Boolean(
-        'Проект продажів',
-        help="Цей проект пов'язаний з прогнозуванням продажів"
-    )
-
-    # Вычисляемые поля
-    forecast_count = fields.Integer('Кількість прогнозів', compute='_compute_forecast_count')
-    total_forecast_amount = fields.Monetary('Загальний прогноз', compute='_compute_forecast_totals',
-                                            currency_field='currency_id')
-
-    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
-
-    @api.depends('name')
-    def _compute_forecast_count(self):
-        """Подсчет количества прогнозов проекта"""
-        for project in self:
-            forecasts = self.env['sale.forecast'].search([('project_id', '=', project.id)])
-            project.forecast_count = len(forecasts)
-
-    @api.depends('name')
-    def _compute_forecast_totals(self):
-        """Подсчет общих сумм прогнозов"""
-        for project in self:
-            forecasts = self.env['sale.forecast'].search([
-                ('project_id', '=', project.id),
-                ('state', 'in', ['approved', 'archived'])
-            ])
-            project.total_forecast_amount = sum(forecasts.mapped('total_forecast_amount'))
-
-    def action_view_forecasts(self):
-        """Открыть прогнозы проекта"""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': f'Прогнози проекту {self.name}',
-            'res_model': 'sale.forecast',
-            'view_mode': 'kanban,tree,form',
-            'domain': [('project_id', '=', self.id)],
-            'context': {
-                'default_project_id': self.id,
-                'default_cbo_id': self.responsibility_center_id.id if self.responsibility_center_id else False,
-                'default_forecast_scope': 'project',
-            }
-        }
-
-    def action_create_forecast(self):
-        """Быстрое создание прогноза для проекта"""
-        return {
-            'type': 'ir.actions.act_window',
-            'name': 'Створити прогноз для проекту',
-            'res_model': 'sales.plan.wizard',
-            'view_mode': 'form',
-            'target': 'new',
-            'context': {
-                'default_project_id': self.id,
-                'default_forecast_scope': 'project',
-                'default_cbo_id': self.responsibility_center_id.id if self.responsibility_center_id else False,
-                'default_company_id': self.company_id.id if self.company_id else False,
-            }
-        }
-
-    @api.onchange('is_sales_project')
-    def _onchange_is_sales_project(self):
-        """При включении флага продажного проекта предлагаем создать прогноз"""
-        if self.is_sales_project and not self.forecast_count:
-            return {
-                'warning': {
-                    'title': 'Створення прогнозу',
-                    'message': 'Цей проект позначено як проект продажів. Рекомендуємо створити прогноз продажів для цього проекту.'
-                }
-            }
 
 
 class SaleForecastTemplate(models.Model):

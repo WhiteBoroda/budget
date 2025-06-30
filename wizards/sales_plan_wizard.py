@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
 
@@ -22,6 +24,7 @@ class SalesPlanWizard(models.TransientModel):
         ('combined', 'Комбінований')
     ], 'Область прогнозування', required=True, default='team')
 
+    # ИСПРАВЛЕНО для Odoo 17: убираем states из полей
     team_id = fields.Many2one('crm.team', 'Команда продажів',
                               domain="['|', ('company_id', '=', False), ('company_id', '=', company_id)]")
     cbo_id = fields.Many2one('budget.responsibility.center', 'ЦБО',
@@ -56,6 +59,31 @@ class SalesPlanWizard(models.TransientModel):
     # Географічні параметри
     country_id = fields.Many2one('res.country', 'Країна')
     state_id = fields.Many2one('res.country.state', 'Область/Штат')
+
+    # ДОБАВЛЕНО для Odoo 17: computed поля вместо attrs
+    @api.depends('forecast_scope')
+    def _compute_required_fields(self):
+        """Определяет какие поля обязательны в зависимости от области прогнозирования"""
+        for wizard in self:
+            wizard.team_required = wizard.forecast_scope in ['team', 'combined']
+            wizard.cbo_required = wizard.forecast_scope in ['cbo', 'combined']
+            wizard.project_required = wizard.forecast_scope in ['project', 'combined']
+
+    team_required = fields.Boolean('Команда обов\'язкова', compute='_compute_required_fields')
+    cbo_required = fields.Boolean('ЦБО обов\'язково', compute='_compute_required_fields')
+    project_required = fields.Boolean('Проект обов\'язковий', compute='_compute_required_fields')
+
+    @api.depends('forecast_scope')
+    def _compute_field_visibility(self):
+        """Определяет видимость полей в зависимости от области прогнозирования"""
+        for wizard in self:
+            wizard.show_team = wizard.forecast_scope in ['team', 'combined']
+            wizard.show_cbo = wizard.forecast_scope in ['cbo', 'combined']
+            wizard.show_project = wizard.forecast_scope in ['project', 'combined']
+
+    show_team = fields.Boolean('Показати команду', compute='_compute_field_visibility')
+    show_cbo = fields.Boolean('Показати ЦБО', compute='_compute_field_visibility')
+    show_project = fields.Boolean('Показати проект', compute='_compute_field_visibility')
 
     @api.onchange('company_id')
     def _onchange_company_id(self):
@@ -202,19 +230,19 @@ class SalesPlanWizard(models.TransientModel):
         growth_factor = 1 + (self.growth_rate / 100)
 
         # Копіюємо лінії прогнозу
-        for source_line in source_forecast.line_ids:
+        for source_line in source_forecast.forecast_line_ids:
             line_vals = {
                 'forecast_id': forecast.id,
                 'product_id': source_line.product_id.id if source_line.product_id else False,
                 'product_category_id': source_line.product_category_id.id if source_line.product_category_id else False,
-                'product_brand': source_line.product_brand,
+                'description': source_line.description,
                 'forecast_qty': source_line.forecast_qty * growth_factor,
                 'forecast_price': source_line.forecast_price,
-                'cost_price': source_line.cost_price,
-                'discount_percent': source_line.discount_percent,
-                'return_percent': source_line.return_percent,
-                'confidence_level': source_line.confidence_level,
-                'analytic_account_id': source_line.analytic_account_id.id if source_line.analytic_account_id else False,
+                'probability': source_line.probability,
+                'expected_date': source_line.expected_date,
+                'sales_stage': source_line.sales_stage,
+                'partner_category': source_line.partner_category,
+                'region': source_line.region,
                 'notes': f'Скопійовано з {source_period.name}' + (
                     f' з ростом {self.growth_rate}%' if self.growth_rate else ''),
             }
@@ -236,10 +264,12 @@ class SalesPlanWizard(models.TransientModel):
                     'forecast_id': forecast.id,
                     'product_id': product.id,
                     'product_category_id': category.id,
+                    'description': product.name,
                     'forecast_qty': 1.0,  # Значення за замовчуванням
                     'forecast_price': product.list_price or 0.0,
-                    'cost_price': product.standard_price or 0.0,
-                    'confidence_level': 'medium',
+                    'probability': 50.0,  # Значення за замовчуванням
+                    'sales_stage': 'opportunity',
+                    'partner_category': 'existing',
                     'notes': f'Автоматично створено для категорії {category.name}',
                 }
 

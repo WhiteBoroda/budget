@@ -77,7 +77,21 @@
     'demo': [
         'demo/budget_demo_data.xml',
     ],
-    'qweb': [],
+    'assets': {
+        # Основные стили для backend (админки)
+        'web.assets_backend': [
+            'budget/static/src/css/budget_dashboard.css',
+            'budget/static/src/js/budget_widgets.js',
+        ],
+        # Стили для frontend (портала) - если планируется портальная часть
+        'web.assets_frontend': [
+            'budget/static/src/css/budget_portal.css',
+        ],
+        # Дополнительно: стили для отчетов PDF
+        'web.report_assets_common': [
+            'budget/static/src/css/budget_reports.css',  # если будет создан
+        ],
+    },    'qweb': [],
     'installable': True,
     'auto_install': False,
     'application': True,
