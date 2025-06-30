@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.2.0.2',
+    'version': '17.0.2.1.0',
     'category': 'Accounting/Management',
     'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО та інтеграцією з прогнозами продажів',
     'description': """
@@ -41,7 +41,7 @@
         'data/ir_sequence_data.xml',
 
         # 3. МЕНЮ (базова структура)
-        'views/menu_views.xml',
+
 
         # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
         'views/budget_config_views.xml',
@@ -53,15 +53,18 @@
         'views/budget_dashboard_views.xml',
         'views/budget_analysis_views.xml',
         'views/budget_notification_views.xml',
-        'views/budget_import_wizard_views.xml',
         'views/investment_budget_views.xml'
         'views/budget_reports_views.xml',
+        'views/budget_template_views.xml',
+        'views/forecast_analysis_views.xml',
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
+        'views/menu_views.xml',
 
         # 5. WIZARDS (після основних представлень)
         'wizards/budget_approval_wizard_views.xml',
         'wizards/budget_consolidation_wizard_views.xml',
+        'wizards/budget_import_wizard_views.xml',
         'wizards/sales_plan_wizard_views.xml',
         'wizards/budget_period_wizard_views.xml',
 
@@ -91,7 +94,7 @@
         ],
         # Дополнительно: стили для отчетов PDF
         'web.report_assets_common': [
-            'budget/static/src/css/budget_reports.css',  # если будет создан
+            'budget/static/src/css/budget_portal.css',  # если будет создан
         ],
     },    'qweb': [],
     'installable': True,

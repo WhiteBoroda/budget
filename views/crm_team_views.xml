@@ -1,84 +1,95 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- views/crm_team_views.xml -->
+    <!-- views/crm_team_views.xml - ВИПРАВЛЕНА ВЕРСІЯ -->
 
-    <!-- Расширение формы команды продаж -->
+    <!-- Розширення форми команди продаж - ВИПРАВЛЕНО -->
     <record id="crm_team_view_form_inherit_budget" model="ir.ui.view">
         <field name="name">crm.team.form.inherit.budget</field>
         <field name="model">crm.team</field>
         <field name="inherit_id" ref="sales_team.crm_team_view_form"/>
         <field name="arch" type="xml">
 
-            <!-- Добавляем кнопки в header -->
-            <xpath expr="//header" position="inside">
+            <!-- ВИПРАВЛЕНО: Додаємо кнопки в header статистики -->
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button name="action_view_forecasts"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-line-chart"
                         invisible="forecast_count == 0">
-                    <field name="forecast_count" widget="integer" string="Прогнози"/>
+                    <field name="forecast_count" widget="statinfo" string="Прогнози"/>
                 </button>
                 <button name="action_create_forecast"
                         type="object"
                         class="oe_stat_button"
                         icon="fa-plus"
-                        string="Створити прогноз"/>
+                        attrs="{'invisible': [('id', '=', False)]}">
+                    <div class="o_field_widget o_stat_info">
+                        <span class="o_stat_text">Створити</span>
+                        <span class="o_stat_text">прогноз</span>
+                    </div>
+                </button>
             </xpath>
 
-            <!-- Добавляем поля в основную группу -->
-            <xpath expr="//sheet//group[1]" position="after">
-                <group string="Інтеграція з бюджетуванням">
-                    <group>
-                        <field name="responsibility_center_id" options="{'no_create': True}"/>
-                        <field name="forecast_count" readonly="1"/>
-                        <field name="active_forecasts_count" readonly="1"/>
-                    </group>
-                    <group>
-                        <field name="default_forecast_channel"/>
-                        <field name="default_customer_segment"/>
-                    </group>
-                </group>
+            <!-- ВИПРАВЛЕНО: Додаємо поля в основну групу після існуючих полів -->
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="responsibility_center_id" options="{'no_create': True}"/>
+                <field name="default_forecast_channel"/>
+                <field name="default_customer_segment"/>
             </xpath>
 
-            <!-- Добавляем страницу с прогнозами в notebook -->
+            <!-- ВИПРАВЛЕНО: Додаємо нову вкладку в notebook -->
             <xpath expr="//notebook" position="inside">
-                <page string="Бюджетування та прогнози">
+                <page string="Бюджетування та прогнози" groups="budget.group_budget_user">
                     <group>
                         <group string="Налаштування бюджетування">
                             <field name="budget_responsible_user_id"/>
                             <field name="auto_create_forecasts"/>
                         </group>
+                        <group string="Статистика">
+                            <field name="forecast_count" readonly="1"/>
+                            <field name="active_forecasts_count" readonly="1"/>
+                        </group>
                     </group>
 
-                    <group string="Прогнози продаж">
+                    <separator string="Останні прогнози"/>
+                    <field name="forecast_ids" nolabel="1" readonly="1">
+                        <tree limit="5" create="false" edit="false" delete="false">
+                            <field name="name"/>
+                            <field name="period_id"/>
+                            <field name="channel"/>
+                            <field name="total_forecast_amount" widget="monetary"/>
+                            <field name="state"/>
+                            <field name="user_id"/>
+                        </tree>
+                    </field>
+
+                    <div class="oe_clear">
                         <button name="action_view_forecasts"
-                                string="Переглянути прогнози"
+                                string="Переглянути всі прогнози"
                                 type="object"
                                 class="btn-primary"
+                                icon="fa-eye"
                                 invisible="forecast_count == 0"/>
-                        <field name="forecast_ids" nolabel="1">
-                            <tree limit="5">
-                                <field name="period_id"/>
-                                <field name="channel"/>
-                                <field name="total_forecast_amount"/>
-                                <field name="state"/>
-                                <field name="user_id"/>
-                            </tree>
-                        </field>
-                    </group>
+                        <button name="action_create_forecast"
+                                string="Створити новий прогноз"
+                                type="object"
+                                class="btn-success"
+                                icon="fa-plus"/>
+                    </div>
                 </page>
             </xpath>
 
         </field>
     </record>
 
-    <!-- Расширение tree view команды продаж -->
+    <!-- ВИПРАВЛЕНО: Розширення tree view команд продаж -->
     <record id="crm_team_view_tree_inherit_budget" model="ir.ui.view">
         <field name="name">crm.team.tree.inherit.budget</field>
         <field name="model">crm.team</field>
         <field name="inherit_id" ref="sales_team.crm_team_view_tree"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='name']" position="after">
+            <!-- ВИПРАВЛЕНО: Додаємо поля після існуючих -->
+            <xpath expr="//field[@name='user_id']" position="after">
                 <field name="responsibility_center_id"/>
                 <field name="forecast_count"/>
                 <field name="default_forecast_channel"/>
@@ -86,42 +97,55 @@
         </field>
     </record>
 
-    <!-- Server action для создания прогноза из команды -->
+    <!-- ВИПРАВЛЕНО: Розширення пошуку для команд продаж -->
+    <record id="crm_team_view_search_inherit_budget" model="ir.ui.view">
+        <field name="name">crm.team.search.inherit.budget</field>
+        <field name="model">crm.team</field>
+        <field name="inherit_id" ref="sales_team.crm_team_view_search"/>
+        <field name="arch" type="xml">
+            <!-- Додаємо поля пошуку -->
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="responsibility_center_id"/>
+                <field name="default_forecast_channel"/>
+            </xpath>
+
+            <!-- Додаємо фільтри -->
+            <xpath expr="//filter[@name='active']" position="after">
+                <separator/>
+                <filter string="З ЦБО"
+                        name="with_cbo"
+                        domain="[('responsibility_center_id', '!=', False)]"/>
+                <filter string="З прогнозами"
+                        name="with_forecasts"
+                        domain="[('forecast_count', '>', 0)]"/>
+                <filter string="Мої команди"
+                        name="my_teams"
+                        domain="['|', ('user_id', '=', uid), ('member_ids', 'in', [uid])]"/>
+            </xpath>
+
+            <!-- Додаємо групування -->
+            <xpath expr="//group" position="inside">
+                <filter string="За ЦБО"
+                        name="group_cbo"
+                        context="{'group_by': 'responsibility_center_id'}"/>
+                <filter string="За каналом"
+                        name="group_channel"
+                        context="{'group_by': 'default_forecast_channel'}"/>
+            </xpath>
+        </field>
+    </record>
+
+    <!-- Server action для створення прогнозу з команди - ВИПРАВЛЕНО -->
     <record id="action_create_forecast_from_team" model="ir.actions.server">
-        <field name="name">Створити прогноз</field>
+        <field name="name">Створити прогноз для команди</field>
         <field name="model_id" ref="sales_team.model_crm_team"/>
         <field name="binding_model_id" ref="sales_team.model_crm_team"/>
         <field name="binding_view_types">list,form</field>
         <field name="state">code</field>
         <field name="code">
+# Виправлений код для створення прогнозу
 for team in records:
-    action = {
-        'type': 'ir.actions.act_window',
-        'name': f'Створити прогноз для {team.name}',
-        'res_model': 'sales.plan.wizard',
-        'view_mode': 'form',
-        'target': 'new',
-        'context': {
-            'default_team_id': team.id,
-            'default_forecast_scope': 'team',
-            'default_channel': team.default_forecast_channel or 'direct',
-            'default_customer_segment': team.default_customer_segment or 'existing',
-            'default_cbo_id': team.responsibility_center_id.id if team.responsibility_center_id else False,
-        }
-    }
-        </field>
-    </record>
-
-    <!-- Дополнительные действия в команде продаж -->
-    <record id="action_create_forecast_for_team" model="ir.actions.server">
-        <field name="name">Створити прогноз для команди</field>
-        <field name="model_id" ref="crm.model_crm_team"/>
-        <field name="binding_model_id" ref="crm.model_crm_team"/>
-        <field name="binding_view_types">form</field>
-        <field name="state">code</field>
-        <field name="code">
-if record:
-    # Находим текущий период планирования
+    # Знаходимо поточний період планування
     current_period = env['budget.period'].search([
         ('date_start', '&lt;=', fields.Date.today()),
         ('date_end', '&gt;=', fields.Date.today()),
@@ -129,20 +153,41 @@ if record:
     ], limit=1)
 
     if not current_period:
-        raise UserError('Не знайдено активного періоду для планування')
+        # Якщо немає поточного, беремо найближчий майбутній
+        current_period = env['budget.period'].search([
+            ('date_start', '&gt;', fields.Date.today()),
+            ('state', 'in', ['draft', 'planning'])
+        ], order='date_start asc', limit=1)
 
-    # Создаем прогноз для команды
-    forecast = env['sale.forecast'].create({
+    if not current_period:
+        raise UserError('Не знайдено активного періоду для планування. Створіть період в меню Бюджетування > Налаштування > Періоди')
+
+    # Створюємо прогноз для команди
+    forecast_vals = {
         'period_id': current_period.id,
-        'team_id': record.id,
+        'team_id': team.id,
         'user_id': env.user.id,
-        'channel': 'direct',  # По умолчанию
+        'channel': team.default_forecast_channel or 'direct',
+        'customer_segment': team.default_customer_segment or 'existing',
         'forecast_base': 'manual',
-    })
+        'state': 'draft',
+    }
+
+    # Додаємо ЦБО, якщо є
+    if team.responsibility_center_id:
+        forecast_vals['cbo_id'] = team.responsibility_center_id.id
+
+    # Додаємо компанію
+    if team.company_id:
+        forecast_vals['company_id'] = team.company_id.id
+    else:
+        forecast_vals['company_id'] = env.company.id
+
+    forecast = env['sale.forecast'].create(forecast_vals)
 
     action = {
         'type': 'ir.actions.act_window',
-        'name': 'Новий прогноз',
+        'name': f'Прогноз для команди {team.name}',
         'res_model': 'sale.forecast',
         'res_id': forecast.id,
         'view_mode': 'form',
@@ -150,5 +195,54 @@ if record:
     }
         </field>
     </record>
+
+    <!-- НОВИЙ: Action для перегляду команд з інтеграцією бюджетування -->
+    <record id="action_crm_teams_with_budget" model="ir.actions.act_window">
+        <field name="name">Команди продажів</field>
+        <field name="res_model">crm.team</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="context">{
+            'search_default_with_cbo': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Налаштуйте команди продажів для бюджетування!
+            </p>
+            <p>
+                Інтеграція команд продажів з бюджетуванням дозволяє:
+                <ul>
+                    <li>Прив'язувати команди до ЦБО</li>
+                    <li>Створювати прогнози продажів</li>
+                    <li>Автоматизувати планування доходів</li>
+                    <li>Контролювати виконання планів</li>
+                </ul>
+            </p>
+        </field>
+    </record>
+
+    <!-- НОВИЙ: Меню для інтегрованих команд продажів -->
+    <menuitem id="menu_budget_sales_teams"
+              name="📊 Команди продажів"
+              parent="menu_budget_planning"
+              action="action_crm_teams_with_budget"
+              sequence="12"/>
+
+    <!-- НОВИЙ: Dashboard для команд з прогнозами -->
+    <record id="action_crm_teams_dashboard" model="ir.actions.act_window">
+        <field name="name">Дашборд команд продажів</field>
+        <field name="res_model">crm.team</field>
+        <field name="view_mode">kanban</field>
+        <field name="domain">[('forecast_count', '>', 0)]</field>
+        <field name="context">{
+            'search_default_active': 1,
+            'kanban_default_group_by': 'responsibility_center_id'
+        }</field>
+    </record>
+
+    <menuitem id="menu_budget_teams_dashboard"
+              name="📈 Дашборд команд"
+              parent="menu_budget_reports"
+              action="action_crm_teams_dashboard"
+              sequence="25"/>
 
 </odoo>
