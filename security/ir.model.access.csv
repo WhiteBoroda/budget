@@ -72,3 +72,6 @@ access_budget_import_wizard_manager,budget.import.wizard.manager,model_budget_im
 access_investment_budget_wizard_user,investment.budget.wizard.user,model_investment_budget_wizard,group_budget_user,1,1,1,1
 access_investment_budget_wizard_coordinator,investment.budget.wizard.coordinator,model_investment_budget_wizard,group_budget_coordinator,1,1,1,1
 access_investment_budget_wizard_manager,investment.budget.wizard.manager,model_investment_budget_wizard,group_budget_manager,1,1,1,1
+access_budget_log_user,budget.log.user,model_budget_log,group_budget_user,1,0,1,0
+access_budget_log_coordinator,budget.log.coordinator,model_budget_log,group_budget_coordinator,1,1,1,0
+access_budget_log_manager,budget.log.manager,model_budget_log,group_budget_manager,1,1,1,1

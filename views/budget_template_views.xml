@@ -249,7 +249,7 @@
                     <field name="update_mode"/>
                 </group>
 
-                <div class="alert alert-info">
+                <div class="alert alert-info" role="status">
                     <strong>Режими оновлення:</strong>
                     <ul>
                         <li><strong>Замінити все:</strong> Видалити всі існуючі позиції та створити нові</li>

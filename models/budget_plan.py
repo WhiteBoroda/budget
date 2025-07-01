@@ -2,6 +2,10 @@
 
 from odoo import models, fields, api
 from odoo.exceptions import ValidationError
+import logging, json
+
+_logger = logging.getLogger(__name__)
+
 
 
 class BudgetPlan(models.Model):
@@ -41,6 +45,27 @@ class BudgetPlan(models.Model):
         compute='_compute_cbo_domain',
         store=False
     )
+
+    @api.depends('budget_type_id', 'company_id')
+    def _compute_cbo_domain(self):
+        """Обчислення домену для ЦБО на основі типу бюджету та компанії"""
+        for record in self:
+            domain = []
+
+            # Базовий фільтр - активні ЦБО
+            domain.append(('active', '=', True))
+
+            # Фільтр по компанії
+            if record.company_id:
+                domain.append(('company_id', '=', record.company_id.id))
+
+            # Фільтр по типу бюджету (якщо в типі бюджету є обмеження на ЦБО)
+            if record.budget_type_id and hasattr(record.budget_type_id, 'allowed_cbo_types'):
+                if record.budget_type_id.allowed_cbo_types:
+                    domain.append(('cbo_type', 'in', record.budget_type_id.allowed_cbo_types))
+
+            # Перетворюємо домен у JSON строку для використання в представленнях
+            record.cbo_domain = json.dumps(domain)
 
     # ИСПРАВЛЕНО для Odoo 17: убираем states из поля state
     state = fields.Selection([
@@ -131,10 +156,205 @@ class BudgetPlan(models.Model):
     can_edit_lines = fields.Boolean('Можна редагувати позиції', compute='_compute_can_edit_lines')
 
     @api.model
-    def create(self, vals):
-        if vals.get('name', '/') == '/':
-            vals['name'] = self.env['ir.sequence'].next_by_code('budget.plan') or '/'
-        return super().create(vals)
+    def create(self, vals_list):
+        """Створення планів бюджету з підтримкою batch операцій"""
+        # Перетворюємо в список якщо переданий словник
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        # Обробляємо кожен запис
+        for vals in vals_list:
+            # Автогенерація номера з послідовності
+            if vals.get('name', '/') == '/':
+                vals['name'] = self.env['ir.sequence'].next_by_code('budget.plan') or '/'
+
+            # Автогенерація назви якщо не вказана display_name
+            if not vals.get('display_name'):
+                vals['display_name'] = self._generate_budget_name(vals)
+
+            # Валідація обов'язкових полів
+            required_fields = ['period_id', 'budget_type_id', 'cbo_id']
+            for field in required_fields:
+                if not vals.get(field):
+                    field_name = self._fields[field].string
+                    raise ValidationError(f'Поле "{field_name}" є обов\'язковим')
+
+            # Перевірка унікальності бюджету
+            existing = self.search([
+                ('period_id', '=', vals['period_id']),
+                ('budget_type_id', '=', vals['budget_type_id']),
+                ('cbo_id', '=', vals['cbo_id']),
+                ('state', '!=', 'draft')
+            ])
+            if existing:
+                raise ValidationError(
+                    'Для цього ЦБО вже існує затверджений бюджет даного типу в цьому періоді'
+                )
+
+            # Встановлення значень за замовчуванням
+            if not vals.get('company_id'):
+                if vals.get('cbo_id'):
+                    cbo = self.env['budget.responsibility.center'].browse(vals['cbo_id'])
+                    if cbo.exists() and cbo.company_id:
+                        vals['company_id'] = cbo.company_id.id
+                    else:
+                        vals['company_id'] = self.env.company.id
+                else:
+                    vals['company_id'] = self.env.company.id
+
+            if not vals.get('responsible_user_id'):
+                vals['responsible_user_id'] = self.env.user.id
+
+            if not vals.get('state'):
+                vals['state'] = 'draft'
+
+            if not vals.get('submission_deadline'):
+                vals['submission_deadline'] = fields.Date.today()
+
+        # Створення записів
+        budgets = super().create(vals_list)
+
+        # Пост-обробка для кожного створеного бюджету
+        for budget in budgets:
+            # Логування
+            self.env['budget.log'].sudo().create({
+                'model_name': 'budget.plan',
+                'record_id': budget.id,
+                'action': 'create',
+                'description': f'Створено план бюджету: {budget.display_name}',
+                'user_id': self.env.user.id
+            })
+
+            # Повідомлення в чаттері
+            budget.message_post(
+                body=f"📊 Створено новий план бюджету {budget.budget_type_id.name} для {budget.cbo_id.name}",
+                message_type='notification'
+            )
+
+            # Автоматична консолідація якщо налаштована
+            if budget.cbo_id.auto_consolidation and budget.cbo_id.parent_id:
+                budget._create_consolidation_budget()
+
+        return budgets
+
+    def _generate_budget_name(self, vals):
+        """Генерація назви бюджету"""
+        budget_type_name = "Бюджет"
+        period_name = "Період"
+        cbo_name = "ЦБО"
+
+        # Отримуємо назву типу бюджету
+        if vals.get('budget_type_id'):
+            budget_type = self.env['budget.type'].browse(vals['budget_type_id'])
+            budget_type_name = budget_type.name if budget_type.exists() else "Бюджет"
+
+        # Отримуємо назву періоду
+        if vals.get('period_id'):
+            period = self.env['budget.period'].browse(vals['period_id'])
+            period_name = period.name if period.exists() else "Період"
+
+        # Отримуємо назву ЦБО
+        if vals.get('cbo_id'):
+            cbo = self.env['budget.responsibility.center'].browse(vals['cbo_id'])
+            cbo_name = cbo.name if cbo.exists() else "ЦБО"
+
+        return f"{budget_type_name} - {cbo_name} - {period_name}"
+
+    def _validate_budget_data(self, vals):
+        """Валідація даних бюджету"""
+        # Перевірка періоду
+        if vals.get('period_id'):
+            period = self.env['budget.period'].browse(vals['period_id'])
+            if not period.exists():
+                raise ValidationError("Вказаний період не існує")
+            if period.state == 'closed':
+                raise ValidationError("Неможливо створити бюджет для закритого періоду")
+
+        # Перевірка типу бюджету
+        if vals.get('budget_type_id'):
+            budget_type = self.env['budget.type'].browse(vals['budget_type_id'])
+            if not budget_type.exists():
+                raise ValidationError("Вказаний тип бюджету не існує")
+
+        # Перевірка ЦБО
+        if vals.get('cbo_id'):
+            cbo = self.env['budget.responsibility.center'].browse(vals['cbo_id'])
+            if not cbo.exists():
+                raise ValidationError("Вказане ЦБО не існує")
+
+        # Перевірка унікальності (одн бюджет одного типу для ЦБО в періоді)
+        if vals.get('period_id') and vals.get('budget_type_id') and vals.get('cbo_id'):
+            existing = self.search([
+                ('period_id', '=', vals['period_id']),
+                ('budget_type_id', '=', vals['budget_type_id']),
+                ('cbo_id', '=', vals['cbo_id']),
+                ('state', '!=', 'draft')  # Дозволяємо кілька чернеток
+            ])
+            if existing:
+                raise ValidationError(
+                    "Для цього ЦБО вже існує затверджений бюджет даного типу в цьому періоді"
+                )
+
+    def _set_budget_defaults(self, vals):
+        """Встановлення значень за замовчуванням для бюджету"""
+        # Встановлення компанії за замовчуванням
+        if not vals.get('company_id'):
+            if vals.get('cbo_id'):
+                cbo = self.env['budget.responsibility.center'].browse(vals['cbo_id'])
+                if cbo.exists() and cbo.company_ids:
+                    vals['company_id'] = cbo.company_ids.id
+                else:
+                    vals['company_id'] = self.env.company.id
+            else:
+                vals['company_id'] = self.env.company.id
+
+    def _post_create_budget_actions(self):
+        """Дії після створення бюджету"""
+        # Логування створення
+        _logger.info(f'Створено план бюджету: {self.name} (ID: {self.id})')
+
+        # Повідомлення в чаттері
+        self.message_post(
+            body=f"📊 Створено новий план бюджету {self.budget_type_id.name} для {self.cbo_id.name}",
+            message_type='notification'
+        )
+
+        # Автоматична консолідація (якщо налаштована)
+        if self.cbo_id.auto_consolidation and self.cbo_id.parent_id:
+            self._create_consolidation_budget()
+
+        # Створення базових категорій (якщо потрібно)
+        if not self.line_ids and hasattr(self, '_create_default_budget_lines'):
+            self._create_default_budget_lines()
+
+    def _create_consolidation_budget(self):
+        """Створення консолідованого бюджету для батьківського ЦБО"""
+        parent_cbo = self.cbo_id.parent_id
+        if not parent_cbo:
+            return
+
+        # Пошук існуючого консолідованого бюджету
+        consolidated_budget = self.search([
+            ('period_id', '=', self.period_id.id),
+            ('budget_type_id', '=', self.budget_type_id.id),
+            ('cbo_id', '=', parent_cbo.id)
+        ], limit=1)
+
+        if not consolidated_budget:
+            # Створення консолідованого бюджету
+            consolidated_vals = {
+                'name': f"Консолідований {self.budget_type_id.name} - {parent_cbo.name} - {self.period_id.name}",
+                'period_id': self.period_id.id,
+                'budget_type_id': self.budget_type_id.id,
+                'cbo_id': parent_cbo.id,
+                'company_id': self.company_id.id,
+                'state': 'draft'
+            }
+            consolidated_budget = self.create(consolidated_vals)
+
+        # Прив'язка до консолідованого бюджету
+        self.parent_budget_id = consolidated_budget.id
+
 
     @api.depends('line_ids.planned_amount')
     def _compute_totals(self):
@@ -423,4 +643,36 @@ class BudgetPlanLine(models.Model):
             self.calculation_basis = f"Прогноз: {forecast_line.forecast_qty} x {forecast_line.forecast_price}"
             self.calculation_method = 'sales_forecast'
 
+    @api.model
+    def create(self, vals_list):
+        """Створення ліній бюджету з підтримкою batch операцій"""
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
 
+        # Обробка кожного запису
+        for vals in vals_list:
+            # Валідація обов'язкових полів
+            if not vals.get('plan_id'):
+                raise ValidationError('Не вказано план бюджету для лінії')
+
+            if not vals.get('description'):
+                if vals.get('budget_category_id'):
+                    category = self.env['budget.category'].browse(vals['budget_category_id'])
+                    vals['description'] = category.name if category.exists() else 'Нова позиція'
+                else:
+                    vals['description'] = 'Нова позиція бюджету'
+
+            # Встановлення значень за замовчуванням
+            if not vals.get('planned_amount'):
+                vals['planned_amount'] = 0.0
+
+            if not vals.get('calculation_method'):
+                vals['calculation_method'] = 'manual'
+
+            # Автоматичне призначення рахунку з категорії
+            if vals.get('budget_category_id') and not vals.get('account_id'):
+                category = self.env['budget.category'].browse(vals['budget_category_id'])
+                if category.exists() and category.default_account_id:
+                    vals['account_id'] = category.default_account_id.id
+
+        return super().create(vals_list)

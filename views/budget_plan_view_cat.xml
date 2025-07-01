@@ -19,8 +19,8 @@
                         help="Оновити рахунки згідно з поточними зопоставленнями"/>
             </xpath>
 
-            <!-- Замінюємо notebook з позиціями бюджету -->
-            <xpath expr="//notebook/page[@string='Позиції бюджету']" position="replace">
+            <!-- ВИПРАВЛЕННЯ: Використовуємо правильний селектор -->
+            <xpath expr="//notebook/page[1]" position="replace">
                 <page string="💰 Позиції бюджету">
                     <div class="alert alert-info" role="alert">
                         <strong>Спрощене введення:</strong> Оберіть категорію витрат та центр витрат.
@@ -47,46 +47,48 @@
                                    options="{'no_create': True, 'no_edit': True}"/>
 
                             <field name="description"
-                                   string="📝 Опис"
-                                   required="1"/>
+                                   string="📝 Опис"/>
 
-                            <!-- ФІНАНСОВІ ПОЛЯ -->
-                            <field name="quantity" string="Кіл-ть"/>
-                            <field name="unit_price" string="Ціна"/>
+                            <!-- ПЛАНУВАННЯ -->
+                            <field name="quantity" string="Кількість"/>
+                            <field name="unit_price" string="Ціна за одиницю"
+                                   widget="monetary"/>
                             <field name="planned_amount"
                                    string="💰 Планова сума"
-                                   sum="Загалом"/>
+                                   widget="monetary"
+                                   sum="Всього"/>
 
-                            <!-- ВИКОНАННЯ -->
-                            <field name="committed_amount"
-                                   string="🔒 Зарезервовано"
-                                   optional="show"/>
+                            <!-- ВИКОНАННЯ (тільки для читання) -->
                             <field name="actual_amount"
-                                   string="✅ Фактично"
-                                   optional="show"/>
-
-                            <!-- ОБЛІКОВІ ПОЛЯ (для бухгалтерів) -->
-                            <field name="account_id"
-                                   string="🧾 Рахунок"
-                                   optional="hide"
-                                   groups="account.group_account_user"
-                                   readonly="1"/>
-                            <field name="analytic_account_id"
-                                   string="📊 Аналітика"
-                                   optional="hide"
-                                   groups="account.group_account_user"
+                                   string="Факт"
+                                   widget="monetary"
                                    readonly="1"/>
 
-                            <!-- ТЕХНІЧНІ ПОЛЯ -->
+                            <!-- СЛУЖБОВІ ПОЛЯ -->
                             <field name="calculation_method" optional="hide"/>
                             <field name="is_consolidation" invisible="1"/>
+                            <field name="currency_id" invisible="1"/>
+
+                            <!-- РОЗШИРЕНІ ПОЛЯ (приховані за замовчуванням) -->
+                            <field name="account_id" optional="hide"
+                                   string="Рахунок обліку"
+                                   groups="account.group_account_user"/>
+                            <field name="analytic_account_id" optional="hide"
+                                   string="Аналітичний рахунок"
+                                   groups="account.group_account_user"/>
                         </tree>
 
-                        <!-- ДЕТАЛЬНА ФОРМА ПОЗИЦІЇ -->
-                        <form>
+                        <!-- РОЗШИРЕНА ФОРМА ДЛЯ РЕДАГУВАННЯ ПОЗИЦІЇ -->
+                        <form string="Позиція бюджету">
                             <sheet>
+                                <div class="oe_title">
+                                    <h1>
+                                        <field name="description" placeholder="Опис позиції бюджету..."/>
+                                    </h1>
+                                </div>
+
                                 <group>
-                                    <group string="🏷️ Що витрачаємо?">
+                                    <group string="📂 Категоризація">
                                         <field name="budget_category_id"
                                                options="{'no_create': True}"/>
                                         <field name="cost_center_id"
@@ -125,7 +127,7 @@
 
                                     <page string="🧾 Облікові дані"
                                           groups="account.group_account_user">
-                                        <div class="alert alert-warning">
+                                        <div class="alert alert-warning" role="alert">
                                             <strong>Увага:</strong> Ці поля заповнюються автоматично
                                             на основі зопоставлень категорій з рахунками.
                                         </div>
@@ -180,25 +182,14 @@
 
                 <!-- ПЛАНУВАННЯ -->
                 <field name="quantity" string="Кіл-ть"/>
-                <field name="unit_price" string="Ціна за од."/>
-                <field name="planned_amount" string="💰 Планова сума" sum="Разом"/>
+                <field name="unit_price" string="Ціна за од." widget="monetary"/>
+                <field name="planned_amount" string="💰 Сума" widget="monetary" sum="Всього"/>
 
                 <!-- ВИКОНАННЯ -->
-                <field name="committed_amount" string="🔒 Зарезервовано" optional="hide"/>
-                <field name="actual_amount" string="✅ Фактично" optional="hide"/>
-
-                <!-- ТЕХНІЧНІ ПОЛЯ -->
-                <field name="category_code" optional="hide"/>
-                <field name="cost_center_code" optional="hide"/>
-                <field name="calculation_method" optional="hide"/>
-
-                <!-- ОБЛІКОВІ ПОЛЯ (ТІЛЬКИ ДЛЯ БУХГАЛТЕРІВ) -->
-                <field name="account_id" optional="hide"
-                       groups="account.group_account_user" readonly="1"/>
-                <field name="analytic_account_id" optional="hide"
-                       groups="account.group_account_user" readonly="1"/>
+                <field name="actual_amount" string="Факт" widget="monetary" readonly="1"/>
 
                 <!-- СЛУЖБОВІ ПОЛЯ -->
+                <field name="currency_id" invisible="1"/>
                 <field name="is_consolidation" invisible="1"/>
             </tree>
         </field>
@@ -360,13 +351,13 @@
     <record id="view_budget_plan_line_search_categories" model="ir.ui.view">
         <field name="name">budget.plan.line.search.categories</field>
         <field name="model">budget.plan.line</field>
+        <field name="priority">16</field>
         <field name="arch" type="xml">
-            <search>
+            <search string="Пошук позицій бюджету">
                 <field name="description"/>
                 <field name="budget_category_id"/>
                 <field name="cost_center_id"/>
-                <field name="account_id"/>
-                <field name="planned_amount"/>
+                <field name="plan_id"/>
 
                 <separator/>
                 <filter string="З категоріями" name="with_categories"
@@ -406,6 +397,10 @@
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="context">{'search_default_with_categories': 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_budget_plan_line_simplified_tree')}),
+            (0, 0, {'view_mode': 'form'})]"/>
+        <field name="search_view_id" ref="view_budget_plan_line_search_categories"/>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
                 Управління позиціями бюджетів через категорії!
@@ -473,7 +468,7 @@ action = {
                     </group>
                 </group>
 
-                <div class="alert alert-info">
+                <div class="alert alert-info" role="status">
                     <strong>Інформація:</strong> Будуть оновлені всі обрані позиції бюджету.
                     Якщо увімкнено "Оновити рахунки", то облікові рахунки будуть
                     перевизначені згідно з новими категоріями.

@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Server Action для автоматичного призначення категорій типам бюджетів -->
+        <record id="action_auto_assign_budget_categories" model="ir.actions.server">
+            <field name="name">🔧 Автопризначення категорій</field>
+            <field name="model_id" ref="model_budget_type"/>
+            <field name="binding_model_id" ref="model_budget_type"/>
+            <field name="binding_view_types">list,form</field>
+            <field name="state">code</field>
+            <field name="code">
+# Маппінг кодів типів бюджетів на категорії (повний список з Регламенту 01-32)
+mapping = {
+    'BDR': 'comprehensive',
+    '01': 'direct_costs',      # ФОТ
+    '01(2)': 'direct_costs',   # ФОТ додатковий
+    '02': 'indirect_costs',    # Розвиток персоналу
+    '03': 'indirect_costs',    # Соціальні витрати
+    '04': 'administrative',    # Благодійність
+    '04(2)': 'administrative', # Благодійність (маркетинг)
+    '05': 'administrative',    # Маркетинг
+    '06': 'administrative',    # Податки
+    '07': 'administrative',    # Консультації
+    '08': 'financial',         # Фінансова діяльність
+    '09': 'income',           # Доходи
+    '10': 'indirect_costs',    # Оренда
+    '11': 'direct_costs',      # Логістика
+    '12': 'indirect_costs',    # ІТ
+    '13': 'direct_costs',      # Контроль якості
+    '14': 'administrative',    # Управління власністю
+    '15': 'administrative',    # Юридичні розходи
+    '16': 'administrative',    # Охорона праці
+    '17': 'administrative',    # Адмін-господарські
+    '18': 'indirect_costs',    # Зв'язок та інтернет
+    '19': 'direct_costs',      # Енергоносії
+    '20': 'indirect_costs',    # Техобслуговування
+    '21': 'indirect_costs',    # Ремонт транспорту
+    '22': 'direct_costs',      # Експлуатація транспорту
+    '23': 'administrative',    # Інші операційні
+    '24': 'investment',        # Інвестиції
+    '25': 'administrative',    # Безпека
+    '26': 'investment',        # Надходження від інвестиційної діяльності
+    '27': 'administrative',    # ТОП менеджмент
+    '28': 'direct_costs',      # Баланс зерна
+    '29': 'direct_costs',      # Розрахунок переробки
+    '30': 'direct_costs',      # Баланс муки
+    '31': 'administrative',    # Резерв
+    '32': 'administrative',    # Професійні послуги холдингу
+    'PROD': 'direct_costs',    # Виробничий
+    'SALES': 'income',         # Продажі
+}
+
+updated_count = 0
+error_count = 0
+
+if records:
+    # Обробляємо вибрані записи
+    target_types = records
+else:
+    # Обробляємо всі типи бюджетів
+    target_types = env['budget.type'].search([])
+
+for budget_type in target_types:
+    try:
+        if budget_type.code in mapping:
+            new_category = mapping[budget_type.code]
+            if not budget_type.budget_category or budget_type.budget_category != new_category:
+                budget_type.write({'budget_category': new_category})
+                updated_count += 1
+        elif not budget_type.budget_category:
+            # Встановлюємо категорію за замовчуванням
+            budget_type.write({'budget_category': 'direct_costs'})
+            updated_count += 1
+    except Exception as e:
+        error_count += 1
+        continue
+
+# Повідомлення про результат
+if error_count > 0:
+    message = f'Оновлено {updated_count} типів бюджетів. Помилок: {error_count}'
+    msg_type = 'warning'
+else:
+    message = f'Успішно оновлено категорії для {updated_count} типів бюджетів'
+    msg_type = 'success'
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Автопризначення завершено',
+        'message': message,
+        'type': msg_type,
+    }
+}
+            </field>
+        </record>
+
+        <!-- Server Action для перевірки цілісності даних -->
+        <record id="action_validate_budget_types" model="ir.actions.server">
+            <field name="name">✅ Перевірити цілісність</field>
+            <field name="model_id" ref="model_budget_type"/>
+            <field name="binding_model_id" ref="model_budget_type"/>
+            <field name="binding_view_types">list</field>
+            <field name="state">code</field>
+            <field name="code">
+# Перевіряємо всі типи бюджетів на цілісність
+issues = []
+all_types = env['budget.type'].search([])
+
+for budget_type in all_types:
+    # Перевірка обов'язкових полів
+    if not budget_type.budget_category:
+        issues.append(f"❌ Тип '{budget_type.name}' ({budget_type.code}) - відсутня категорія")
+
+    if not budget_type.code:
+        issues.append(f"❌ Тип '{budget_type.name}' - відсутній код")
+
+    if not budget_type.name:
+        issues.append(f"❌ Тип з кодом '{budget_type.code}' - відсутня назва")
+
+# Перевірка унікальності кодів
+codes = all_types.mapped('code')
+duplicate_codes = [code for code in set(codes) if codes.count(code) > 1]
+for code in duplicate_codes:
+    duplicate_types = all_types.filtered(lambda t: t.code == code)
+    issues.append(f"⚠️ Дубльований код '{code}' у типів: {', '.join(duplicate_types.mapped('name'))}")
+
+if issues:
+    message = f"Знайдено {len(issues)} проблем:\n" + "\n".join(issues[:10])
+    if len(issues) > 10:
+        message += f"\n... та ще {len(issues) - 10} проблем"
+    msg_type = 'warning'
+else:
+    message = f"✅ Всі {len(all_types)} типів бюджетів пройшли перевірку"
+    msg_type = 'success'
+
+# Логування детальних результатів
+import logging
+_logger = logging.getLogger(__name__)
+if issues:
+    _logger.warning(f"Budget types validation issues: {issues}")
+else:
+    _logger.info(f"All {len(all_types)} budget types validated successfully")
+
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'display_notification',
+    'params': {
+        'title': 'Перевірка завершена',
+        'message': message,
+        'type': msg_type,
+    }
+}
+            </field>
+        </record>
+    </data>
+</odoo>

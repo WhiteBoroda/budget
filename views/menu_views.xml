@@ -238,6 +238,53 @@
               action="action_budget_help"
               sequence="10"/>
 
+    <!-- ========== ІМПОРТ/ЕКСПОРТ ========== -->
+    <menuitem id="menu_budget_import_export"
+              name="📁 Імпорт/Експорт"
+              parent="menu_budget_planning"
+              sequence="35"/>
+
+    <!-- Імпорт -->
+    <menuitem id="menu_budget_import_section"
+              name="📥 Імпорт"
+              parent="menu_budget_import_export"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_import_excel"
+              name="Імпорт з Excel"
+              parent="menu_budget_import_section"
+              action="action_budget_import_wizard"
+              sequence="10"/>
+
+    <menuitem id="menu_bdr_import_categories"
+              name="Імпорт категорій БДР"
+              parent="menu_budget_import_section"
+              action="action_bdr_import_categories_only"
+              sequence="15"/>
+
+    <menuitem id="menu_bdr_import_with_categories"
+              name="Імпорт БДР з категоріями"
+              parent="menu_budget_import_section"
+              action="action_bdr_import_with_categories"
+              sequence="20"/>
+
+    <!-- Експорт -->
+    <menuitem id="menu_budget_export_section"
+              name="📤 Експорт"
+              parent="menu_budget_import_export"
+              sequence="20"/>
+
+    <menuitem id="menu_bdr_export_with_categories"
+              name="Експорт БДР з категоріями"
+              parent="menu_budget_export_section"
+              action="action_bdr_export_with_categories"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_export_template"
+              name="Завантажити шаблони"
+              parent="menu_budget_export_section"
+              sequence="20"/>
+
     <!-- ========== ДОДАТКОВІ ACTIONS ДЛЯ MEНЮ ========== -->
 
     <!-- Action для команд з бюджетуванням -->

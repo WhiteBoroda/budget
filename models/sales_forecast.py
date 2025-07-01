@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from odoo import models, fields, api
-from odoo.exceptions import ValidationError
+from odoo.exceptions import ValidationError, UserError
+import logging
+
+_logger = logging.getLogger(__name__)
 
 
 class SaleForecast(models.Model):
@@ -146,10 +149,139 @@ class SaleForecast(models.Model):
     is_readonly = fields.Boolean('Тільки для читання', compute='_compute_is_readonly')
 
     @api.model
-    def create(self, vals):
-        if vals.get('name', '/') == '/':
-            vals['name'] = self.env['ir.sequence'].next_by_code('sale.forecast') or '/'
-        return super().create(vals)
+    def create(self, vals_list):
+        """Створення прогнозів з підтримкою batch операцій"""
+        # Перетворюємо в список якщо переданий словник
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        # Обробляємо кожен запис
+        for vals in vals_list:
+            # Автогенерація назви якщо не вказана
+            if not vals.get('name'):
+                vals['name'] = self._generate_forecast_name(vals)
+
+            # Автогенерація номера з послідовності
+            if vals.get('name', '/') == '/':
+                vals['name'] = self.env['ir.sequence'].next_by_code('sale.forecast') or 'Новий прогноз'
+
+            # Валідація основних полів
+            if not vals.get('period_id'):
+                raise ValidationError('Період є обов\'язковим для прогнозу')
+
+            # Встановлення значень за замовчуванням
+            if not vals.get('company_id'):
+                vals['company_id'] = self.env.company.id
+
+            if not vals.get('user_id'):
+                vals['user_id'] = self.env.user.id
+
+            if not vals.get('state'):
+                vals['state'] = 'draft'
+
+            # Автоматичне встановлення каналу з команди
+            if vals.get('team_id') and not vals.get('channel'):
+                team = self.env['crm.team'].browse(vals['team_id'])
+                if team.exists() and hasattr(team, 'default_forecast_channel'):
+                    vals['channel'] = team.default_forecast_channel or 'direct'
+
+        # Створення записів
+        forecasts = super().create(vals_list)
+
+        # Пост-обробка для кожного створеного прогнозу
+        for forecast in forecasts:
+            # Логування
+            self.env['budget.log'].sudo().create({
+                'model_name': 'sale.forecast',
+                'record_id': forecast.id,
+                'action': 'create',
+                'description': f'Створено прогноз продажів: {forecast.name}',
+                'user_id': self.env.user.id
+            })
+
+            # Повідомлення в чаттері
+            forecast.message_post(
+                body=f"🎯 Створено новий прогноз продажів для періоду {forecast.period_id.name}",
+                message_type='notification'
+            )
+
+        return forecasts
+
+    def _generate_forecast_name(self, vals):
+        """Генерація назви прогнозу"""
+        period_name = "Період"
+        team_name = "Команда"
+
+        # Отримуємо назву періоду
+        if vals.get('period_id'):
+            period = self.env['budget.period'].browse(vals['period_id'])
+            period_name = period.name if period.exists() else "Період"
+
+        # Отримуємо назву команди або проекту
+        if vals.get('team_id'):
+            team = self.env['crm.team'].browse(vals['team_id'])
+            team_name = team.name if team.exists() else "Команда"
+        elif vals.get('project_id'):
+            project = self.env['project.project'].browse(vals['project_id'])
+            team_name = project.name if project.exists() else "Проект"
+
+        return f"Прогноз {team_name} - {period_name}"
+
+    def _validate_forecast_data(self, vals):
+        """Валідація даних прогнозу"""
+        # Перевірка періоду
+        if vals.get('period_id'):
+            period = self.env['budget.period'].browse(vals['period_id'])
+            if not period.exists():
+                raise ValidationError("Вказаний період не існує")
+            if period.state == 'closed':
+                raise ValidationError("Неможливо створити прогноз для закритого періоду")
+
+        # Перевірка команди або проекту
+        if not vals.get('team_id') and not vals.get('project_id'):
+            if vals.get('forecast_scope', 'team') in ['team', 'combined']:
+                raise ValidationError("Необхідно вказати команду продажів або проект")
+
+    def _set_default_values(self, vals):
+        """Встановлення значень за замовчуванням"""
+        # Встановлення компанії за замовчуванням
+        if not vals.get('company_id'):
+            vals['company_id'] = self.env.company.id
+
+        # Встановлення користувача за замовчуванням
+        if not vals.get('user_id'):
+            vals['user_id'] = self.env.user.id
+
+        # Встановлення каналу за замовчуванням
+        if not vals.get('channel'):
+            if vals.get('team_id'):
+                team = self.env['crm.team'].browse(vals['team_id'])
+                if team.exists() and team.default_forecast_channel:
+                    vals['channel'] = team.default_forecast_channel
+                else:
+                    vals['channel'] = 'direct'
+
+    def _post_create_actions(self):
+        """Дії після створення прогнозу"""
+        # Логування створення
+        _logger.info(f'Створено прогноз продажів: {self.name} (ID: {self.id})')
+
+        # Повідомлення в чаттері
+        self.message_post(
+            body=f"🎯 Створено новий прогноз продажів для {self.period_id.name}",
+            message_type='notification'
+        )
+
+        # Автоматичне створення базових ліній (якщо потрібно)
+        if not self.forecast_line_ids and hasattr(self, '_create_default_lines'):
+            self._create_default_lines()
+
+    @api.depends('forecast_line_ids.forecast_amount')
+    def _compute_totals(self):
+        """Розрахунок загальних сум"""
+        for forecast in self:
+            forecast.total_forecast_amount = sum(forecast.forecast_line_ids.mapped('forecast_amount'))
+
 
     @api.depends('forecast_line_ids.forecast_amount', 'forecast_line_ids.forecast_qty')
     def _compute_totals(self):
@@ -383,6 +515,37 @@ class SaleForecastLine(models.Model):
             self.probability = self.opportunity_id.probability
             self.expected_date = self.opportunity_id.date_deadline
             self.description = self.opportunity_id.name or "З CRM можливості"
+
+    @api.model
+    def create(self, vals_list):
+        """Створення ліній прогнозу з підтримкою batch операцій"""
+        if isinstance(vals_list, dict):
+            vals_list = [vals_list]
+
+        # Обробка кожного запису
+        for vals in vals_list:
+            # Валідація обов'язкових полей
+            if not vals.get('forecast_id'):
+                raise ValidationError('Не вказано прогноз для лінії')
+
+            if not vals.get('description'):
+                if vals.get('product_id'):
+                    product = self.env['product.product'].browse(vals['product_id'])
+                    vals['description'] = product.name if product.exists() else 'Нова позиція'
+                else:
+                    vals['description'] = 'Нова позиція прогнозу'
+
+            # Встановлення значень за замовчуванням
+            if not vals.get('forecast_qty'):
+                vals['forecast_qty'] = 1.0
+
+            if not vals.get('probability'):
+                vals['probability'] = 50.0
+
+            if not vals.get('sales_stage'):
+                vals['sales_stage'] = 'opportunity'
+
+        return super().create(vals_list)
 
 
 class SaleForecastTemplate(models.Model):

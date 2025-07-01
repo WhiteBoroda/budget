@@ -43,6 +43,7 @@ class ResponsibilityCenter(models.Model):
     approver_user_id = fields.Many2one('res.users', 'Затверджувач бюджету')
 
     # Зв'язки з організаційною структурою
+
     company_ids = fields.Many2many('res.company', string='Підприємства')
     department_id = fields.Many2one('hr.department', 'Підрозділ')
 
@@ -300,3 +301,24 @@ class BudgetCurrency(models.Model):
         for record in self:
             if record.use_planned_rates and record.planning_rate <= 0:
                 raise ValidationError('Плановий курс повинен бути більше нуля!')
+
+
+class BudgetLog(models.Model):
+    """Логування дій в системі бюджетування"""
+    _name = 'budget.log'
+    _description = 'Лог дій бюджетування'
+    _order = 'create_date desc'
+
+    model_name = fields.Char('Модель', required=True)
+    record_id = fields.Integer('ID запису', required=True)
+    action = fields.Char('Дія', required=True)
+    description = fields.Text('Опис')
+    user_id = fields.Many2one('res.users', 'Користувач', required=True)
+    create_date = fields.Datetime('Дата створення', default=fields.Datetime.now)
+
+    def name_get(self):
+        result = []
+        for record in self:
+            name = f"{record.action} - {record.model_name} ({record.create_date})"
+            result.append((record.id, name))
+        return result

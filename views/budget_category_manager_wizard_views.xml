@@ -91,7 +91,7 @@
                 <!-- Масове створення -->
                 <group invisible="operation_type != 'bulk_create' or context.get('show_result', False)">
                     <group string="Масове створення категорій" colspan="2">
-                        <div class="alert alert-info">
+                        <div class="alert alert-info" role="status">
                             <strong>📝 Формат введення:</strong><br/>
                             <code>код|назва|батьківський_код</code> (кожна категорія з нового рядка)<br/><br/>
                             <strong>Приклади:</strong><br/>
@@ -267,7 +267,7 @@ action = {
                                     <field name="active" widget="boolean_toggle"/>
                                 </tree>
                             </field>
-                            <div class="alert alert-info">
+                            <div class="alert alert-info" role="status">
                                 <strong>💡 Підказка:</strong> Зопоставлення дозволяють автоматично призначати
                                 облікові рахунки при створенні позицій бюджету.
                             </div>

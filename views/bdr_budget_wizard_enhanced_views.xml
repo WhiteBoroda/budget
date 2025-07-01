@@ -10,13 +10,13 @@
             <form string="Покращений майстер БДР">
 
                 <!-- Заголовок -->
-                <div class="alert alert-info" invisible="context.get('show_result', False)">
+                <div class="alert alert-info" role="status" invisible="context.get('show_result', False)">
                     <h4>🏗️ Покращений майстер роботи з БДР</h4>
                     <p>Імпорт та експорт бюджетів доходів і витрат з автоматичним створенням категорій</p>
                 </div>
 
                 <!-- Результат операції -->
-                <div class="alert alert-success" invisible="not context.get('show_result', False)">
+                <div class="alert alert-success" role="status" invisible="not context.get('show_result', False)">
                     <h4>✅ Операція завершена успішно!</h4>
                     <field name="import_summary" readonly="1" nolabel="1"/>
                 </div>
@@ -62,7 +62,7 @@
                         <field name="amount_column" placeholder="G"/>
                     </group>
                     <group>
-                        <div class="alert alert-warning">
+                        <div class="alert alert-warning" role="alert">
                             <strong>📋 Структура Excel файлу:</strong><br/>
                             <strong>Колонка B:</strong> Код категорії (1.100., 2.300.1)<br/>
                             <strong>Колонка C:</strong> Назва статті бюджету<br/>
@@ -257,7 +257,7 @@ else:
         <field name="model">bdr.budget.wizard.enhanced</field>
         <field name="arch" type="xml">
             <form string="Довідка по роботі з БДР">
-                <div class="alert alert-info">
+                <div class="alert alert-info" role="status">
                     <h4>📖 Довідка по покращеному майстру БДР</h4>
 
                     <h5>🔧 Функціональність:</h5>

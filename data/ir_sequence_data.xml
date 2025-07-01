@@ -1,34 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- data/ir_sequence_data.xml -->
-
     <data noupdate="1">
-        <!-- Послідовності -->
-        <record id="seq_budget_plan" model="ir.sequence">
-            <field name="name">Послідовність бюджетних планів</field>
-            <field name="code">budget.plan</field>
-            <field name="prefix">БП/%(year)s/</field>
-            <field name="padding">4</field>
-            <field name="number_increment">1</field>
-            <field name="implementation">standard</field>
-        </record>
+        <!-- data/ir_sequence_data.xml - Послідовності для автонумерації -->
 
-        <record id="seq_sales_forecast" model="ir.sequence">
-            <field name="name">Послідовність прогнозів продажів</field>
+        <!-- Послідовність для прогнозів продажів -->
+        <record id="seq_sale_forecast" model="ir.sequence">
+            <field name="name">Прогнози продажів</field>
             <field name="code">sale.forecast</field>
-            <field name="prefix">ПР/%(year)s/</field>
+            <field name="prefix">ПП%(year)s-</field>
+            <field name="suffix"></field>
             <field name="padding">4</field>
             <field name="number_increment">1</field>
+            <field name="number_next">1</field>
             <field name="implementation">standard</field>
         </record>
 
-        <record id="seq_budget_execution" model="ir.sequence">
-            <field name="name">Послідовність виконання бюджету</field>
-            <field name="code">budget.execution</field>
-            <field name="prefix">ВБ/%(year)s/</field>
+        <!-- Послідовність для планів бюджету -->
+        <record id="seq_budget_plan" model="ir.sequence">
+            <field name="name">Плани бюджету</field>
+            <field name="code">budget.plan</field>
+            <field name="prefix">БП%(year)s-</field>
+            <field name="suffix"></field>
             <field name="padding">4</field>
             <field name="number_increment">1</field>
+            <field name="number_next">1</field>
             <field name="implementation">standard</field>
         </record>
+
+        <!-- Послідовність для виконання бюджету -->
+        <record id="seq_budget_execution" model="ir.sequence">
+            <field name="name">Виконання бюджету</field>
+            <field name="code">budget.execution</field>
+            <field name="prefix">ВБ%(year)s-</field>
+            <field name="suffix"></field>
+            <field name="padding">4</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для ЦБО -->
+        <record id="seq_responsibility_center" model="ir.sequence">
+            <field name="name">Центри бюджетної відповідальності</field>
+            <field name="code">budget.responsibility.center</field>
+            <field name="prefix">ЦБО-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для типів бюджету -->
+        <record id="seq_budget_type" model="ir.sequence">
+            <field name="name">Типи бюджету</field>
+            <field name="code">budget.type</field>
+            <field name="prefix">ТБ-</field>
+            <field name="suffix"></field>
+            <field name="padding">2</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для бюджетних періодів -->
+        <record id="seq_budget_period" model="ir.sequence">
+            <field name="name">Бюджетні періоди</field>
+            <field name="code">budget.period</field>
+            <field name="prefix">Період-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для шаблонів бюджету -->
+        <record id="seq_budget_template" model="ir.sequence">
+            <field name="name">Шаблони бюджету</field>
+            <field name="code">budget.template</field>
+            <field name="prefix">ШБ-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для шаблонів прогнозів -->
+        <record id="seq_sale_forecast_template" model="ir.sequence">
+            <field name="name">Шаблони прогнозів продажів</field>
+            <field name="code">sale.forecast.template</field>
+            <field name="prefix">ШП-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для категорій бюджету -->
+        <record id="seq_budget_category" model="ir.sequence">
+            <field name="name">Категорії бюджету</field>
+            <field name="code">budget.category</field>
+            <field name="prefix">КБ-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
+        <!-- Послідовність для центрів витрат -->
+        <record id="seq_budget_cost_center" model="ir.sequence">
+            <field name="name">Центри витрат</field>
+            <field name="code">budget.cost.center</field>
+            <field name="prefix">ЦВ-</field>
+            <field name="suffix"></field>
+            <field name="padding">3</field>
+            <field name="number_increment">1</field>
+            <field name="number_next">1</field>
+            <field name="implementation">standard</field>
+        </record>
+
     </data>
 </odoo>

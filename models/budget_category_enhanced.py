@@ -3,7 +3,7 @@
 
 from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
-import logging
+import logging, re
 
 _logger = logging.getLogger(__name__)
 
@@ -81,16 +81,160 @@ class BudgetCategoryEnhanced(models.Model):
 
     @api.constrains('code')
     def _check_code_format(self):
-        """Перевірка формату коду категорії"""
+        """Перевірка формату коду категорії з розширенням до X.XXX.X.X"""
         for category in self:
             if category.code:
-                import re
-                # Код має бути у форматі X.XXX. або X.XXX.X
-                pattern = r'^\d+\.\d+\.(\d+)?$'
-                if not re.match(pattern, category.code):
+                # Дозволяємо різні формати для гнучкості:
+                patterns = [
+                    r'^\d+\.\d{3}\.\d+\.\d+$',  # X.XXX.X.X (новий розширений формат)
+                    r'^\d+\.\d{3}\.\d+$',  # X.XXX.X (середній формат)
+                    r'^\d+\.\d{3}\.$',  # X.XXX. (старий формат з крапкою)
+                    r'^\d+\.\d{3}$',  # X.XXX (без крапки)
+                    r'^[A-Z][A-Z0-9_]*$',  # Літерні коди (SALARY, IT_HW тощо)
+                ]
+
+                if not any(re.match(pattern, category.code) for pattern in patterns):
                     raise ValidationError(
-                        _('Код категорії має бути у форматі X.XXX. або X.XXX.X (наприклад: 1.100. або 2.300.1)')
+                        _('Код категорії має бути у одному з форматів:\n'
+                          '• X.XXX.X.X (наприклад: 1.100.2.3) - новий розширений формат\n'
+                          '• X.XXX.X (наприклад: 2.300.1) - середній формат\n'
+                          '• X.XXX. або X.XXX (наприклад: 1.100. або 1.100) - базовий формат\n'
+                          '• Літерний код (наприклад: SALARY, IT_HARDWARE) - для системних категорій\n'
+                          '\nВведений код: "{}" не відповідає жодному формату').format(category.code)
                     )
+
+    def get_code_level(self):
+        """Визначає рівень деталізації коду категорії"""
+        if not self.code:
+            return 0
+
+        # Перевіряємо різні формати
+        if re.match(r'^\d+\.\d{3}\.\d+\.\d+$', self.code):
+            return 4  # X.XXX.X.X - найвищий рівень деталізації
+        elif re.match(r'^\d+\.\d{3}\.\d+$', self.code):
+            return 3  # X.XXX.X - середній рівень
+        elif re.match(r'^\d+\.\d{3}\.?$', self.code):
+            return 2  # X.XXX. або X.XXX - базовий рівень
+        elif re.match(r'^[A-Z][A-Z0-9_]*$', self.code):
+            return 1  # Літерний код - системний рівень
+        else:
+            return 0  # Невідомий формат
+
+    @api.model
+    def create_structured_code(self, major=1, group=100, category=1, subcategory=0):
+        """
+        Створює структурований код у форматі X.XXX.X.X
+
+        :param major: Основна група (1-9)
+        :param group: Група в межах основної (000-999)
+        :param category: Категорія в межах групи (0-9)
+        :param subcategory: Підкатегорія (0-9)
+        :return: Код у форматі X.XXX.X.X
+        """
+        # Валідація параметрів
+        if not (1 <= major <= 9):
+            raise ValidationError(_('Основна група має бути від 1 до 9'))
+        if not (0 <= group <= 999):
+            raise ValidationError(_('Група має бути від 000 до 999'))
+        if not (0 <= category <= 9):
+            raise ValidationError(_('Категорія має бути від 0 до 9'))
+        if not (0 <= subcategory <= 9):
+            raise ValidationError(_('Підкатегорія має бути від 0 до 9'))
+
+        return f"{major}.{group:03d}.{category}.{subcategory}"
+
+    def upgrade_code_format(self):
+        """
+        Автоматичне оновлення коду до нового формату X.XXX.X.X
+        """
+        if not self.code:
+            return
+
+        current_level = self.get_code_level()
+
+        if current_level == 4:
+            # Вже у правильному форматі
+            return
+        elif current_level == 3:
+            # X.XXX.X -> X.XXX.X.0
+            self.code = self.code + ".0"
+        elif current_level == 2:
+            # X.XXX. -> X.XXX.0.0 або X.XXX -> X.XXX.0.0
+            base_code = self.code.rstrip('.')
+            self.code = base_code + ".0.0"
+        elif current_level == 1:
+            # Літерний код залишаємо без змін
+            pass
+
+    @api.model
+    def batch_upgrade_codes(self):
+        """
+        Пакетне оновлення всіх кодів категорій до нового формату
+        """
+        categories = self.search([])
+        updated_count = 0
+
+        for category in categories:
+            old_code = category.code
+            category.upgrade_code_format()
+            if old_code != category.code:
+                updated_count += 1
+
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Оновлення завершено',
+                'message': f'Оновлено {updated_count} кодів категорій до формату X.XXX.X.X',
+                'type': 'success',
+            }
+        }
+
+    def validate_code_hierarchy(self):
+        """
+        Перевірка ієрархії кодів (батьківський код має бути менш деталізованим)
+        """
+        if self.parent_id and self.parent_id.code and self.code:
+            parent_level = self.parent_id.get_code_level()
+            current_level = self.get_code_level()
+
+            # Батьківський код має бути менш деталізованим або на тому ж рівні
+            if parent_level > current_level and current_level > 1:
+                raise ValidationError(
+                    _('Батьківська категорія "{}" має більш деталізований код ніж дочірня "{}".\n'
+                      'Ієрархія кодів має йти від загального до конкретного.').format(
+                        self.parent_id.code, self.code
+                    )
+                )
+
+    @api.constrains('parent_id', 'code')
+    def _check_code_hierarchy(self):
+        """Перевірка ієрархії при збереженні"""
+        for category in self:
+            category.validate_code_hierarchy()
+
+    def get_code_description(self):
+        """Повертає опис формату коду"""
+        level = self.get_code_level()
+        descriptions = {
+            4: "Повний код (X.XXX.X.X) - найвища деталізація",
+            3: "Розширений код (X.XXX.X) - середня деталізація",
+            2: "Базовий код (X.XXX) - основна категорія",
+            1: "Системний код (літерний) - службова категорія",
+            0: "Невідомий формат коду"
+        }
+        return descriptions.get(level, "Невідомий формат")
+
+    @api.depends('code')
+    def _compute_code_info(self):
+        """Обчислює інформацію про код"""
+        for category in self:
+            category.code_level = category.get_code_level()
+            category.code_description = category.get_code_description()
+
+    # Додаткові поля для відображення інформації про код
+    code_level = fields.Integer('Рівень коду', compute='_compute_code_info', store=True)
+    code_description = fields.Char('Опис формату', compute='_compute_code_info', store=True)
 
     @api.constrains('min_amount', 'max_amount')
     def _check_amount_limits(self):
