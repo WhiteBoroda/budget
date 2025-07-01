@@ -46,7 +46,6 @@
                     </group>
                     <group string="⚙️ Налаштування експорту">
                         <field name="currency_multiplier"/>
-                        <field name="include_history"/>
                     </group>
                 </group>
 
@@ -327,4 +326,148 @@ action = {
         <field name="state">code</field>
         <field name="code">
 action = {
-    'type': 'ir.
+    'type': 'ir.actions.act_window',
+    'name': 'Аналіз БДР',
+    'res_model': 'bdr.budget.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_operation_type': 'analyze',
+        'default_period_id': record.id if record._name == 'budget.period' else False
+    }
+}
+        </field>
+    </record>
+
+    <!-- Quick Actions для контекстного меню -->
+    <record id="action_export_bdr_from_budget" model="ir.actions.server">
+        <field name="name">Експорт в БДР</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">form</field>
+        <field name="state">code</field>
+        <field name="code">
+action = {
+    'type': 'ir.actions.act_window',
+    'name': 'Експорт в БДР',
+    'res_model': 'bdr.budget.wizard',
+    'view_mode': 'form',
+    'target': 'new',
+    'context': {
+        'default_operation_type': 'export',
+        'default_period_id': record.period_id.id,
+        'default_company_id': record.company_id.id,
+        'default_cbo_id': record.cbo_id.id
+    }
+}
+        </field>
+    </record>
+
+    <!-- Scheduled Action для автоматичного створення БДР -->
+    <record id="ir_cron_auto_generate_bdr" model="ir.cron">
+        <field name="name">Автоматичне створення місячних БДР</field>
+        <field name="model_id" ref="model_bdr_budget_wizard"/>
+        <field name="state">code</field>
+        <field name="code">
+# Автоматичне створення БДР для нових періодів
+periods = env['budget.period'].search([
+    ('state', '=', 'draft'),
+    ('period_type', '=', 'month'),
+    ('date_start', '&gt;=', fields.Date.today())
+])
+
+for period in periods:
+    # Створюємо базовий БДР для кожного нового місячного періоду
+    wizard = env['bdr.budget.wizard'].create({
+        'operation_type': 'export',
+        'period_id': period.id,
+        'company_id': period.company_id.id
+    })
+
+    # Можна додати логіку автоматичного створення шаблонних бюджетів
+        </field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">False</field>
+        <field name="user_id" ref="base.user_admin"/>
+    </record>
+
+    <!-- Dashboard Action для БДР -->
+    <record id="action_bdr_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard БДР</field>
+        <field name="tag">bdr_dashboard</field>
+    </record>
+
+    <!-- Menuitem для Dashboard -->
+    <menuitem id="menu_bdr_dashboard"
+              name="📊 Dashboard БДР"
+              parent="menu_budget_main"
+              action="action_bdr_dashboard"
+              sequence="15"/>
+
+    <!-- Security Rules -->
+    <record id="bdr_wizard_rule_company" model="ir.rule">
+        <field name="name">БДР Wizard - Company Rule</field>
+        <field name="model_id" ref="model_bdr_budget_wizard"/>
+        <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        <field name="groups" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <!-- Email Template для повідомлень про БДР -->
+    <record id="email_template_bdr_imported" model="mail.template">
+        <field name="name">БДР Імпортовано</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="subject">✅ БДР успішно імпортовано - ${object.display_name}</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p>Вітаємо!</p>
+                <p>БДР <strong>${object.display_name}</strong> успішно імпортовано в систему бюджетування.</p>
+
+                <h3>📊 Деталі імпорту:</h3>
+                <ul>
+                    <li><strong>Період:</strong> ${object.period_id.name}</li>
+                    <li><strong>ЦБО:</strong> ${object.cbo_id.name}</li>
+                    <li><strong>Тип бюджету:</strong> ${object.budget_type_id.name}</li>
+                    <li><strong>Кількість позицій:</strong> ${len(object.line_ids)}</li>
+                </ul>
+
+                <h3>💰 Фінансові показники:</h3>
+                <ul>
+                    <li><strong>Загальна сума:</strong> ${object.total_planned_amount} ${object.currency_id.name}</li>
+                </ul>
+
+                <p>
+                    <a href="/web#id=${object.id}&amp;view_type=form&amp;model=budget.plan"
+                       style="background-color: #875A7B; padding: 8px 16px; text-decoration: none; color: #fff; border-radius: 5px;">
+                        Переглянути бюджет
+                    </a>
+                </p>
+
+                <p>З повагою,<br/>Система бюджетування</p>
+            </div>
+        </field>
+    </record>
+
+    <!-- Automation для відправки повідомлень -->
+    <record id="automation_bdr_imported" model="base.automation">
+        <field name="name">Повідомлення про імпорт БДР</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="trigger">on_create</field>
+        <field name="filter_domain">[('notes', 'ilike', 'Імпортовано з БДР')]</field>
+        <field name="state">code</field>
+        <field name="code">
+# Відправка email про успішний імпорт БДР
+template = env.ref('budget_management.email_template_bdr_imported')
+template.send_mail(record.id, force_send=True)
+
+# Логування в Chatter
+record.message_post(
+    body="🎯 БДР успішно імпортовано! Створено %d позицій бюджету." % len(record.line_ids),
+    subject="БДР імпортовано"
+)
+        </field>
+        <field name="active">True</field>
+    </record>
+
+</odoo>

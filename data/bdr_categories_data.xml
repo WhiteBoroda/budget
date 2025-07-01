@@ -1,0 +1,362 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="0">
+        <!-- КАТЕГОРІЇ БДР З ФАЙЛУ БЮДЖЕТ БДР.XLSX -->
+        <!-- Автоматично створено з файлу Excel для системи бюджетування ГК Хлебодар -->
+
+        <!-- ОСНОВНІ КАТЕГОРІЇ -->
+
+        <!-- ПРОДУКЦІЯ -->
+        <record id="bdr_category_0_300_" model="budget.category">
+            <field name="code">0.300.</field>
+            <field name="name">ПРОДУКЦІЯ всього</field>
+            <field name="sequence">300</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_301_" model="budget.category">
+            <field name="code">0.301.</field>
+            <field name="name">Залишок ПРОДУКЦІЇ на початок місяця, тн</field>
+            <field name="sequence">301</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_302_" model="budget.category">
+            <field name="code">0.302.</field>
+            <field name="name">Отримано ПРОДУКЦІЇ зі сторони КІ, тн</field>
+            <field name="sequence">302</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_303_" model="budget.category">
+            <field name="code">0.303.</field>
+            <field name="name">Отримано ПРОДУКЦІЇ зі сторони ХБІ, тн</field>
+            <field name="sequence">303</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_304_" model="budget.category">
+            <field name="code">0.304.</field>
+            <field name="name">Вироблено ПРОДУКЦІЇ, тн</field>
+            <field name="sequence">304</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_305_" model="budget.category">
+            <field name="code">0.305.</field>
+            <field name="name">Всього відвантажено ПРОДУКЦІЇ ХБІ+КІ, тн</field>
+            <field name="sequence">305</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ПІДКАТЕГОРІЇ ПРОДУКЦІЇ -->
+        <record id="bdr_category_0_305_1" model="budget.category">
+            <field name="code">0.305.1</field>
+            <field name="name">Відвантажено власної ПРОДУКЦІЇ всього, тн</field>
+            <field name="parent_id" ref="bdr_category_0_305_"/>
+            <field name="sequence">1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_305_1_1" model="budget.category">
+            <field name="code">0.305.1.1</field>
+            <field name="name">в т.ч. передано продукції всередині групи, тн</field>
+            <field name="parent_id" ref="bdr_category_0_305_1"/>
+            <field name="sequence">1</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_305_2" model="budget.category">
+            <field name="code">0.305.2</field>
+            <field name="name">Відвантажено отриманої продукції КІ, тн</field>
+            <field name="parent_id" ref="bdr_category_0_305_"/>
+            <field name="sequence">2</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_0_305_3" model="budget.category">
+            <field name="code">0.305.3</field>
+            <field name="name">Відвантажено отриманої продукції ХБІ, тн</field>
+            <field name="parent_id" ref="bdr_category_0_305_"/>
+            <field name="sequence">3</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ДОХОДИ -->
+        <record id="bdr_category_1_000_" model="budget.category">
+            <field name="code">1.000.</field>
+            <field name="name">Вартість власної реалізованої ПРОДУКЦІЇ</field>
+            <field name="sequence">1000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_1_100_" model="budget.category">
+            <field name="code">1.100.</field>
+            <field name="name">Дохід від реалізації продукції</field>
+            <field name="sequence">1100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_1_200_" model="budget.category">
+            <field name="code">1.200.</field>
+            <field name="name">Інші доходи від операційної діяльності</field>
+            <field name="sequence">1200</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ВИТРАТИ НА ВИРОБНИЦТВО -->
+        <record id="bdr_category_2_000_" model="budget.category">
+            <field name="code">2.000.</field>
+            <field name="name">Витрати на виробництво продукції</field>
+            <field name="sequence">2000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_100_" model="budget.category">
+            <field name="code">2.100.</field>
+            <field name="name">Сировина та матеріали</field>
+            <field name="sequence">2100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_200_" model="budget.category">
+            <field name="code">2.200.</field>
+            <field name="name">Заробітна плата виробничого персоналу</field>
+            <field name="sequence">2200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_300_" model="budget.category">
+            <field name="code">2.300.</field>
+            <field name="name">Соціальні внески виробничого персоналу</field>
+            <field name="sequence">2300</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_400_" model="budget.category">
+            <field name="code">2.400.</field>
+            <field name="name">Амортизація виробничого обладнання</field>
+            <field name="sequence">2400</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_500_" model="budget.category">
+            <field name="code">2.500.</field>
+            <field name="name">Електроенергія на виробництво</field>
+            <field name="sequence">2500</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_2_600_" model="budget.category">
+            <field name="code">2.600.</field>
+            <field name="name">Газ на виробництво</field>
+            <field name="sequence">2600</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- АДМІНІСТРАТИВНІ ВИТРАТИ -->
+        <record id="bdr_category_3_000_" model="budget.category">
+            <field name="code">3.000.</field>
+            <field name="name">Адміністративні витрати</field>
+            <field name="sequence">3000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_3_100_" model="budget.category">
+            <field name="code">3.100.</field>
+            <field name="name">Заробітна плата адміністративного персоналу</field>
+            <field name="sequence">3100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_3_200_" model="budget.category">
+            <field name="code">3.200.</field>
+            <field name="name">Соціальні внески адміністративного персоналу</field>
+            <field name="sequence">3200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_3_300_" model="budget.category">
+            <field name="code">3.300.</field>
+            <field name="name">Оренда офісних приміщень</field>
+            <field name="sequence">3300</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_3_400_" model="budget.category">
+            <field name="code">3.400.</field>
+            <field name="name">Комунальні послуги офісу</field>
+            <field name="sequence">3400</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ВИТРАТИ НА ЗБУТ -->
+        <record id="bdr_category_4_000_" model="budget.category">
+            <field name="code">4.000.</field>
+            <field name="name">Витрати на збут</field>
+            <field name="sequence">4000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_4_100_" model="budget.category">
+            <field name="code">4.100.</field>
+            <field name="name">Заробітна плата відділу продажів</field>
+            <field name="sequence">4100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_4_200_" model="budget.category">
+            <field name="code">4.200.</field>
+            <field name="name">Транспортні витрати</field>
+            <field name="sequence">4200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_4_300_" model="budget.category">
+            <field name="code">4.300.</field>
+            <field name="name">Реклама та маркетинг</field>
+            <field name="sequence">4300</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_4_400_" model="budget.category">
+            <field name="code">4.400.</field>
+            <field name="name">Комісійні посередникам</field>
+            <field name="sequence">4400</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ФІНАНСОВІ ВИТРАТИ -->
+        <record id="bdr_category_5_000_" model="budget.category">
+            <field name="code">5.000.</field>
+            <field name="name">Фінансові витрати</field>
+            <field name="sequence">5000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_5_100_" model="budget.category">
+            <field name="code">5.100.</field>
+            <field name="name">Відсотки за кредитами</field>
+            <field name="sequence">5100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_5_200_" model="budget.category">
+            <field name="code">5.200.</field>
+            <field name="name">Банківські комісії</field>
+            <field name="sequence">5200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_5_300_" model="budget.category">
+            <field name="code">5.300.</field>
+            <field name="name">Курсові різниці</field>
+            <field name="sequence">5300</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ПОДАТКИ -->
+        <record id="bdr_category_6_000_" model="budget.category">
+            <field name="code">6.000.</field>
+            <field name="name">Податки та збори</field>
+            <field name="sequence">6000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_6_100_" model="budget.category">
+            <field name="code">6.100.</field>
+            <field name="name">Податок на прибуток</field>
+            <field name="sequence">6100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_6_200_" model="budget.category">
+            <field name="code">6.200.</field>
+            <field name="name">ПДВ</field>
+            <field name="sequence">6200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_6_300_" model="budget.category">
+            <field name="code">6.300.</field>
+            <field name="name">Місцеві податки та збори</field>
+            <field name="sequence">6300</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ІНШІ ВИТРАТИ -->
+        <record id="bdr_category_7_000_" model="budget.category">
+            <field name="code">7.000.</field>
+            <field name="name">Інші операційні витрати</field>
+            <field name="sequence">7000</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_7_100_" model="budget.category">
+            <field name="code">7.100.</field>
+            <field name="name">Резерви</field>
+            <field name="sequence">7100</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_7_200_" model="budget.category">
+            <field name="code">7.200.</field>
+            <field name="name">Списання дебіторської заборгованості</field>
+            <field name="sequence">7200</field>
+            <field name="active">True</field>
+        </record>
+
+        <record id="bdr_category_7_300_" model="budget.category">
+            <field name="code">7.300.</field>
+            <field name="name">Штрафи та пені</field>
+            <field name="sequence">7300</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ПРИВ'ЯЗКА ДО ТИПІВ БЮДЖЕТІВ -->
+        <!-- Тип БДР - всі категорії -->
+        <record id="budget_type_bdr" model="budget.type">
+            <field name="name">БДР - Бюджет доходів і витрат</field>
+            <field name="code">BDR</field>
+            <field name="description">Основний бюджет доходів і витрат підприємства</field>
+        </record>
+
+        <!-- Зопоставлення категорій з обліковими рахунками (приклади) -->
+
+        <!-- Доходи -->
+        <record id="mapping_income_701" model="budget.category.account.mapping">
+            <field name="category_id" ref="bdr_category_1_100_"/>
+            <field name="account_id" eval="env.ref('l10n_ua.account_template_701', raise_if_not_found=False)"/>
+            <field name="priority">10</field>
+        </record>
+
+        <!-- Сировина -->
+        <record id="mapping_materials_631" model="budget.category.account.mapping">
+            <field name="category_id" ref="bdr_category_2_100_"/>
+            <field name="account_id" eval="env.ref('l10n_ua.account_template_631', raise_if_not_found=False)"/>
+            <field name="priority">10</field>
+        </record>
+
+        <!-- Зарплата виробничого персоналу -->
+        <record id="mapping_prod_salary_661" model="budget.category.account.mapping">
+            <field name="category_id" ref="bdr_category_2_200_"/>
+            <field name="account_id" eval="env.ref('l10n_ua.account_template_661', raise_if_not_found=False)"/>
+            <field name="priority">10</field>
+        </record>
+
+        <!-- Зарплата адмін персоналу -->
+        <record id="mapping_admin_salary_92" model="budget.category.account.mapping">
+            <field name="category_id" ref="bdr_category_3_100_"/>
+            <field name="account_id" eval="env.ref('l10n_ua.account_template_92', raise_if_not_found=False)"/>
+            <field name="priority">10</field>
+        </record>
+
+        <!-- Витрати на збут -->
+        <record id="mapping_sales_93" model="budget.category.account.mapping">
+            <field name="category_id" ref="bdr_category_4_000_"/>
+            <field name="account_id" eval="env.ref('l10n_ua.account_template_93', raise_if_not_found=False)"/>
+            <field name="priority">10</field>
+        </record>
+
+    </data>
+</odoo>
