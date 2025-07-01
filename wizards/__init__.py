@@ -7,3 +7,4 @@ from . import investment_budget_wizard
 from . import budget_assign_categories_wizard
 from . import bdr_budget_wizard
 from . import bdr_budget_wizard_enhanced
+from . import budget_category_manager_wizard

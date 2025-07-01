@@ -2,25 +2,27 @@
 
 <odoo>
     <data noupdate="1">
-        <!-- ДОДАЄМО БДР ТИП БЮДЖЕТУ (відсутній у поточних даних) -->
+        <!-- ПОВНИЙ СПИСОК ТИПІВ БЮДЖЕТІВ З РЕГЛАМЕНТУ (БДР + 01-32) -->
+
+        <!-- БДР -->
         <record id="budget_type_bdr" model="budget.type">
             <field name="code">BDR</field>
             <field name="name">БДР - Бюджет доходів і витрат</field>
-            <field name="budget_category">comprehensive</field>
-            <field name="calculation_method">manual</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">manual</field>  <!-- ВИПРАВЛЕНО: замість consolidation -->
             <field name="description">Основний бюджет доходів і витрат підприємства</field>
             <field name="sequence">5</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
         </record>
 
-        <!-- Типи бюджетів згідно регламенту -->
+        <!-- 01-10 -->
         <record id="budget_type_01" model="budget.type">
             <field name="code">01</field>
             <field name="name">Бюджет ФОТ</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Фонд оплати праці включає затрати на виплату основної та додаткової заробітної плати всього персоналу ПП</field>
+            <field name="description">Фонд оплати праці</field>
             <field name="sequence">10</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -53,7 +55,7 @@
             <field name="name">Бюджет благодійності (матеріальна допомога ветеранам)</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">statistical</field>
-            <field name="description">Матеріальна допомога ветеранам згідно колективного договору</field>
+            <field name="description">Матеріальна допомога ветеранам</field>
             <field name="sequence">40</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -75,7 +77,7 @@
             <field name="name">Бюджет маркетингових витрат</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Витрати на рекламу, маркетингові дослідження, участь у виставках</field>
+            <field name="description">Витрати на рекламу, маркетингові дослідження</field>
             <field name="sequence">50</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -86,7 +88,7 @@
             <field name="name">Бюджет податків</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Податки та обов'язкові платежі згідно чинного законодавства</field>
+            <field name="description">Податки та обов'язкові платежі</field>
             <field name="sequence">60</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -108,7 +110,7 @@
             <field name="name">Бюджет фінансової діяльності та страхування</field>
             <field name="budget_category">financial</field>
             <field name="calculation_method">contract_based</field>
-            <field name="description">Банківські послуги, страхування, відсотки за кредитами</field>
+            <field name="description">Банківські послуги, страхування</field>
             <field name="sequence">80</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -119,7 +121,7 @@
             <field name="name">Бюджет доходів по реалізації послуг, робіт, прочих ТМЦ</field>
             <field name="budget_category">income</field>
             <field name="calculation_method">contract_based</field>
-            <field name="description">Доходи від додаткових послуг та реалізації прочих ТМЦ</field>
+            <field name="description">Доходи від додаткових послуг</field>
             <field name="sequence">90</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -136,6 +138,7 @@
             <field name="applicable_cbo_types">all</field>
         </record>
 
+        <!-- 11-20 -->
         <record id="budget_type_11" model="budget.type">
             <field name="code">11</field>
             <field name="name">Бюджет витрат на логістику</field>
@@ -152,7 +155,7 @@
             <field name="name">Бюджет інформаційного забезпечення</field>
             <field name="budget_category">indirect_costs</field>
             <field name="calculation_method">manual</field>
-            <field name="description">ІТ-витрати, обслуговування програм, телекомунікації</field>
+            <field name="description">ІТ-витрати, обслуговування програм</field>
             <field name="sequence">120</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -163,19 +166,8 @@
             <field name="name">Бюджет витрат по контролю якості</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Витрати на контроль якості, дератизацію, дезінсекцію</field>
+            <field name="description">Витрати на контроль якості</field>
             <field name="sequence">130</field>
-            <field name="approval_required">True</field>
-            <field name="applicable_cbo_types">all</field>
-        </record>
-
-        <record id="budget_type_19" model="budget.type">
-            <field name="code">19</field>
-            <field name="name">Бюджет витрат на енергоносії</field>
-            <field name="budget_category">direct_costs</field>
-            <field name="calculation_method">norm_based</field>
-            <field name="description">Електроенергія, газ, водопостачання</field>
-            <field name="sequence">190</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
         </record>
@@ -184,8 +176,8 @@
             <field name="code">14</field>
             <field name="name">Бюджет розходів по управлінню власністю</field>
             <field name="budget_category">administrative</field>
-            <field name="calculation_method">contract_based</field>
-            <field name="description">Витрати на заходи по управлінню власністю</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Витрати на управління власністю</field>
             <field name="sequence">140</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -195,8 +187,8 @@
             <field name="code">15</field>
             <field name="name">Бюджет юридичних доходів і розходів</field>
             <field name="budget_category">administrative</field>
-            <field name="calculation_method">contract_based</field>
-            <field name="description">Витрати на правове та юридичне супроводження господарської діяльності</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Юридичне супроводження діяльності</field>
             <field name="sequence">150</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -207,7 +199,7 @@
             <field name="name">Бюджет охорони праці та ТБ</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Витрати на охорону праці згідно діючого законодавства та Колективного договору</field>
+            <field name="description">Витрати на охорону праці</field>
             <field name="sequence">160</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -218,7 +210,7 @@
             <field name="name">Бюджет адміністративно-господарських розходів</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Загальногосподарські та адміністративні витрати</field>
+            <field name="description">Загальногосподарські витрати</field>
             <field name="sequence">170</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -228,8 +220,8 @@
             <field name="code">18</field>
             <field name="name">Бюджет витрат на засоби зв'язку та інтернет</field>
             <field name="budget_category">indirect_costs</field>
-            <field name="calculation_method">contract_based</field>
-            <field name="description">Телефонний зв'язок, інтернет, поштові послуги</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Телефонний зв'язок, інтернет</field>
             <field name="sequence">180</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -248,21 +240,22 @@
 
         <record id="budget_type_20" model="budget.type">
             <field name="code">20</field>
-            <field name="name">Бюджет розходів на техобслуговування і поточний ремонт зданий, споруд, обладнання</field>
+            <field name="name">Бюджет розходів на техобслуговування</field>
             <field name="budget_category">indirect_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Технічне обслуговування та поточний ремонт основних засобів</field>
+            <field name="description">Технічне обслуговування обладнання</field>
             <field name="sequence">200</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
         </record>
 
+        <!-- 21-32 -->
         <record id="budget_type_21" model="budget.type">
             <field name="code">21</field>
-            <field name="name">Бюджет розходів на поточний ремонт і обслуговування транспортних засобів</field>
+            <field name="name">Бюджет розходів на ремонт транспорту</field>
             <field name="budget_category">indirect_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Ремонт та обслуговування автотранспорту</field>
+            <field name="description">Ремонт автотранспорту</field>
             <field name="sequence">210</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -270,10 +263,10 @@
 
         <record id="budget_type_22" model="budget.type">
             <field name="code">22</field>
-            <field name="name">Бюджет експлуатаційних розходів транспортних засобів</field>
+            <field name="name">Бюджет експлуатаційних розходів транспорту</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Пальне, мастила, експлуатаційні витрати автотранспорту</field>
+            <field name="description">Пальне, мастила</field>
             <field name="sequence">220</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -284,7 +277,7 @@
             <field name="name">Бюджет інших операційних доходів і розходів</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Інші операційні доходи та витрати, не віднесені до інших категорій</field>
+            <field name="description">Інші операційні доходи та витрати</field>
             <field name="sequence">230</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -295,7 +288,7 @@
             <field name="name">Інвестиційний бюджет</field>
             <field name="budget_category">investment</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Капітальні вкладення та інвестиційні проекти</field>
+            <field name="description">Капітальні вкладення</field>
             <field name="sequence">240</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -305,8 +298,8 @@
             <field name="code">25</field>
             <field name="name">Бюджет розходів на безпеку</field>
             <field name="budget_category">administrative</field>
-            <field name="calculation_method">contract_based</field>
-            <field name="description">Витрати на охорону, обслуговування відеоспостереження та інші послуги безпеки</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Витрати на охорону та безпеку</field>
             <field name="sequence">250</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -317,7 +310,7 @@
             <field name="name">Бюджет надходжень від інвестиційної діяльності</field>
             <field name="budget_category">investment</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Надходження від реалізації основних засобів, майнових прав, доходів від корпоративних прав підприємств</field>
+            <field name="description">Надходження від реалізації ОЗ</field>
             <field name="sequence">260</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -328,7 +321,7 @@
             <field name="name">Бюджет розходів ТОП менеджменту</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">manual</field>
-            <field name="description">Витрати ТОП менеджменту: відрядження, представницькі розходи</field>
+            <field name="description">Витрати ТОП менеджменту</field>
             <field name="sequence">270</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
@@ -339,10 +332,10 @@
             <field name="name">Баланс зерна</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Витрати на закупку та переробку власної пшениці</field>
+            <field name="description">Закупка та переробка зерна</field>
             <field name="sequence">280</field>
             <field name="approval_required">True</field>
-            <field name="applicable_cbo_types">production</field>
+            <field name="applicable_cbo_types">all</field>
         </record>
 
         <record id="budget_type_29" model="budget.type">
@@ -350,10 +343,10 @@
             <field name="name">Розрахунок переробки</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Деталізована переробка власної пшениці: кількість, класи, вартість, виходи муки по сортах</field>
+            <field name="description">Переробка зерна у муку</field>
             <field name="sequence">290</field>
             <field name="approval_required">True</field>
-            <field name="applicable_cbo_types">production</field>
+            <field name="applicable_cbo_types">all</field>
         </record>
 
         <record id="budget_type_30" model="budget.type">
@@ -361,15 +354,15 @@
             <field name="name">Баланс муки</field>
             <field name="budget_category">direct_costs</field>
             <field name="calculation_method">norm_based</field>
-            <field name="description">Рух муки: власна переробка, закупка у Аграрного фонду, комерційних організацій, перепродаж</field>
+            <field name="description">Рух та зберігання муки</field>
             <field name="sequence">300</field>
             <field name="approval_required">True</field>
-            <field name="applicable_cbo_types">production</field>
+            <field name="applicable_cbo_types">all</field>
         </record>
 
         <record id="budget_type_31" model="budget.type">
             <field name="code">31</field>
-            <field name="name">Резерв (31)</field>
+            <field name="name">Резерв</field>
             <field name="budget_category">administrative</field>
             <field name="calculation_method">manual</field>
             <field name="description">Резервний бюджет</field>
@@ -383,14 +376,14 @@
             <field name="code">32</field>
             <field name="name">Бюджет професійних послуг холдингу</field>
             <field name="budget_category">administrative</field>
-            <field name="calculation_method">contract_based</field>
-            <field name="description">Послуги Управляючої компанії та підприємств по послугах (управління) згідно договорів</field>
+            <field name="calculation_method">manual</field>
+            <field name="description">Послуги Управляючої компанії</field>
             <field name="sequence">320</field>
             <field name="approval_required">True</field>
             <field name="applicable_cbo_types">all</field>
         </record>
 
-        <!-- Додаткові спеціальні типи бюджетів -->
+        <!-- Спеціальні типи -->
         <record id="budget_type_production" model="budget.type">
             <field name="code">PROD</field>
             <field name="name">Виробничий бюджет</field>
@@ -406,7 +399,7 @@
             <field name="code">SALES</field>
             <field name="name">Бюджет продажів</field>
             <field name="budget_category">income</field>
-            <field name="calculation_method">sales_forecast</field>
+            <field name="calculation_method">sales_percentage</field>
             <field name="description">Бюджет продажів продукції</field>
             <field name="sequence">360</field>
             <field name="approval_required">True</field>

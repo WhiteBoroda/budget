@@ -9,45 +9,45 @@
             <field name="binding_view_types">list,form</field>
             <field name="state">code</field>
             <field name="code">
-# Маппінг кодів типів бюджетів на категорії (повний список з Регламенту 01-32)
+# Маппінг кодів типів бюджетів на категорії (ВИПРАВЛЕНО з реальними значеннями)
 mapping = {
-    'BDR': 'comprehensive',
-    '01': 'direct_costs',      # ФОТ
-    '01(2)': 'direct_costs',   # ФОТ додатковий
-    '02': 'indirect_costs',    # Розвиток персоналу
-    '03': 'indirect_costs',    # Соціальні витрати
-    '04': 'administrative',    # Благодійність
-    '04(2)': 'administrative', # Благодійність (маркетинг)
-    '05': 'administrative',    # Маркетинг
-    '06': 'administrative',    # Податки
-    '07': 'administrative',    # Консультації
-    '08': 'financial',         # Фінансова діяльність
-    '09': 'income',           # Доходи
-    '10': 'indirect_costs',    # Оренда
-    '11': 'direct_costs',      # Логістика
-    '12': 'indirect_costs',    # ІТ
-    '13': 'direct_costs',      # Контроль якості
-    '14': 'administrative',    # Управління власністю
-    '15': 'administrative',    # Юридичні розходи
-    '16': 'administrative',    # Охорона праці
-    '17': 'administrative',    # Адмін-господарські
-    '18': 'indirect_costs',    # Зв'язок та інтернет
-    '19': 'direct_costs',      # Енергоносії
-    '20': 'indirect_costs',    # Техобслуговування
-    '21': 'indirect_costs',    # Ремонт транспорту
-    '22': 'direct_costs',      # Експлуатація транспорту
-    '23': 'administrative',    # Інші операційні
-    '24': 'investment',        # Інвестиції
-    '25': 'administrative',    # Безпека
-    '26': 'investment',        # Надходження від інвестиційної діяльності
-    '27': 'administrative',    # ТОП менеджмент
-    '28': 'direct_costs',      # Баланс зерна
-    '29': 'direct_costs',      # Розрахунок переробки
-    '30': 'direct_costs',      # Баланс муки
-    '31': 'administrative',    # Резерв
-    '32': 'administrative',    # Професійні послуги холдингу
-    'PROD': 'direct_costs',    # Виробничий
-    'SALES': 'income',         # Продажі
+    'BDR': 'administrative',     # БДР - як адміністративний (узагальнюючий)
+    '01': 'direct_costs',        # ФОТ
+    '01(2)': 'direct_costs',     # ФОТ додатковий
+    '02': 'indirect_costs',      # Розвиток персоналу
+    '03': 'indirect_costs',      # Соціальні витрати
+    '04': 'administrative',      # Благодійність
+    '04(2)': 'administrative',   # Благодійність (маркетинг)
+    '05': 'administrative',      # Маркетинг
+    '06': 'administrative',      # Податки
+    '07': 'administrative',      # Консультації
+    '08': 'financial',           # Фінансова діяльність
+    '09': 'income',             # Доходи
+    '10': 'indirect_costs',      # Оренда
+    '11': 'direct_costs',        # Логістика
+    '12': 'indirect_costs',      # ІТ
+    '13': 'direct_costs',        # Контроль якості
+    '14': 'administrative',      # Управління власністю
+    '15': 'administrative',      # Юридичні розходи
+    '16': 'administrative',      # Охорона праці
+    '17': 'administrative',      # Адмін-господарські
+    '18': 'indirect_costs',      # Зв'язок та інтернет
+    '19': 'direct_costs',        # Енергоносії
+    '20': 'indirect_costs',      # Техобслуговування
+    '21': 'indirect_costs',      # Ремонт транспорту
+    '22': 'direct_costs',        # Експлуатація транспорту
+    '23': 'administrative',      # Інші операційні
+    '24': 'investment',          # Інвестиції
+    '25': 'administrative',      # Безпека
+    '26': 'investment',          # Надходження від інвестиційної діяльності
+    '27': 'administrative',      # ТОП менеджмент
+    '28': 'direct_costs',        # Баланс зерна
+    '29': 'direct_costs',        # Розрахунок переробки
+    '30': 'direct_costs',        # Баланс муки
+    '31': 'administrative',      # Резерв
+    '32': 'administrative',      # Професійні послуги холдингу
+    'PROD': 'direct_costs',      # Виробничий
+    'SALES': 'income',           # Продажі
 }
 
 updated_count = 0

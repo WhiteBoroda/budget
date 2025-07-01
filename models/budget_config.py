@@ -133,7 +133,7 @@ class BudgetType(models.Model):
         ('administrative', 'Адміністративні витрати'),
         ('investment', 'Інвестиційні витрати'),
         ('financial', 'Фінансові операції')
-    ], 'Категорія бюджету', required=True)
+    ], 'Категорія бюджету', required=True, default='administrative')
 
     calculation_method = fields.Selection([
         ('manual', 'Ручне планування'),

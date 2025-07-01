@@ -12,6 +12,7 @@ class BudgetCategoryManagerWizard(models.TransientModel):
     """Майстер для управління категоріями БДР - створення, редагування, імпорт"""
     _name = 'budget.category.manager.wizard'
     _description = 'Управління категоріями БДР'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     operation_type = fields.Selection([
         ('create', 'Створити нову категорію'),

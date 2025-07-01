@@ -161,7 +161,7 @@
     <!-- Меню для майстра -->
     <menuitem id="menu_budget_category_manager"
               name="🏗️ Управління категоріями"
-              parent="menu_budget_configuration"
+              parent="menu_budget_config"
               action="action_budget_category_manager_wizard"
               sequence="15"/>
 
@@ -223,7 +223,7 @@ action = {
                             name="action_usage_analysis"
                             type="object"
                             class="btn-secondary"/>
-                    <field name="active" widget="boolean_button" options="{'terminology': {'string_true': 'Активна', 'string_false': 'Неактивна', 'hover_true': 'Деактивувати', 'hover_false': 'Активувати'}}"/>
+                    <field name="active" widget="boolean_toggle" options="{'terminology': {'string_true': 'Активна', 'string_false': 'Неактивна', 'hover_true': 'Деактивувати', 'hover_false': 'Активувати'}}"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">

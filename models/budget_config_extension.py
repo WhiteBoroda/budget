@@ -8,23 +8,14 @@ class BudgetType(models.Model):
     """Розширення існуючого типу бюджету з правильними значеннями budget_category"""
     _inherit = 'budget.type'
 
-    # Переоприділюємо поле budget_category з правильними значеннями
-    budget_category = fields.Selection([
-        ('comprehensive', 'Комплексний бюджет'),  # БДР
-        ('income', 'Доходи'),  # Доходи від реалізації
-        ('direct_costs', 'Прямі витрати'),  # ФОТ, логістика, енергоносії
-        ('indirect_costs', 'Непрямі витрати'),  # ІТ, розвиток персоналу, оренда
-        ('administrative', 'Адміністративні'),  # Маркетинг, податки, благодійність
-        ('financial', 'Фінансові'),  # Банківські послуги, страхування
-        ('investment', 'Інвестиційні')  # Капітальні вкладення
-    ], 'Категорія бюджету', required=True, default='direct_costs',
-        help='Категорія для групування типів бюджетів')
+    # Видаляємо переоприділення поля budget_category, оскільки воно вже правильно визначене в базовій моделі
+    # budget_category вже існує в models/budget_config.py з правильними значеннями
 
     @api.model
     def _get_default_budget_category_mapping(self):
         """Повертає маппінг кодів на категорії для автоматичного призначення"""
         return {
-            'BDR': 'comprehensive',
+            'BDR': 'administrative',  # БДР - як адміністративний (узагальнюючий)
             '01': 'direct_costs',  # ФОТ
             '01(2)': 'direct_costs',  # ФОТ додатковий
             '02': 'indirect_costs',  # Розвиток персоналу
@@ -97,7 +88,6 @@ class BudgetType(models.Model):
     def get_category_color(self):
         """Повертає колір для категорії (для UI)"""
         colors = {
-            'comprehensive': '#6f42c1',  # Фіолетовий
             'income': '#28a745',  # Зелений
             'direct_costs': '#dc3545',  # Червоний
             'indirect_costs': '#fd7e14',  # Оранжевий
@@ -110,7 +100,6 @@ class BudgetType(models.Model):
     def get_category_icon(self):
         """Повертає іконку для категорії"""
         icons = {
-            'comprehensive': 'fa-chart-bar',
             'income': 'fa-arrow-up',
             'direct_costs': 'fa-arrow-down',
             'indirect_costs': 'fa-cogs',

@@ -318,44 +318,12 @@
         <record id="budget_type_bdr" model="budget.type">
             <field name="name">БДР - Бюджет доходів і витрат</field>
             <field name="code">BDR</field>
+            <field name="budget_category">administrative</field>
+            <field name="calculation_method">manual</field>
             <field name="description">Основний бюджет доходів і витрат підприємства</field>
-        </record>
-
-        <!-- Зопоставлення категорій з обліковими рахунками (приклади) -->
-
-        <!-- Доходи -->
-        <record id="mapping_income_701" model="budget.category.account.mapping">
-            <field name="category_id" ref="bdr_category_1_100_"/>
-            <field name="account_id" eval="env.ref('l10n_ua.account_template_701', raise_if_not_found=False)"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Сировина -->
-        <record id="mapping_materials_631" model="budget.category.account.mapping">
-            <field name="category_id" ref="bdr_category_2_100_"/>
-            <field name="account_id" eval="env.ref('l10n_ua.account_template_631', raise_if_not_found=False)"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Зарплата виробничого персоналу -->
-        <record id="mapping_prod_salary_661" model="budget.category.account.mapping">
-            <field name="category_id" ref="bdr_category_2_200_"/>
-            <field name="account_id" eval="env.ref('l10n_ua.account_template_661', raise_if_not_found=False)"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Зарплата адмін персоналу -->
-        <record id="mapping_admin_salary_92" model="budget.category.account.mapping">
-            <field name="category_id" ref="bdr_category_3_100_"/>
-            <field name="account_id" eval="env.ref('l10n_ua.account_template_92', raise_if_not_found=False)"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Витрати на збут -->
-        <record id="mapping_sales_93" model="budget.category.account.mapping">
-            <field name="category_id" ref="bdr_category_4_000_"/>
-            <field name="account_id" eval="env.ref('l10n_ua.account_template_93', raise_if_not_found=False)"/>
-            <field name="priority">10</field>
+            <field name="sequence">5</field>
+            <field name="approval_required">True</field>
+            <field name="applicable_cbo_types">all</field>
         </record>
 
     </data>
