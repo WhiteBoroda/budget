@@ -4,20 +4,20 @@
 
     <!-- Головне меню бюджетування -->
     <menuitem id="menu_budget_root"
-              name="💰 Бюджетування"
+              name="Бюджетування"
               sequence="45"
               groups="budget.group_budget_user"
-              web_icon="budget,static/description/icon.png"/>
+              web_icon="budget,static/descriptions/icon.png"/>
 
     <!-- ========== ПЛАНУВАННЯ ========== -->
     <menuitem id="menu_budget_planning"
-              name="📋 Планування"
+              name="Планування"
               parent="menu_budget_root"
               sequence="10"/>
 
     <!-- Прогнози продажів (основне меню) -->
     <menuitem id="menu_sale_forecast_root"
-              name="📈 Прогнози продажів"
+              name="Прогнози продажів"
               parent="menu_budget_planning"
               sequence="5"/>
 
@@ -48,20 +48,20 @@
 
     <!-- Команди продажів з інтеграцією -->
     <menuitem id="menu_budget_sales_teams"
-              name="👥 Команди продажів"
+              name="Команди продажів"
               parent="menu_budget_planning"
               action="action_crm_teams_with_budget"
               sequence="12"/>
 
     <!-- Бюджети -->
     <menuitem id="menu_budget_plan"
-              name="📊 Всі бюджети"
+              name="Всі бюджети"
               parent="menu_budget_planning"
               action="action_budget_plan"
               sequence="20"/>
 
     <menuitem id="menu_budget_plan_by_level"
-              name="📈 За рівнями"
+              name="За рівнями"
               parent="menu_budget_planning"
               sequence="25"/>
 
@@ -91,68 +91,69 @@
 
     <!-- Швидкі дії планування -->
     <menuitem id="menu_budget_from_template"
-              name="📋 Створити з шаблону"
+              name="Створити з шаблону"
               parent="menu_budget_planning"
               action="action_budget_template_wizard"
               sequence="27"/>
 
     <menuitem id="menu_budget_import"
-              name="📁 Імпорт з Excel"
+              name="Імпорт з Excel"
               parent="menu_budget_planning"
               action="action_budget_import_wizard"
               sequence="30"/>
 
+
     <menuitem id="menu_investment_budget"
-              name="🏗️ Інвестиційні бюджети"
+              name="Інвестиційні бюджети"
               parent="menu_budget_planning"
               action="action_investment_budget_wizard"
               sequence="35"/>
 
     <!-- ========== ВИКОНАННЯ ========== -->
     <menuitem id="menu_budget_execution"
-              name="⚡ Виконання"
+              name="Виконання"
               parent="menu_budget_root"
               sequence="20"/>
 
     <menuitem id="menu_budget_execution_fact"
-              name="📊 Фактичне виконання"
+              name="Фактичне виконання"
               parent="menu_budget_execution"
               action="action_budget_execution"
               sequence="10"/>
 
     <menuitem id="menu_investment_projects"
-              name="🏗️ Інвестиційні проекти"
+              name="Інвестиційні проекти"
               parent="menu_budget_execution"
               action="action_investment_projects"
               sequence="15"/>
 
     <!-- ========== ЗВІТНІСТЬ ========== -->
     <menuitem id="menu_budget_reports"
-              name="📈 Звітність"
+              name="Звітність"
               parent="menu_budget_root"
               sequence="30"/>
 
     <menuitem id="menu_budget_analysis"
-              name="📊 Аналіз виконання"
+              name="Аналіз виконання"
               parent="menu_budget_reports"
               action="action_budget_analysis"
               sequence="10"/>
 
     <menuitem id="menu_budget_summary_report"
-              name="📈 Зведений звіт"
+              name="Зведений звіт"
               parent="menu_budget_reports"
               action="action_budget_summary_report"
               sequence="20"/>
 
     <menuitem id="menu_budget_teams_dashboard"
-              name="👥 Дашборд команд"
+              name="Дашборд команд"
               parent="menu_budget_reports"
               action="action_crm_teams_dashboard"
               sequence="25"/>
 
     <!-- Аналітика прогнозів -->
     <menuitem id="menu_forecast_analytics"
-              name="🔍 Аналітика прогнозів"
+              name="Аналітика прогнозів"
               parent="menu_budget_reports"
               sequence="30"/>
 
@@ -170,42 +171,42 @@
 
     <!-- ========== НАЛАШТУВАННЯ ========== -->
     <menuitem id="menu_budget_config"
-              name="⚙️ Налаштування"
+              name="Налаштування"
               parent="menu_budget_root"
               sequence="90"/>
 
     <menuitem id="menu_responsibility_center"
-              name="🏢 ЦБО"
+              name="ЦБО"
               parent="menu_budget_config"
               action="action_responsibility_center"
               sequence="10"/>
 
     <menuitem id="menu_budget_type"
-              name="📂 Типи бюджетів"
+              name="Типи бюджетів"
               parent="menu_budget_config"
               action="action_budget_type"
               sequence="20"/>
 
     <menuitem id="menu_budget_period"
-              name="📅 Бюджетні періоди"
+              name="Бюджетні періоди"
               parent="menu_budget_config"
               action="action_budget_period"
               sequence="30"/>
 
     <menuitem id="menu_budget_period_wizard"
-              name="🧙‍♂️ Майстер періодів"
+              name="Майстер періодів"
               parent="menu_budget_config"
               action="action_budget_period_wizard"
               sequence="35"/>
 
     <menuitem id="menu_budget_currency_setting"
-              name="💱 Валютні налаштування"
+              name="Валютні налаштування"
               parent="menu_budget_config"
               action="action_budget_currency_setting"
               sequence="40"/>
 
     <menuitem id="menu_budget_template"
-              name="🗂️ Шаблони бюджетів"
+              name="Шаблони бюджетів"
               parent="menu_budget_config"
               action="action_budget_template"
               sequence="50"/>
@@ -214,39 +215,39 @@
 
     <!-- Панель управління (найвище в ієрархії) -->
     <menuitem id="menu_budget_dashboard"
-              name="📊 Панель управління"
+              name="Панель управління"
               parent="menu_budget_root"
               action="action_budget_dashboard"
               sequence="5"/>
 
     <!-- Сповіщення -->
     <menuitem id="menu_budget_notification"
-              name="🔔 Сповіщення"
+              name="Сповіщення"
               parent="menu_budget_root"
               action="action_budget_notification"
               sequence="95"/>
 
     <!-- Довідка -->
     <menuitem id="menu_budget_help"
-              name="❓ Довідка"
+              name="Довідка"
               parent="menu_budget_root"
               sequence="99"/>
 
     <menuitem id="menu_budget_documentation"
-              name="📖 Документація"
+              name="Документація"
               parent="menu_budget_help"
               action="action_budget_help"
               sequence="10"/>
 
     <!-- ========== ІМПОРТ/ЕКСПОРТ ========== -->
     <menuitem id="menu_budget_import_export"
-              name="📁 Імпорт/Експорт"
+              name="Імпорт/Експорт"
               parent="menu_budget_planning"
               sequence="35"/>
 
     <!-- Імпорт -->
     <menuitem id="menu_budget_import_section"
-              name="📥 Імпорт"
+              name="Імпорт"
               parent="menu_budget_import_export"
               sequence="10"/>
 
@@ -270,7 +271,7 @@
 
     <!-- Експорт -->
     <menuitem id="menu_budget_export_section"
-              name="📤 Експорт"
+              name="Експорт"
               parent="menu_budget_import_export"
               sequence="20"/>
 

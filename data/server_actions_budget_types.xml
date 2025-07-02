@@ -135,12 +135,6 @@ else:
     msg_type = 'success'
 
 # Логування детальних результатів
-import logging
-_logger = logging.getLogger('budget')
-if issues:
-    _logger.warning(f"Budget types validation issues: {issues}")
-else:
-    _logger.info(f"All {len(all_types)} budget types validated successfully")
 
 action = {
     'type': 'ir.actions.client',

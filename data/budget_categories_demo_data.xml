@@ -1,35 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data noupdate="1">
-        <!-- ДЕМО ДАННЫЕ КАТЕГОРИЙ БЮДЖЕТА БЕЗ ПРИВЯЗКИ К УКРАИНСКОЙ ЛОКАЛИЗАЦИИ -->
 
         <!-- Основные категории расходов -->
-        <record id="category_salary" model="budget.category">
-            <field name="code">SALARY</field>
-            <field name="name">Заробітна плата</field>
-            <field name="description">Основна та додаткова заробітна плата, премії</field>
-            <field name="sequence">10</field>
-        </record>
-
-        <record id="category_utilities" model="budget.category">
-            <field name="code">UTILITIES</field>
-            <field name="name">Комунальні послуги</field>
-            <field name="description">Електроенергія, газ, водопостачання, опалення</field>
-            <field name="sequence">20</field>
-        </record>
 
         <record id="category_communication" model="budget.category">
             <field name="code">COMM</field>
             <field name="name">Зв'язок та комунікації</field>
             <field name="description">Телефонний зв'язок, інтернет, мобільний зв'язок</field>
             <field name="sequence">30</field>
-        </record>
-
-        <record id="category_software" model="budget.category">
-            <field name="code">SOFTWARE</field>
-            <field name="name">Програмне забезпечення</field>
-            <field name="description">Ліцензії на ПЗ, підписки на сервіси</field>
-            <field name="sequence">40</field>
         </record>
 
         <record id="category_maintenance" model="budget.category">
@@ -53,13 +32,6 @@
             <field name="sequence">70</field>
         </record>
 
-        <record id="category_travel" model="budget.category">
-            <field name="code">TRAVEL</field>
-            <field name="name">Відрядження</field>
-            <field name="description">Витрати на відрядження та командировки</field>
-            <field name="sequence">80</field>
-        </record>
-
         <record id="category_training" model="budget.category">
             <field name="code">TRAINING</field>
             <field name="name">Навчання персоналу</field>
@@ -67,20 +39,38 @@
             <field name="sequence">90</field>
         </record>
 
-        <record id="category_marketing" model="budget.category">
-            <field name="code">MARKETING</field>
-            <field name="name">Маркетинг та реклама</field>
-            <field name="description">Рекламні кампанії, маркетингові матеріали</field>
-            <field name="sequence">100</field>
-        </record>
-
-        <!-- Підкатегорії для ІТ -->
         <record id="category_it_hardware" model="budget.category">
             <field name="code">IT_HW</field>
             <field name="name">ІТ обладнання</field>
             <field name="parent_id" ref="category_spare_parts"/>
             <field name="description">Комп'ютери, сервери, мережеве обладнання</field>
             <field name="sequence">110</field>
+        </record>
+
+        <record id="category_salary" model="budget.category">
+            <field name="code">SALARY</field>
+            <field name="name">Заробітна плата</field>
+            <field name="description">Витрати на заробітну плату співробітників</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('budget_type_01')])]"/>
+            <field name="sequence">10</field>
+        </record>
+
+        <!-- Категорія комунальних послуг - для операційних бюджетів -->
+        <record id="category_utilities" model="budget.category">
+            <field name="code">UTILITIES</field>
+            <field name="name">Комунальні послуги</field>
+            <field name="description">Електроенергія, газ, вода, опалення</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('budget_type_01'), ref('budget_type_02')])]"/>
+            <field name="sequence">20</field>
+        </record>
+
+        <!-- Категорія програмного забезпечення - для ІТ бюджету -->
+        <record id="category_software" model="budget.category">
+            <field name="code">SOFTWARE</field>
+            <field name="name">Програмне забезпечення</field>
+            <field name="description">Ліцензії, підписки, розробка ПЗ</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('budget_type_12')])]"/>
+            <field name="sequence">30</field>
         </record>
 
         <record id="category_it_services" model="budget.category">
@@ -91,92 +81,22 @@
             <field name="sequence">120</field>
         </record>
 
-        <!-- ЦЕНТРИ ВИТРАТ -->
-        <record id="cost_center_production" model="budget.cost.center">
-            <field name="code">PROD</field>
-            <field name="name">Виробництво</field>
-            <field name="description">Основне виробництво</field>
-            <field name="sequence">10</field>
-        </record>
-
-        <record id="cost_center_admin" model="budget.cost.center">
-            <field name="code">ADMIN</field>
-            <field name="name">Адміністрація</field>
-            <field name="description">Адміністративно-управлінський персонал</field>
-            <field name="sequence">20</field>
-        </record>
-
-        <record id="cost_center_it" model="budget.cost.center">
-            <field name="code">IT</field>
-            <field name="name">ІТ відділ</field>
-            <field name="description">Інформаційні технології</field>
-            <field name="sequence">30</field>
-        </record>
-
-        <record id="cost_center_sales" model="budget.cost.center">
-            <field name="code">SALES</field>
-            <field name="name">Відділ продажів</field>
-            <field name="description">Комерційний відділ</field>
+        <record id="category_marketing" model="budget.category">
+            <field name="code">MARKETING</field>
+            <field name="name">Маркетингові витрати</field>
+            <field name="description">Реклама, промо-акції, PR</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('budget_type_05')])]"/>
             <field name="sequence">40</field>
         </record>
 
-        <record id="cost_center_hr" model="budget.cost.center">
-            <field name="code">HR</field>
-            <field name="name">HR відділ</field>
-            <field name="description">Управління персоналом</field>
+        <!-- Категорія подорожей - для різних типів бюджетів -->
+        <record id="category_travel" model="budget.category">
+            <field name="code">TRAVEL</field>
+            <field name="name">Відрядження та подорожі</field>
+            <field name="description">Витрати на відрядження співробітників</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('budget_type_01'), ref('budget_type_07')])]"/>
             <field name="sequence">50</field>
         </record>
-
-        <!-- ЗОПОСТАВЛЕННЯ КАТЕГОРІЙ З РАХУНКАМИ (БЕЗПЕЧНІ) -->
-        <!-- Використовуємо загальні рахунки витрат, які існують у стандартному Odoo -->
-
-        <!-- Для зарплати - пошук рахунку витрат за типом -->
-        <record id="mapping_salary_expense" model="budget.category.account.mapping">
-            <field name="category_id" ref="category_salary"/>
-            <field name="account_id" eval="env['account.account'].search([('account_type', '=', 'expense'), ('company_id', '=', env.company.id)], limit=1).id or False"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Для комунальних послуг -->
-        <record id="mapping_utilities_expense" model="budget.category.account.mapping">
-            <field name="category_id" ref="category_utilities"/>
-            <field name="account_id" eval="env['account.account'].search([('account_type', '=', 'expense'), ('company_id', '=', env.company.id)], limit=1).id or False"/>
-            <field name="priority">10</field>
-        </record>
-
-        <!-- Для ІТ обладнання -->
-        <record id="mapping_it_hardware_expense" model="budget.category.account.mapping">
-            <field name="category_id" ref="category_it_hardware"/>
-            <field name="cost_center_id" ref="cost_center_it"/>
-            <field name="account_id" eval="env['account.account'].search([('account_type', '=', 'expense'), ('company_id', '=', env.company.id)], limit=1).id or False"/>
-            <field name="priority">20</field>
-        </record>
-
-        <!-- Для програмного забезпечення -->
-        <record id="mapping_software_expense" model="budget.category.account.mapping">
-            <field name="category_id" ref="category_software"/>
-            <field name="cost_center_id" ref="cost_center_it"/>
-            <field name="account_id" eval="env['account.account'].search([('account_type', '=', 'expense'), ('company_id', '=', env.company.id)], limit=1).id or False"/>
-            <field name="priority">15</field>
-        </record>
-
-        <!-- Прив'язування типів бюджетів до категорій (БЕЗПЕЧНЕ) -->
-        <record id="budget_type_01_categories" model="budget.type">
-            <field name="id" ref="budget_type_01"/>
-            <field name="category_ids" eval="[(6, 0, [ref('category_salary')])]"/>
-        </record>
-
-        <record id="budget_type_12_categories" model="budget.type">
-            <field name="id" ref="budget_type_12"/>
-            <field name="category_ids" eval="[(6, 0, [ref('category_software'), ref('category_it_hardware'), ref('category_it_services'), ref('category_communication')])]"/>
-        </record>
-
-        <record id="budget_type_19_categories" model="budget.type">
-            <field name="id" ref="budget_type_19"/>
-            <field name="category_ids" eval="[(6, 0, [ref('category_utilities')])]"/>
-        </record>
-
-        <!-- ДОДАТКОВІ КАТЕГОРІЇ ЗА ТИПАМИ БЮДЖЕТІВ З РЕГЛАМЕНТУ -->
 
         <!-- Категорії для виробничих бюджетів -->
         <record id="category_grain_purchase" model="budget.category">
@@ -221,6 +141,72 @@
             <field name="description">Витрати керівництва: відрядження, представницькі</field>
             <field name="sequence">270</field>
         </record>
+
+        <record id="mapping_salary_expense" model="budget.category.account.mapping">
+            <field name="category_id" ref="category_salary"/>
+            <field name="account_id" eval="False"/>
+            <field name="priority">10</field>
+        </record>
+
+        <!-- Для комунальних послуг -->
+        <record id="mapping_utilities_expense" model="budget.category.account.mapping">
+            <field name="category_id" ref="category_utilities"/>
+            <field name="account_id" eval="False"/>
+            <field name="priority">10</field>
+        </record>
+
+
+        <!-- ЦЕНТРИ ВИТРАТ -->
+        <record id="cost_center_production" model="budget.cost.center">
+            <field name="code">PROD</field>
+            <field name="name">Виробництво</field>
+            <field name="description">Основне виробництво</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="cost_center_admin" model="budget.cost.center">
+            <field name="code">ADMIN</field>
+            <field name="name">Адміністрація</field>
+            <field name="description">Адміністративно-управлінський персонал</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="cost_center_it" model="budget.cost.center">
+            <field name="code">IT</field>
+            <field name="name">ІТ відділ</field>
+            <field name="description">Інформаційні технології</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="cost_center_sales" model="budget.cost.center">
+            <field name="code">SALES</field>
+            <field name="name">Відділ продажів</field>
+            <field name="description">Комерційний відділ</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <record id="cost_center_hr" model="budget.cost.center">
+            <field name="code">HR</field>
+            <field name="name">HR відділ</field>
+            <field name="description">Управління персоналом</field>
+            <field name="sequence">50</field>
+        </record>
+
+                <!-- Для програмного забезпечення -->
+        <record id="mapping_software_expense" model="budget.category.account.mapping">
+            <field name="category_id" ref="category_software"/>
+            <field name="cost_center_id" ref="cost_center_it"/>
+            <field name="account_id" eval="False"/>
+            <field name="priority">15</field>
+        </record>
+
+        <record id="mapping_it_hardware_expense" model="budget.category.account.mapping">
+            <field name="category_id" ref="category_it_hardware"/>
+            <field name="cost_center_id" ref="cost_center_it"/>
+            <field name="account_id" eval="False"/>
+            <field name="priority">20</field>
+        </record>
+
 
     </data>
 </odoo>

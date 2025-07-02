@@ -21,7 +21,7 @@
         <field name="res_model">budget.plan</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
-        <field name="context">{'default_level': 'level3'}</field>
+        <field name="context">{'default_budget_level': 'functional'}</field>
     </record>
 
     <menuitem id="menu_quick_create_budget"

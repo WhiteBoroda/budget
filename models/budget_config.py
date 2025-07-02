@@ -167,6 +167,8 @@ class BudgetType(models.Model):
 
     sequence = fields.Integer('Послідовність', default=10)
     active = fields.Boolean('Активний', default=True)
+    category_ids = fields.Many2many('budget.category', 'budget_type_category_rel',
+                                    'budget_type_id', 'category_id', 'Категорії')
 
 
 class BudgetTypeLevelSetting(models.Model):

@@ -61,7 +61,7 @@ class BudgetCategoryAccountMapping(models.Model):
     cost_center_id = fields.Many2one('budget.cost.center', 'Центр витрат')
 
     # Рахунки
-    account_id = fields.Many2one('account.account', 'Рахунок обліку', required=True)
+    account_id = fields.Many2one('account.account', 'Рахунок обліку', required=False)
     analytic_account_id = fields.Many2one('account.analytic.account', 'Аналітичний рахунок')
 
     # Пріоритет (для вибору при кількох відповідностях)

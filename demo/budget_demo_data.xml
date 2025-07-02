@@ -75,12 +75,11 @@
             <field name="period_id" ref="demo_period_2024_01"/>
             <field name="cbo_id" ref="cbo_pp_management"/>
             <field name="budget_type_id" ref="budget_type_01"/>
-            <field name="level">level3</field>
+            <field name="budget_level">operational</field>
             <field name="state">planning</field>
             <field name="responsible_user_id" ref="base.user_admin"/>
             <field name="company_id" ref="base.main_company"/>
             <field name="submission_deadline">2023-12-23</field>
-            <field name="sales_plan_id" ref="demo_sales_plan_2024_01"/>
         </record>
 
         <!-- Демо лінії бюджету -->
