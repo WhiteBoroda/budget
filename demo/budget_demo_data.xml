@@ -1,122 +1,246 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- demo/budget_demo_data.xml -->
-
     <data noupdate="1">
-        <!-- Демо періоди на 2024 рік -->
-        <record id="demo_period_2024_01" model="budget.period">
-            <field name="name">Січень 2024</field>
-            <field name="period_type">month</field>
+
+        <!-- ========================================= -->
+        <!-- ПЕРІОДИ БЮДЖЕТУВАННЯ -->
+        <!-- ========================================= -->
+
+        <!-- Бюджетний рік 2024 -->
+        <record id="demo_budget_year_2024" model="budget.period">
+            <field name="name">Бюджетний рік 2024</field>
             <field name="date_start">2024-01-01</field>
-            <field name="date_end">2024-01-31</field>
-            <field name="state">planning</field>
-            <field name="company_id" ref="base.main_company"/>
-        </record>
-
-        <record id="demo_period_2024_02" model="budget.period">
-            <field name="name">Лютий 2024</field>
-            <field name="period_type">month</field>
-            <field name="date_start">2024-02-01</field>
-            <field name="date_end">2024-02-29</field>
+            <field name="date_end">2024-12-31</field>
+            <field name="period_type">year</field>
+            <field name="planning_cycle">annual</field>
             <field name="state">draft</field>
             <field name="company_id" ref="base.main_company"/>
+            <field name="is_forecast">False</field>
+            <field name="active">True</field>
         </record>
 
-        <record id="demo_period_2024_03" model="budget.period">
-            <field name="name">Березень 2024</field>
-            <field name="period_type">month</field>
-            <field name="date_start">2024-03-01</field>
-            <field name="date_end">2024-03-31</field>
-            <field name="state">draft</field>
-            <field name="company_id" ref="base.main_company"/>
-        </record>
-
+        <!-- Квартальні періоди 2024 -->
         <record id="demo_period_2024_q1" model="budget.period">
             <field name="name">I квартал 2024</field>
-            <field name="period_type">quarter</field>
             <field name="date_start">2024-01-01</field>
             <field name="date_end">2024-03-31</field>
+            <field name="period_type">quarter</field>
+            <field name="planning_cycle">quarterly</field>
             <field name="state">planning</field>
             <field name="company_id" ref="base.main_company"/>
+            <field name="is_forecast">False</field>
+            <field name="active">True</field>
         </record>
 
-        <!-- Демо план продажів -->
-        <record id="demo_sales_plan_2024_01" model="budget.sales.plan">
-            <field name="period_id" ref="demo_period_2024_01"/>
-            <field name="company_id" ref="base.main_company"/>
-            <field name="state">project</field>
-            <field name="responsible_user_id" ref="base.user_admin"/>
-            <field name="previous_period_sales">1000000</field>
+        <!-- ========================================= -->
+        <!-- ЦЕНТРИ БЮДЖЕТНОЇ ВІДПОВІДАЛЬНОСТІ (ЦБО) -->
+        <!-- ========================================= -->
+
+        <!-- Холдинг (стратегічний рівень) -->
+        <record id="demo_cbo_holding" model="budget.responsibility.center">
+            <field name="name">ХК "Хлібпром України"</field>
+            <field name="code">HOLDING</field>
+            <field name="cbo_type">holding</field>
+            <field name="budget_level">strategic</field>
+            <field name="sequence">10</field>
+            <field name="business_segment">Харчова промисловість</field>
         </record>
 
-        <!-- Демо лінії плану продажів -->
-        <record id="demo_sales_plan_line_1" model="budget.sales.plan.line">
-            <field name="plan_id" ref="demo_sales_plan_2024_01"/>
-            <field name="sales_channel">b2b</field>
-            <field name="region">local</field>
-            <field name="planned_qty">1000</field>
-            <field name="planned_price">150</field>
-            <field name="discount_percent">5</field>
-            <field name="notes">Хліб білий, основний асортимент</field>
+        <!-- Кластер (тактичний рівень) -->
+        <record id="demo_cbo_cluster_west" model="budget.responsibility.center">
+            <field name="name">Західний кластер</field>
+            <field name="code">WEST</field>
+            <field name="cbo_type">cluster</field>
+            <field name="budget_level">tactical</field>
+            <field name="parent_id" ref="demo_cbo_holding"/>
+            <field name="sequence">20</field>
+            <field name="region">Західна Україна</field>
         </record>
 
-        <record id="demo_sales_plan_line_2" model="budget.sales.plan.line">
-            <field name="plan_id" ref="demo_sales_plan_2024_01"/>
-            <field name="sales_channel">retail</field>
-            <field name="region">regional</field>
-            <field name="planned_qty">500</field>
-            <field name="planned_price">120</field>
-            <field name="discount_percent">0</field>
-            <field name="notes">Хліб житній, роздрібна мережа</field>
-        </record>
-
-        <!-- Демо бюджет -->
-        <record id="demo_budget_plan_fot" model="budget.plan">
-            <field name="period_id" ref="demo_period_2024_01"/>
-            <field name="cbo_id" ref="cbo_pp_management"/>
-            <field name="budget_type_id" ref="budget_type_01"/>
+        <!-- Підприємство (операційний рівень) -->
+        <record id="demo_cbo_enterprise_lviv" model="budget.responsibility.center">
+            <field name="name">ПП "Львівський хлібозавод"</field>
+            <field name="code">LVIV</field>
+            <field name="cbo_type">enterprise</field>
             <field name="budget_level">operational</field>
-            <field name="state">planning</field>
+            <field name="parent_id" ref="demo_cbo_cluster_west"/>
+            <field name="company_ids" eval="[(6, 0, [ref('base.main_company')])]"/>
+            <field name="country_id" ref="base.ua"/>
+            <field name="region">Львівська область</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <!-- Департамент (функціональний рівень) -->
+        <record id="demo_cbo_production_dept" model="budget.responsibility.center">
+            <field name="name">Департамент виробництва</field>
+            <field name="code">PROD</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_enterprise_lviv"/>
+            <field name="sequence">40</field>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- ТИПИ БЮДЖЕТІВ -->
+        <!-- ========================================= -->
+
+        <!-- Бюджет доходів -->
+        <record id="demo_budget_type_revenue" model="budget.type">
+            <field name="name">Бюджет доходів</field>
+            <field name="code">REVENUE</field>
+            <field name="budget_category">income</field>
+            <field name="calculation_method">manual</field>
+            <field name="approval_required">True</field>
+            <field name="sequence">10</field>
+            <field name="description">Бюджет доходів від реалізації продукції</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- Бюджет операційних витрат -->
+        <record id="demo_budget_type_opex" model="budget.type">
+            <field name="name">Бюджет операційних витрат</field>
+            <field name="code">OPEX</field>
+            <field name="budget_category">direct_costs</field>
+            <field name="calculation_method">norm_based</field>
+            <field name="approval_required">True</field>
+            <field name="sequence">20</field>
+            <field name="description">Бюджет прямих операційних витрат</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- КАТЕГОРІЇ БЮДЖЕТУ -->
+        <!-- ========================================= -->
+
+        <!-- Категорії доходів -->
+        <record id="demo_category_sales_revenue" model="budget.category">
+            <field name="name">Виручка від продажів</field>
+            <field name="code">SALES_REV</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('demo_budget_type_revenue')])]"/>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- Категорії витрат -->
+        <record id="demo_category_raw_materials" model="budget.category">
+            <field name="name">Сировина та матеріали</field>
+            <field name="code">RAW_MAT</field>
+            <field name="budget_type_ids" eval="[(6, 0, [ref('demo_budget_type_opex')])]"/>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+            <field name="company_id" ref="base.main_company"/>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- ЦЕНТРИ ВИТРАТ -->
+        <!-- ========================================= -->
+
+        <record id="demo_cost_center_production" model="budget.cost.center">
+            <field name="name">Виробничий цех</field>
+            <field name="code">PROD_SHOP</field>
+            <field name="cbo_id" ref="demo_cbo_production_dept"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="sequence">10</field>
+            <field name="active">True</field>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- ПРОГНОЗИ ПРОДАЖІВ -->
+        <!-- ========================================= -->
+
+        <!-- Прогноз продажів на Q1 2024 -->
+        <record id="demo_forecast_2024_q1" model="sale.forecast">
+            <field name="name">Прогноз продажів Q1 2024</field>
+            <field name="period_id" ref="demo_period_2024_q1"/>
+            <field name="team_id" ref="sales_team.team_sales_department"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="state">draft</field>
+            <field name="user_id" ref="base.user_admin"/>
+            <field name="forecast_base">manual</field>
+            <field name="channel">direct</field>
+            <field name="customer_segment">existing</field>
+            <field name="cbo_id" ref="demo_cbo_production_dept"/>
+        </record>
+
+        <!-- Лінії прогнозу продажів -->
+        <record id="demo_forecast_line_bread_white" model="sale.forecast.line">
+            <field name="forecast_id" ref="demo_forecast_2024_q1"/>
+            <field name="product_id" ref="product.product_delivery_01"/>
+            <field name="description">Хліб білий формовий</field>
+            <field name="forecast_qty">5000</field>
+            <field name="forecast_price">25.50</field>
+            <field name="probability">90.0</field>
+            <field name="sales_stage">opportunity</field>
+            <field name="partner_category">existing</field>
+            <field name="notes">Основний асортимент, стабільні продажі</field>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- БЮДЖЕТНІ ПЛАНИ -->
+        <!-- ========================================= -->
+
+        <!-- Бюджет доходів підприємства -->
+        <record id="demo_budget_revenue_q1" model="budget.plan">
+            <field name="period_id" ref="demo_period_2024_q1"/>
+            <field name="cbo_id" ref="demo_cbo_enterprise_lviv"/>
+            <field name="budget_type_id" ref="demo_budget_type_revenue"/>
+            <field name="state">draft</field>
             <field name="responsible_user_id" ref="base.user_admin"/>
             <field name="company_id" ref="base.main_company"/>
-            <field name="submission_deadline">2023-12-23</field>
+            <field name="submission_deadline">2024-01-31</field>
+            <field name="sales_forecast_ids" eval="[(6, 0, [ref('demo_forecast_2024_q1')])]"/>
+            <field name="notes">Демо-бюджет доходів на перший квартал 2024 року</field>
+            <field name="version">1.0</field>
+            <field name="is_baseline">False</field>
         </record>
 
-        <!-- Демо лінії бюджету -->
-        <record id="demo_budget_line_1" model="budget.plan.line">
-            <field name="plan_id" ref="demo_budget_plan_fot"/>
-            <field name="description">Основна заробітна плата виробничого персоналу</field>
+        <!-- Бюджет операційних витрат -->
+        <record id="demo_budget_opex_q1" model="budget.plan">
+            <field name="period_id" ref="demo_period_2024_q1"/>
+            <field name="cbo_id" ref="demo_cbo_production_dept"/>
+            <field name="budget_type_id" ref="demo_budget_type_opex"/>
+            <field name="state">draft</field>
+            <field name="responsible_user_id" ref="base.user_admin"/>
+            <field name="company_id" ref="base.main_company"/>
+            <field name="submission_deadline">2024-01-31</field>
+            <field name="notes">Демо-бюджет операційних витрат виробничого департаменту</field>
+            <field name="version">1.0</field>
+            <field name="is_baseline">False</field>
+        </record>
+
+        <!-- ========================================= -->
+        <!-- ЛІНІЇ БЮДЖЕТНИХ ПЛАНІВ -->
+        <!-- ========================================= -->
+
+        <!-- Лінії бюджету доходів -->
+        <record id="demo_budget_line_sales_bread" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_revenue_q1"/>
+            <field name="budget_category_id" ref="demo_category_sales_revenue"/>
+            <field name="cost_center_id" ref="demo_cost_center_production"/>
+            <field name="description">Виручка від продажу хлібобулочних виробів</field>
+            <field name="quantity">8000</field>
+            <field name="unit_price">26.50</field>
+            <field name="planned_amount">212000.00</field>
+            <field name="calculation_method">manual</field>
+            <field name="calculation_basis">На основі прогнозу продажів Q1 2024</field>
+            <field name="sales_forecast_line_id" ref="demo_forecast_line_bread_white"/>
+            <field name="is_consolidation">False</field>
+        </record>
+
+        <!-- Лінії бюджету операційних витрат -->
+        <record id="demo_budget_line_flour" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_opex_q1"/>
+            <field name="budget_category_id" ref="demo_category_raw_materials"/>
+            <field name="cost_center_id" ref="demo_cost_center_production"/>
+            <field name="description">Борошно пшеничне вищого сорту</field>
+            <field name="quantity">100</field>
+            <field name="unit_price">850.00</field>
+            <field name="planned_amount">85000.00</field>
             <field name="calculation_method">norm_based</field>
-            <field name="quantity">50</field>
-            <field name="unit_price">8000</field>
-            <field name="planned_amount">400000</field>
-            <field name="calculation_basis">50 працівників × 8000 грн середня зарплата</field>
+            <field name="calculation_basis">Норма витрат на 1 тонну продукції</field>
+            <field name="is_consolidation">False</field>
         </record>
 
-        <record id="demo_budget_line_2" model="budget.plan.line">
-            <field name="plan_id" ref="demo_budget_plan_fot"/>
-            <field name="description">Додаткова заробітна плата</field>
-            <field name="calculation_method">percentage</field>
-            <field name="quantity">1</field>
-            <field name="unit_price">60000</field>
-            <field name="planned_amount">60000</field>
-            <field name="calculation_basis">15% від основної заробітної плати</field>
-        </record>
-
-        <!-- Демо сповіщення -->
-        <record id="demo_notification_1" model="budget.notification">
-            <field name="name">Нагадування: дедлайн подання бюджету ФОТ завтра</field>
-            <field name="notification_type">deadline</field>
-            <field name="budget_plan_id" ref="demo_budget_plan_fot"/>
-            <field name="user_id" ref="base.user_admin"/>
-            <field name="priority">high</field>
-            <field name="is_read">False</field>
-        </record>
-
-        <!-- Демо панель керування -->
-        <record id="demo_dashboard_1" model="budget.dashboard">
-            <field name="name">Панель бюджетування Січень 2024</field>
-            <field name="period_id" ref="demo_period_2024_01"/>
-        </record>
     </data>
 </odoo>
