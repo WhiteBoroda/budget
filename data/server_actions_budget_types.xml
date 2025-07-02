@@ -136,7 +136,7 @@ else:
 
 # Логування детальних результатів
 import logging
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget')
 if issues:
     _logger.warning(f"Budget types validation issues: {issues}")
 else:
