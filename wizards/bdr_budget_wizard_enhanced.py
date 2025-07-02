@@ -4,11 +4,11 @@
 import base64
 import io
 import logging
-from datetime import datetime, date
-from odoo import models, fields, api
-from odoo.exceptions import UserError, ValidationError
+from datetime import datetime
+from odoo import models, fields
+from odoo.exceptions import UserError
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.wizard')
 
 try:
     import openpyxl

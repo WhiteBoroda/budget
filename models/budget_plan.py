@@ -4,7 +4,7 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError
 import logging, json
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.models')
 
 
 

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- wizards/budget_assign_categories_wizard_views.xml -->
+    <!-- ВИПРАВЛЕНИЙ wizards/budget_assign_categories_wizard_views.xml -->
 
-    <!-- Form view для wizard назначения категорий -->
+    <!-- Form view для wizard призначення категорій -->
     <record id="view_budget_assign_categories_wizard_form" model="ir.ui.view">
         <field name="name">budget.assign.categories.wizard.form</field>
         <field name="model">budget.assign.categories.wizard</field>
@@ -28,7 +28,7 @@
                     </group>
                 </group>
 
-                <!-- Предпросмотр обновлений -->
+                <!-- ВИПРАВЛЕНО: Замінено t-if на invisible -->
                 <group string="📊 Попередній перегляд"
                        invisible="not budget_category_id">
                     <div class="row">
@@ -37,8 +37,9 @@
                                 <strong>✅ Буде оновлено:</strong>
                                 <ul>
                                     <li>Категорія витрат: <field name="budget_category_id" readonly="1" nolabel="1"/></li>
-                                    <li t-if="cost_center_id">Центр витрат: <field name="cost_center_id" readonly="1" nolabel="1"/></li>
-                                    <li t-if="update_accounts">Облікові рахунки: автоматично</li>
+                                    <!-- ВИПРАВЛЕНО: замінено t-if на invisible -->
+                                    <li invisible="not cost_center_id">Центр витрат: <field name="cost_center_id" readonly="1" nolabel="1"/></li>
+                                    <li invisible="not update_accounts">Облікові рахунки: автоматично</li>
                                 </ul>
                             </div>
                         </div>
@@ -60,11 +61,15 @@
                     <page string="📝 Інформація про категорію">
                         <group>
                             <group string="Деталі категорії">
-                                <label for="budget_category_id.code" string="Код:"/>
-                                <span>
-                                    <field name="budget_category_id" readonly="1" invisible="1"/>
-                                    <!-- Тут буде відображено інформацію про категорію -->
-                                </span>
+                                <field name="budget_category_id" readonly="1" invisible="1"/>
+                                <label for="category_code" string="Код категорії:"/>
+                                <div>
+                                    <field name="category_code" readonly="1" nolabel="1"/>
+                                </div>
+                                <label for="category_description" string="Опис:"/>
+                                <div>
+                                    <field name="category_description" readonly="1" nolabel="1"/>
+                                </div>
                             </group>
                         </group>
                     </page>

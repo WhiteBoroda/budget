@@ -1,22 +1,30 @@
 # -*- coding: utf-8 -*-
+# wizards/budget_assign_categories_wizard.py
 
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 
 
 class BudgetAssignCategoriesWizard(models.TransientModel):
-    """Мастер массового назначения категорий для позиций бюджета"""
+    """Майстер для масового призначення категорій бюджетним позиціям"""
     _name = 'budget.assign.categories.wizard'
-    _description = 'Массовое назначение категорий бюджета'
+    _description = 'Майстер призначення категорій'
 
-    line_ids = fields.Many2many('budget.plan.line', string='Позиции бюджета')
-    line_count = fields.Integer('Количество позиций', compute='_compute_line_count')
+    # Обрані позиції бюджету
+    line_ids = fields.Many2many('budget.plan.line', string='Позиції бюджету')
+    line_count = fields.Integer('Кількість позицій', compute='_compute_line_count')
 
-    budget_category_id = fields.Many2one('budget.category', 'Категория расходов', required=True)
-    cost_center_id = fields.Many2one('budget.cost.center', 'Центр затрат')
+    # Категорії для призначення
+    budget_category_id = fields.Many2one('budget.category', 'Категорія бюджету', required=True)
+    cost_center_id = fields.Many2one('budget.cost.center', 'Центр витрат')
 
-    update_accounts = fields.Boolean('Обновить счета', default=True,
-                                     help="Автоматически обновить счета согласно новым категориям")
+    # Опція оновлення рахунків
+    update_accounts = fields.Boolean('Оновити облікові рахунки', default=True,
+                                     help="Автоматично визначити рахунки на основі категорій")
+
+    # Поля для відображення інформації про категорію
+    category_code = fields.Char('Код категорії', related='budget_category_id.code', readonly=True)
+    category_description = fields.Text('Опис категорії', related='budget_category_id.description', readonly=True)
 
     @api.depends('line_ids')
     def _compute_line_count(self):
@@ -27,7 +35,7 @@ class BudgetAssignCategoriesWizard(models.TransientModel):
     def default_get(self, fields_list):
         res = super().default_get(fields_list)
 
-        # Получаем выбранные записи из контекста
+        # Отримуємо обрані позиції з контексту
         if self.env.context.get('active_model') == 'budget.plan.line':
             line_ids = self.env.context.get('active_ids', [])
             res['line_ids'] = [(6, 0, line_ids)]
@@ -35,58 +43,58 @@ class BudgetAssignCategoriesWizard(models.TransientModel):
         return res
 
     def action_assign_categories(self):
-        """Выполнение массового назначения категорий"""
+        """Призначення категорій обраним позиціям"""
         if not self.line_ids:
-            raise UserError('Не выбраны позиции для обновления!')
+            raise UserError('Не обрано жодної позиції бюджету!')
 
         if not self.budget_category_id:
-            raise UserError('Выберите категорию расходов!')
+            raise UserError('Оберіть категорію бюджету!')
 
-        updated_count = 0
+        # Перевіряємо чи всі позиції можна редагувати
+        non_editable_lines = self.line_ids.filtered(
+            lambda l: l.plan_id.state not in ['draft', 'planning', 'revision']
+        )
 
-        # Обновляем каждую позицию
-        for line in self.line_ids:
-            # Проверяем права на редактирование
-            if not line.is_editable:
-                continue
+        if non_editable_lines:
+            raise UserError(
+                f'Деякі позиції не можна редагувати. '
+                f'Бюджети мають бути в стані "Чернетка", "Планування" або "Доопрацювання".\n'
+                f'Проблемні позиції: {", ".join(non_editable_lines.mapped("display_name"))}'
+            )
 
-            # Обновляем категорию и центр затрат
-            update_vals = {
-                'budget_category_id': self.budget_category_id.id,
-            }
+        # Підготуємо дані для оновлення
+        update_values = {
+            'budget_category_id': self.budget_category_id.id,
+        }
 
-            if self.cost_center_id:
-                update_vals['cost_center_id'] = self.cost_center_id.id
+        if self.cost_center_id:
+            update_values['cost_center_id'] = self.cost_center_id.id
 
-            line.write(update_vals)
+        # Оновлюємо позиції
+        self.line_ids.write(update_values)
 
-            # Обновляем счета, если нужно
-            if self.update_accounts:
+        # Якщо потрібно оновити рахунки
+        if self.update_accounts:
+            for line in self.line_ids:
                 line._compute_accounting_data()
 
-            updated_count += 1
+        # Додаємо повідомлення до планів
+        affected_plans = self.line_ids.mapped('plan_id')
+        for plan in affected_plans:
+            plan_lines = self.line_ids.filtered(lambda l: l.plan_id == plan)
+            plan.message_post(
+                body=f"Масово оновлено категорії для {len(plan_lines)} позицій. "
+                     f"Категорія: {self.budget_category_id.name}"
+            )
 
-        # Показываем результат
+        # Повертаємо повідомлення про успіх
         return {
             'type': 'ir.actions.client',
             'tag': 'display_notification',
             'params': {
-                'title': 'Обновление завершено!',
-                'message': f'Категории назначены для {updated_count} позиций из {len(self.line_ids)}',
+                'title': 'Категорії призначено!',
+                'message': f'Успішно оновлено {len(self.line_ids)} позицій бюджету',
                 'type': 'success',
                 'sticky': False,
             }
         }
-
-
-class BudgetPlanLineInherit(models.Model):
-    """Добавляем computed поле для определения возможности редактирования"""
-    _inherit = 'budget.plan.line'
-
-    @api.depends('plan_id.state')
-    def _compute_is_editable(self):
-        """Определяет можно ли редактировать строку"""
-        for line in self:
-            line.is_editable = line.plan_id.state in ['draft', 'planning', 'revision']
-
-    is_editable = fields.Boolean('Можна редагувати', compute='_compute_is_editable')

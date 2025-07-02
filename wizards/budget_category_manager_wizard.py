@@ -5,7 +5,7 @@ from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 import logging
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.wizard')
 
 
 class BudgetCategoryManagerWizard(models.TransientModel):
@@ -30,7 +30,10 @@ class BudgetCategoryManagerWizard(models.TransientModel):
     parent_id = fields.Many2one('budget.category', 'Батьківська категорія')
     sequence = fields.Integer('Послідовність', default=10)
     active = fields.Boolean('Активна', default=True)
-
+    update_existing = fields.Boolean('Оновити існуючі', default=False,
+                                     help="Оновити існуючі категорії замість пропуску")
+    company_id = fields.Many2one('res.company', 'Підприємство',
+                                 default=lambda self: self.env.company)
     # Зопоставлення з рахунками
     default_account_id = fields.Many2one('account.account', 'Рахунок за замовчуванням')
     budget_type_ids = fields.Many2many('budget.type', string='Типи бюджетів')
@@ -366,3 +369,158 @@ class BudgetCategoryManagerWizard(models.TransientModel):
             'target': 'new',
             'context': {'default_operation_type': self.operation_type}
         }
+
+    def _import_from_xml(self):
+        """Імпорт категорій з XML файлу"""
+        if not self.import_file:
+            raise UserError('Завантажте XML файл для імпорту!')
+
+        try:
+            import xml.etree.ElementTree as ET
+            import base64
+
+            # Декодування файлу
+            file_content = base64.b64decode(self.import_file)
+            file_text = file_content.decode('utf-8')
+
+            # Парсинг XML
+            root = ET.fromstring(file_text)
+
+            imported_categories = []
+            categories_data = []
+
+            # Збір даних з XML
+            for record in root.findall('.//record[@model="budget.category"]'):
+                category_data = {
+                    'xml_id': record.get('id', ''),
+                    'code': '',
+                    'name': '',
+                    'parent_xml_id': '',
+                    'description': '',
+                    'sequence': 10,
+                    'active': True
+                }
+
+                # Читання полів
+                for field in record.findall('field'):
+                    field_name = field.get('name')
+                    field_value = field.text or ''
+
+                    if field_name == 'code':
+                        category_data['code'] = field_value.strip()
+                    elif field_name == 'name':
+                        category_data['name'] = field_value.strip()
+                    elif field_name == 'description':
+                        category_data['description'] = field_value.strip()
+                    elif field_name == 'sequence':
+                        try:
+                            category_data['sequence'] = int(field_value)
+                        except:
+                            category_data['sequence'] = 10
+                    elif field_name == 'active':
+                        category_data['active'] = field_value.lower() in ['true', '1']
+                    elif field_name == 'parent_id':
+                        # Якщо це ref, отримуємо XML ID
+                        if field.get('ref'):
+                            category_data['parent_xml_id'] = field.get('ref')
+
+                if category_data['code'] and category_data['name']:
+                    categories_data.append(category_data)
+
+            if not categories_data:
+                raise UserError('У XML файлі не знайдено валідних категорій!')
+
+            # Створення категорій (спочатку батьківські, потім дочірні)
+            parent_mapping = {}
+
+            # Перший прохід - створюємо категорії без батьків
+            for cat_data in categories_data:
+                if not cat_data['parent_xml_id']:
+                    category = self._create_category_from_data(cat_data)
+                    imported_categories.append(category)
+                    parent_mapping[cat_data['xml_id']] = category
+
+            # Другий прохід - створюємо дочірні категорії
+            for cat_data in categories_data:
+                if cat_data['parent_xml_id']:
+                    # Знаходимо батьківську категорію
+                    parent_category = None
+
+                    # Спочатку шукаємо у створених
+                    if cat_data['parent_xml_id'] in parent_mapping:
+                        parent_category = parent_mapping[cat_data['parent_xml_id']]
+                    else:
+                        # Шукаємо в базі по external ID
+                        try:
+                            parent_category = self.env.ref(cat_data['parent_xml_id'])
+                        except:
+                            # Шукаємо по коду
+                            parent_code = cat_data['parent_xml_id'].split('_')[-1]
+                            parent_category = self.env['budget.category'].search([
+                                ('code', '=', parent_code)
+                            ], limit=1)
+
+                    cat_data['parent_id'] = parent_category.id if parent_category else False
+                    category = self._create_category_from_data(cat_data)
+                    imported_categories.append(category)
+                    parent_mapping[cat_data['xml_id']] = category
+
+            # Формування результату
+            self.import_summary = f"""
+    ✅ XML імпорт завершено успішно!
+
+    📊 Статистика:
+    - Оброблено записів: {len(categories_data)}
+    - Створено категорій: {len(imported_categories)}
+    - Файл: {self.filename}
+
+    📋 Створені категорії:
+    {chr(10).join([f"• [{cat.code}] {cat.name}" for cat in imported_categories[:10]])}
+    {f"... та ще {len(imported_categories) - 10} категорій" if len(imported_categories) > 10 else ""}
+
+    🎯 Всі категорії готові до використання!
+            """
+
+            # Повертаємо список створених категорій
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Імпортовані категорії',
+                'res_model': 'budget.category',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', [cat.id for cat in imported_categories])],
+                'context': {'default_active': True}
+            }
+
+        except ET.ParseError as e:
+            raise UserError(f'Помилка парсингу XML: {str(e)}')
+        except Exception as e:
+            raise UserError(f'Помилка імпорту XML: {str(e)}')
+
+    def _create_category_from_data(self, cat_data):
+        """Створення категорії з даних"""
+        # Перевіряємо чи існує категорія з таким кодом
+        existing = self.env['budget.category'].search([
+            ('code', '=', cat_data['code'])
+        ], limit=1)
+
+        if existing and not self.update_existing:
+            _logger.warning(f"Категорія з кодом {cat_data['code']} вже існує")
+            return existing
+
+        vals = {
+            'code': cat_data['code'],
+            'name': cat_data['name'],
+            'description': cat_data.get('description', ''),
+            'sequence': cat_data.get('sequence', 10),
+            'active': cat_data.get('active', True),
+            'company_id': self.company_id.id if self.company_id else False,
+        }
+
+        if cat_data.get('parent_id'):
+            vals['parent_id'] = cat_data['parent_id']
+
+        if existing and self.update_existing:
+            existing.write(vals)
+            return existing
+        else:
+            return self.env['budget.category'].create(vals)

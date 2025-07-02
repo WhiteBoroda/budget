@@ -5,7 +5,7 @@ from odoo import models, fields, api, _
 from odoo.exceptions import ValidationError, UserError
 import logging, re
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.models')
 
 
 class BudgetCategoryEnhanced(models.Model):

@@ -63,8 +63,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\git\PythonProject\budget\views\" />
       <recent name="C:\git\PythonProject\budget\wizards\" />
+      <recent name="C:\git\PythonProject\budget\views\" />
     </key>
   </component>
   <component name="SharedIndexes">
@@ -83,7 +83,7 @@
       <option name="presentableId" value="Default" />
       <updated>1750862056000</updated>
       <workItem from="1750862057033" duration="154873000" />
-      <workItem from="1751132088783" duration="42522000" />
+      <workItem from="1751132088783" duration="98668000" />
     </task>
     <servers />
   </component>

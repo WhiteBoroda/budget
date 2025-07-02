@@ -4,7 +4,7 @@ from odoo import models, fields, api
 from odoo.exceptions import ValidationError, UserError
 import logging
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.models')
 
 
 class SaleForecast(models.Model):

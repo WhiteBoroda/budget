@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'Система бюджетування ГК Хлебодар',
-    'version': '17.0.2.3.1',
+    'name': 'Система бюджетування',
+    'version': '17.0.2.3.2',
     'category': 'Accounting/Management',
     'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО, категоріями витрат та інтеграцією з прогнозами продажів',
     'description': """
 Система бюджетування для групи компаній "Хлебодар"
 
-Оновлена функціональність v2.3.1:
+Оновлена функціональність v2.3.2:
 * Система категорій бюджетних витрат (замість прямих рахунків)
 * Центри витрат для спрощеної аналітики  
 * Автоматичне зопоставлення категорій з обліковими рахунками
@@ -69,8 +69,6 @@
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
         'data/bdr_categories_data.xml',
-        'views/budget_category_manager_wizard_views.xml',
-        'views/bdr_budget_wizard_enhanced_views.xml',
 
         # 5. WIZARDS (після основних представлень)
         'wizards/budget_approval_wizard_views.xml',
@@ -80,6 +78,10 @@
         'wizards/budget_period_wizard_views.xml',
         'wizards/budget_assign_categories_wizard_views.xml',  # ДОДАНО: wizard категорій
         'wizards/bdr_budget_wizard_views.xml',
+        'wizards/bdr_budget_wizard_enhanced_views.xml',
+        'wizards/budget_category_manager_wizard_views.xml',
+
+
 
         # 3. МЕНЮ (базова структура) - ПЕРЕНЕСЕНО СЮДИ, ПІСЛЯ ВСІХ ДІЙ
         'views/menu_views.xml',

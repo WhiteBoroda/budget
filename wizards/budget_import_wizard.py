@@ -6,7 +6,7 @@ import logging
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.import')
 
 try:
     import openpyxl
@@ -102,7 +102,7 @@ class BudgetImportWizard(models.TransientModel):
                 # Попытка определить ЦБО по файлу
                 if 'ук' in filename_lower:
                     cbo = self.env['budget.responsibility.center'].search([
-                        ('level', '=', 'managing_company')
+                        ('budget_level', '=', 'tactical')
                     ], limit=1)
                     if cbo:
                         self.cbo_id = cbo.id

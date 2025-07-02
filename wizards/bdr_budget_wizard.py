@@ -7,7 +7,7 @@ from datetime import datetime, date
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger('budget.wizard')
 
 try:
     import openpyxl
@@ -90,6 +90,82 @@ class BdrBudgetWizard(models.TransientModel):
     total_expenses = fields.Monetary('Загальні витрати', readonly=True, currency_field='currency_id')
     net_profit = fields.Monetary('Чистий прибуток', readonly=True, currency_field='currency_id')
     currency_id = fields.Many2one('res.currency', related='company_id.currency_id', readonly=True)
+    income_growth = fields.Float('Зростання доходів (%)', compute='_compute_bdr_analysis', store=False)
+    profit_margin = fields.Float('Маржа прибутку (%)', compute='_compute_bdr_analysis', store=False)
+
+    @api.depends('period_id', 'company_id', 'cbo_id', 'operation_type')
+    def _compute_bdr_analysis(self):
+        """Обчислення показників БДР для аналізу"""
+        for wizard in self:
+            if wizard.operation_type != 'analyze' or not wizard.period_id:
+                wizard.total_income = 0
+                wizard.total_expenses = 0
+                wizard.net_profit = 0
+                wizard.income_growth = 0
+                wizard.profit_margin = 0
+                continue
+
+            # Пошук бюджетів доходів
+            income_domain = [
+                ('period_id', '=', wizard.period_id.id),
+                ('budget_type_id.budget_category', '=', 'income'),
+                ('state', 'in', ['approved', 'executed'])
+            ]
+            if wizard.company_id:
+                income_domain.append(('company_id', '=', wizard.company_id.id))
+            if wizard.cbo_id:
+                income_domain.append(('cbo_id', '=', wizard.cbo_id.id))
+
+            income_budgets = self.env['budget.plan'].search(income_domain)
+            wizard.total_income = sum(income_budgets.mapped('planned_amount'))
+
+            # Пошук бюджетів витрат
+            expense_domain = [
+                ('period_id', '=', wizard.period_id.id),
+                ('budget_type_id.budget_category', 'in', ['direct_costs', 'indirect_costs', 'administrative']),
+                ('state', 'in', ['approved', 'executed'])
+            ]
+            if wizard.company_id:
+                expense_domain.append(('company_id', '=', wizard.company_id.id))
+            if wizard.cbo_id:
+                expense_domain.append(('cbo_id', '=', wizard.cbo_id.id))
+
+            expense_budgets = self.env['budget.plan'].search(expense_domain)
+            wizard.total_expenses = sum(expense_budgets.mapped('planned_amount'))
+
+            # Розрахунок прибутку та маржі
+            wizard.net_profit = wizard.total_income - wizard.total_expenses
+            wizard.profit_margin = (wizard.net_profit / wizard.total_income * 100) if wizard.total_income != 0 else 0
+
+            # Розрахунок зростання
+
+            previous_period = self.env['budget.period'].search([
+                ('date_start', '<', wizard.period_id.date_start),
+                ('company_id', '=', wizard.company_id.id if wizard.company_id else False)
+            ], order='date_start desc', limit=1)
+
+            if previous_period:
+                # Пошук доходів попереднього періоду
+                prev_income_domain = [
+                    ('period_id', '=', previous_period.id),
+                    ('budget_type_id.budget_category', '=', 'income'),
+                    ('state', 'in', ['approved', 'executed'])
+                ]
+                if wizard.company_id:
+                    prev_income_domain.append(('company_id', '=', wizard.company_id.id))
+                if wizard.cbo_id:
+                    prev_income_domain.append(('cbo_id', '=', wizard.cbo_id.id))
+
+                prev_income_budgets = self.env['budget.plan'].search(prev_income_domain)
+                prev_total_income = sum(prev_income_budgets.mapped('planned_amount'))
+
+                # Розрахунок відсотка зростання
+                if prev_total_income > 0:
+                    wizard.income_growth = ((wizard.total_income - prev_total_income) / prev_total_income) * 100
+                else:
+                    wizard.income_growth = 100 if wizard.total_income > 0 else 0
+            else:
+                wizard.income_growth = 0
 
     def action_preview_bdr(self):
         """Попередній перегляд даних БДР"""
@@ -243,6 +319,50 @@ class BdrBudgetWizard(models.TransientModel):
         except Exception as e:
             raise UserError(f'Помилка експорту БДР: {str(e)}')
 
+    def _parse_bdr_item(self, worksheet, row_num, month_columns):
+        """Парсинг одної позиції БДР"""
+        try:
+            item_name = self._get_cell_value(worksheet, row_num, self.item_column)
+            if not item_name:
+                return None
+
+            # Читаємо помісячні дані
+            monthly_amounts = {}
+            annual_total = 0
+
+            for month, column in month_columns.items():
+                amount = self._get_cell_value(worksheet, row_num, column)
+                try:
+                    amount = float(amount) if amount else 0.0
+                except (ValueError, TypeError):
+                    amount = 0.0
+
+                monthly_amounts[month] = amount
+                annual_total += amount
+
+            # Перевіряємо загальну суму з колонки "Разом"
+            total_from_file = self._get_cell_value(worksheet, row_num, self.total_column)
+            if total_from_file:
+                try:
+                    total_from_file = float(total_from_file)
+                    # Якщо є розбіжність, використовуємо суму з файлу
+                    if abs(annual_total - total_from_file) > 0.01:
+                        _logger.warning(f"Розбіжність у сумах для {item_name}: {annual_total} vs {total_from_file}")
+                        annual_total = total_from_file
+                except:
+                    pass
+
+            return {
+                'name': str(item_name).strip(),
+                'monthly_amounts': monthly_amounts,
+                'annual_total': annual_total,
+                'row_number': row_num
+            }
+
+        except Exception as e:
+            _logger.error(f"Помилка парсингу рядка {row_num}: {e}")
+            return None
+
     def _parse_bdr_excel(self):
         """Парсинг Excel файлу БДР"""
         if not OPENPYXL_AVAILABLE:
@@ -315,49 +435,7 @@ class BdrBudgetWizard(models.TransientModel):
         finally:
             file_stream.close()
 
-    def _parse_bdr_item(self, worksheet, row_num, month_columns):
-        """Парсинг одної позиції БДР"""
-        try:
-            item_name = self._get_cell_value(worksheet, row_num, self.item_column)
-            if not item_name:
-                return None
 
-            # Читаємо помісячні дані
-            monthly_amounts = {}
-            annual_total = 0
-
-            for month, column in month_columns.items():
-                amount = self._get_cell_value(worksheet, row_num, column)
-                try:
-                    amount = float(amount) if amount else 0.0
-                except (ValueError, TypeError):
-                    amount = 0.0
-
-                monthly_amounts[month] = amount
-                annual_total += amount
-
-            # Перевіряємо загальну суму з колонки "Разом"
-            total_from_file = self._get_cell_value(worksheet, row_num, self.total_column)
-            if total_from_file:
-                try:
-                    total_from_file = float(total_from_file)
-                    # Якщо є розбіжність, використовуємо суму з файлу
-                    if abs(annual_total - total_from_file) > 0.01:
-                        _logger.warning(f"Розбіжність у сумах для {item_name}: {annual_total} vs {total_from_file}")
-                        annual_total = total_from_file
-                except:
-                    pass
-
-            return {
-                'name': str(item_name).strip(),
-                'monthly_amounts': monthly_amounts,
-                'annual_total': annual_total,
-                'row_number': row_num
-            }
-
-        except Exception as e:
-            _logger.error(f"Помилка парсингу рядка {row_num}: {e}")
-            return None
 
     def _is_section_header(self, text):
         """Визначення чи є текст заголовком розділу БДР"""

@@ -127,7 +127,7 @@
                                     <div class="card-body">
                                         <h6>📈 Показники рентабельності:</h6>
                                         <p invisible="total_income == 0">
-                                            Маржа: <span t-esc="round((net_profit / total_income) * 100, 2) if total_income != 0 else 0"/>%
+                                            Маржа: <field name="profit_margin" readonly="1" nolabel="1"/>%
                                         </p>
                                     </div>
                                 </div>
@@ -402,7 +402,7 @@ for period in periods:
     <!-- Menuitem для Dashboard -->
     <menuitem id="menu_bdr_dashboard"
               name="📊 Dashboard БДР"
-              parent="menu_budget_main"
+              parent="menu_budget_root"
               action="action_bdr_dashboard"
               sequence="15"/>
 
@@ -450,24 +450,20 @@ for period in periods:
     </record>
 
     <!-- Automation для відправки повідомлень -->
-    <record id="automation_bdr_imported" model="base.automation">
-        <field name="name">Повідомлення про імпорт БДР</field>
+    <record id="action_notify_bdr_imported" model="ir.actions.server">
+        <field name="name">Повідомити про імпорт БДР</field>
         <field name="model_id" ref="model_budget_plan"/>
-        <field name="trigger">on_create</field>
-        <field name="filter_domain">[('notes', 'ilike', 'Імпортовано з БДР')]</field>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">form</field>
         <field name="state">code</field>
         <field name="code">
-# Відправка email про успішний імпорт БДР
-template = env.ref('budget_management.email_template_bdr_imported')
-template.send_mail(record.id, force_send=True)
-
-# Логування в Chatter
-record.message_post(
-    body="🎯 БДР успішно імпортовано! Створено %d позицій бюджету." % len(record.line_ids),
-    subject="БДР імпортовано"
-)
+    if records.filtered(lambda r: 'Імпортовано з БДР' in (r.notes or '')):
+        for record in records:
+            record.message_post(
+                body="🎯 БДР успішно імпортовано! Створено %d позицій бюджету." % len(record.line_ids),
+                subject="БДР імпортовано"
+            )
         </field>
-        <field name="active">True</field>
     </record>
 
 </odoo>

@@ -9,26 +9,27 @@ class BudgetCategory(models.Model):
     _name = 'budget.category'
     _description = 'Категорія бюджетних витрат'
     _order = 'sequence, code, name'
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
-    name = fields.Char('Назва категорії', required=True)
-    code = fields.Char('Код', required=True, size=20)
-    description = fields.Text('Опис')
+    name = fields.Char('Назва категорії', required=True, tracking=True)
+    code = fields.Char('Код', required=True, size=20, tracking=True)
+    description = fields.Text('Опис', tracking=True)
 
     # Ієрархія категорій
-    parent_id = fields.Many2one('budget.category', 'Батьківська категорія')
-    child_ids = fields.One2many('budget.category', 'parent_id', 'Підкategorії')
+    parent_id = fields.Many2one('budget.category', 'Батьківська категорія', tracking=True)
+    child_ids = fields.One2many('budget.category', 'parent_id', 'Підкategорії')
 
     # Прив'язка до типів бюджетів
-    budget_type_ids = fields.Many2many('budget.type', string='Типи бюджетів')
+    budget_type_ids = fields.Many2many('budget.type', string='Типи бюджетів', tracking=True)
 
     # Налаштування
     sequence = fields.Integer('Послідовність', default=10)
-    active = fields.Boolean('Активна', default=True)
+    active = fields.Boolean('Активна', default=True, tracking=True)
     company_id = fields.Many2one('res.company', 'Підприємство',
-                                 default=lambda self: self.env.company)
+                                 default=lambda self: self.env.company, tracking=True)
 
     # Опціональне зопоставлення з обліковими рахунками
-    default_account_id = fields.Many2one('account.account', 'Рахунок за замовчуванням')
+    default_account_id = fields.Many2one('account.account', 'Рахунок за замовчуванням', tracking=True)
     account_mapping_ids = fields.One2many('budget.category.account.mapping',
                                           'category_id', 'Зопоставлення рахунків')
 

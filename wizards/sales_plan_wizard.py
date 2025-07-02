@@ -196,7 +196,7 @@ class SalesPlanWizard(models.TransientModel):
         previous_period = self.env['budget.period'].search([
             ('company_id', '=', self.company_id.id),
             ('date_end', '<', self.period_id.date_start),
-            ('state', 'in', ['planning', 'execution', 'closed'])
+            ('state', 'in', ['planning', 'approved', 'closed'])
         ], order='date_end desc', limit=1)
 
         return previous_period
