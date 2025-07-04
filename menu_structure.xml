@@ -1,0 +1,293 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- menu_structure.xml - БАЗОВА СТРУКТУРА МЕНЮ -->
+    <!-- Цей файл завантажується першим і містить тільки структуру без actions -->
+
+    <!-- Головне меню бюджетування -->
+    <menuitem id="menu_budget_root"
+              name="Бюджетування"
+              sequence="45"
+              groups="budget.group_budget_user"
+              web_icon="budget,static/descriptions/icon.png"/>
+
+    <!-- ========== ПЛАНУВАННЯ ========== -->
+    <menuitem id="menu_budget_planning"
+              name="Планування"
+              parent="menu_budget_root"
+              sequence="10"/>
+
+    <!-- Прогнози продажів -->
+    <menuitem id="menu_sale_forecast_root"
+              name="Прогнози продажів"
+              parent="menu_budget_planning"
+              sequence="5"/>
+
+    <menuitem id="menu_sale_forecast"
+              name="Всі прогнози"
+              parent="menu_sale_forecast_root"
+              sequence="10"/>
+
+    <menuitem id="menu_sale_forecast_my"
+              name="Мої прогнози"
+              parent="menu_sale_forecast_root"
+              sequence="20"/>
+
+    <menuitem id="menu_sale_forecast_teams"
+              name="По командах"
+              parent="menu_sale_forecast_root"
+              sequence="30"/>
+
+    <menuitem id="menu_sale_forecast_templates"
+              name="Шаблони прогнозів"
+              parent="menu_sale_forecast_root"
+              sequence="40"/>
+
+    <menuitem id="menu_sales_plan_wizard"
+              name="Створити прогноз"
+              parent="menu_sale_forecast_root"
+              sequence="50"/>
+
+    <!-- Аналітика прогнозів -->
+    <menuitem id="menu_forecast_analytics"
+              name="Аналітика прогнозів"
+              parent="menu_sale_forecast_root"
+              sequence="60"/>
+
+    <menuitem id="menu_sales_project_dashboard"
+              name="По проектах"
+              parent="menu_forecast_analytics"
+              sequence="10"/>
+
+    <menuitem id="menu_sales_cbo_dashboard"
+              name="По ЦБО"
+              parent="menu_forecast_analytics"
+              sequence="20"/>
+
+    <!-- Команди продажів -->
+    <menuitem id="menu_budget_sales_teams"
+              name="Команди продажів"
+              parent="menu_budget_planning"
+              sequence="12"/>
+
+    <!-- Бюджети -->
+    <menuitem id="menu_budget_plan"
+              name="Всі бюджети"
+              parent="menu_budget_planning"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_plan_by_level"
+              name="За рівнями"
+              parent="menu_budget_planning"
+              sequence="25"/>
+
+    <menuitem id="menu_budget_plan_strategic"
+              name="Стратегічні"
+              parent="menu_budget_plan_by_level"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_plan_tactical"
+              name="Тактичні"
+              parent="menu_budget_plan_by_level"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_plan_operational"
+              name="Операційні"
+              parent="menu_budget_plan_by_level"
+              sequence="30"/>
+
+    <menuitem id="menu_budget_plan_functional"
+              name="Функціональні"
+              parent="menu_budget_plan_by_level"
+              sequence="40"/>
+
+    <!-- Швидкі дії планування -->
+    <menuitem id="menu_budget_from_template"
+              name="Створити з шаблону"
+              parent="menu_budget_planning"
+              sequence="27"/>
+
+    <menuitem id="menu_budget_import"
+              name="Імпорт з Excel"
+              parent="menu_budget_planning"
+              sequence="30"/>
+
+    <menuitem id="menu_investment_budget"
+              name="Інвестиційні бюджети"
+              parent="menu_budget_planning"
+              sequence="35"/>
+
+    <!-- ========== ВИКОНАННЯ ========== -->
+    <menuitem id="menu_budget_execution"
+              name="Виконання"
+              parent="menu_budget_root"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_execution_fact"
+              name="Фактичне виконання"
+              parent="menu_budget_execution"
+              sequence="10"/>
+
+    <menuitem id="menu_investment_projects"
+              name="Інвестиційні проекти"
+              parent="menu_budget_execution"
+              sequence="15"/>
+
+    <!-- ========== ЗВІТНІСТЬ ========== -->
+    <menuitem id="menu_budget_reports"
+              name="Звітність"
+              parent="menu_budget_root"
+              sequence="30"/>
+
+    <menuitem id="menu_budget_analysis"
+              name="Аналіз виконання"
+              parent="menu_budget_reports"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_summary_report"
+              name="Зведений звіт"
+              parent="menu_budget_reports"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_teams_dashboard"
+              name="Дашборд команд"
+              parent="menu_budget_reports"
+              sequence="25"/>
+
+    <!-- Аналіз категорій -->
+    <menuitem id="menu_budget_categories_analysis"
+              name="Аналіз по категоріях"
+              parent="menu_budget_reports"
+              sequence="40"/>
+
+    <menuitem id="menu_budget_analysis_by_categories"
+              name="Витрати по категоріях"
+              parent="menu_budget_categories_analysis"
+              sequence="10"/>
+
+    <menuitem id="menu_cost_centers_analysis"
+              name="По центрах витрат"
+              parent="menu_budget_categories_analysis"
+              sequence="20"/>
+
+    <menuitem id="menu_categories_budget_types_analysis"
+              name="Категорії по типах бюджетів"
+              parent="menu_budget_categories_analysis"
+              sequence="30"/>
+
+    <!-- Контроль якості -->
+    <menuitem id="menu_budget_quality_control"
+              name="Контроль якості"
+              parent="menu_budget_reports"
+              sequence="50"/>
+
+    <menuitem id="menu_budget_lines_without_categories"
+              name="Без категорій"
+              parent="menu_budget_quality_control"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_lines_without_accounts"
+              name="Без рахунків"
+              parent="menu_budget_quality_control"
+              sequence="20"/>
+
+    <!-- ========== НАЛАШТУВАННЯ ========== -->
+    <menuitem id="menu_budget_config"
+              name="Налаштування"
+              parent="menu_budget_root"
+              sequence="90"/>
+
+    <menuitem id="menu_responsibility_center"
+              name="ЦБО"
+              parent="menu_budget_config"
+              sequence="10"/>
+
+    <menuitem id="menu_budget_type"
+              name="Типи бюджетів"
+              parent="menu_budget_config"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_period"
+              name="Бюджетні періоди"
+              parent="menu_budget_config"
+              sequence="30"/>
+
+    <menuitem id="menu_budget_categories"
+              name="Категорії витрат"
+              parent="menu_budget_config"
+              sequence="40"/>
+
+    <menuitem id="menu_budget_template"
+              name="Шаблони бюджетів"
+              parent="menu_budget_config"
+              sequence="50"/>
+
+    <menuitem id="menu_budget_approval_config"
+              name="Налаштування затвердження"
+              parent="menu_budget_config"
+              sequence="60"/>
+
+    <menuitem id="menu_budget_integration"
+              name="Інтеграції"
+              parent="menu_budget_config"
+              sequence="70"/>
+
+    <menuitem id="menu_budget_access_rights"
+              name="Права доступу"
+              parent="menu_budget_config"
+              sequence="80"/>
+
+    <menuitem id="menu_organization_structure"
+          name="Структура організації"
+          parent="menu_budget_root"
+          sequence="5"/>
+
+    <!-- Основні пункти структури -->
+    <menuitem id="menu_tree_dashboard"
+              name="Дерево структури"
+              parent="menu_organization_structure"
+              sequence="10"/>
+
+    <menuitem id="menu_organization_tree"
+              name="ЦБО (дерево)"
+              parent="menu_organization_structure"
+              sequence="20"/>
+
+    <menuitem id="menu_budget_hierarchy"
+              name="Бюджети (дерево)"
+              parent="menu_organization_structure"
+              sequence="30"/>
+
+    <menuitem id="menu_combined_tree"
+              name="Комбінований вигляд"
+              parent="menu_organization_structure"
+              sequence="40"/>
+
+    <!-- Інструменти -->
+    <menuitem id="menu_tree_tools"
+              name="Інструменти дерева"
+              parent="menu_organization_structure"
+              sequence="50"/>
+
+    <menuitem id="menu_restructure_wizard"
+              name="Реструктуризація"
+              parent="menu_tree_tools"
+              sequence="10"/>
+
+    <menuitem id="menu_tree_optimization"
+              name="Оптимізація структури"
+              parent="menu_tree_tools"
+              sequence="20"/>
+
+    <menuitem id="menu_tree_export_import"
+              name="Експорт/Імпорт"
+              parent="menu_tree_tools"
+              sequence="30"/>
+
+    <menuitem id="menu_tree_analytics"
+              name="Аналітика структури"
+              parent="menu_tree_tools"
+              sequence="40"/>
+
+
+
+</odoo>

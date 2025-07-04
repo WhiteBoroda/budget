@@ -127,11 +127,6 @@
     </record>
 
     <!-- Меню для импорта -->
-    <menuitem id="menu_budget_import"
-              name="Імпорт з Excel"
-              parent="menu_budget_planning"
-              action="action_budget_import_wizard"
-              sequence="30"/>
 
     <!-- Server Action для быстрого импорта -->
     <record id="action_quick_import_budget" model="ir.actions.server">

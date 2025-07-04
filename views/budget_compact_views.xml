@@ -1,0 +1,242 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- КОМПАКТНІ ПРЕДСТАВЛЕННЯ ДЛЯ РОБОТИ З БЮДЖЕТАМИ -->
+
+    <!-- КОМПАКТНА ФОРМА БЮДЖЕТУ - МІНІМАЛЬНА ШАПКА -->
+    <record id="view_budget_plan_compact_form" model="ir.ui.view">
+        <field name="name">budget.plan.compact.form</field>
+        <field name="model">budget.plan</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form>
+                <!-- МІНІМАЛЬНА ШАПКА В ОДНУ ЛІНІЮ -->
+                <header>
+                    <button name="action_submit_for_approval" string="Відправити на затвердження"
+                            type="object" states="draft,planning" class="btn-primary"/>
+                    <button name="action_approve" string="Затвердити"
+                            type="object" states="review" class="btn-success"
+                            groups="budget.group_budget_manager"/>
+                    <button name="action_copy_from_previous_period" string="📋 Копіювати з попереднього періоду"
+                            type="object" states="draft,planning" class="btn-secondary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+
+                <sheet>
+                    <!-- КОМПАКТНА ШАПКА У 2 РЯДКИ -->
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" placeholder="Назва бюджету..."/>
+                        </h1>
+                    </div>
+
+                    <!-- БАЗОВІ ПОЛЯ В 1 РЯДОК -->
+                    <group col="6" class="o_group_compact">
+                        <field name="period_id" options="{'no_create': True}"/>
+                        <field name="budget_type_id" options="{'no_create': True}"/>
+                        <field name="cbo_id" options="{'no_create': True}"/>
+                        <field name="responsible_user_id"/>
+                        <field name="consolidation_level" readonly="1"/>
+                        <field name="is_consolidated" readonly="1"/>
+                    </group>
+
+                    <!-- ШВИДКІ ДІЇ -->
+                    <div class="alert alert-info" style="margin: 10px 0;">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <button name="action_copy_from_previous_period"
+                                        string="📋 Копіювати з попереднього"
+                                        type="object" class="btn btn-sm btn-outline-primary w-100"/>
+                            </div>
+                            <div class="col-md-3">
+                                <button name="action_consolidate_up"
+                                        string="⬆️ Консолідувати вгору"
+                                        type="object" class="btn btn-sm btn-outline-info w-100"
+                                        attrs="{'invisible': [('parent_budget_id', '=', False)]}"/>
+                            </div>
+                            <div class="col-md-3">
+                                <button name="action_view_consolidated_structure"
+                                        string="🏗️ Структура консолідації"
+                                        type="object" class="btn btn-sm btn-outline-secondary w-100"/>
+                            </div>
+                            <div class="col-md-3">
+                                <field name="auto_consolidate" widget="boolean_toggle"/>
+                                <label for="auto_consolidate" string="Автоконсолідація"/>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ОСНОВНИЙ ПРОСТІР ДЛЯ ДАНИХ -->
+                    <notebook>
+                        <page string="💰 Планування бюджету" name="budget_lines">
+                            <!-- ШВИДКІ ФІЛЬТРИ НАД ТАБЛИЦЕЮ -->
+                            <div class="row mb-2">
+                                <div class="col-md-8">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary"
+                                                onclick="document.querySelector('.o_field_x2many_list_row_add a').click()">
+                                            ➕ Додати лінію
+                                        </button>
+                                        <button type="button" class="btn btn-sm btn-outline-info"
+                                                onclick="this.closest('form').querySelector('[data-field=line_ids] .o_list_view').classList.toggle('compact-mode')">
+                                            📊 Компактний режим
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <span class="badge badge-info float-right">
+                                        Загалом: <field name="total_planned_amount" readonly="1"/>
+                                    </span>
+                                </div>
+                            </div>
+
+                            <!-- ТАБЛИЦЯ ЛІНІЙ БЮДЖЕТУ -->
+                            <field name="line_ids"
+                                   widget="one2many_list"
+                                   mode="tree"
+                                   context="{'tree_view_ref': 'budget.view_budget_line_compact_tree', 'form_view_ref': 'budget.view_budget_line_quick_form'}">
+
+                                <!-- ВБУДОВАНА КОМПАКТНА ТАБЛИЦЯ -->
+                                <tree editable="bottom" decoration-info="is_consolidation" class="table-sm">
+                                    <!-- ОСНОВНІ ПОЛЯ В КОМПАКТНОМУ ВИГЛЯДІ -->
+                                    <field name="budget_category_id" string="Категорія"
+                                           width="200px" options="{'no_create': True}"/>
+                                    <field name="description" string="Опис" width="300px"/>
+                                    <field name="quantity" string="К-ть" width="70px"/>
+                                    <field name="unit_price" string="Ціна" width="100px"/>
+                                    <field name="planned_amount" string="💰 Сума" width="120px" sum="Разом"/>
+
+                                    <!-- ДОДАТКОВІ ПОЛЯ (МОЖНА СХОВАТИ) -->
+                                    <field name="cost_center_id" string="ЦВ" width="120px" optional="hide"
+                                           options="{'no_create': True}"/>
+                                    <field name="actual_amount" string="✅ Факт" width="100px" optional="hide"/>
+                                    <field name="account_id" string="Рахунок" width="100px" optional="hide"
+                                           groups="account.group_account_user" readonly="1"/>
+
+                                    <!-- СЛУЖБОВІ ПОЛЯ -->
+                                    <field name="is_consolidation" invisible="1"/>
+                                </tree>
+                            </field>
+                        </page>
+
+                        <!-- ДОДАТКОВІ ВКЛАДКИ ЗГОРНУТІ ДО МІНІМУМУ -->
+                        <page string="📊 Аналітика" name="analytics" attrs="{'invisible': [('state', 'in', ['draft', 'planning'])]}">
+                            <group>
+                                <group string="Виконання бюджету">
+                                    <field name="total_planned_amount" readonly="1"/>
+                                    <field name="total_committed_amount" readonly="1"/>
+                                    <field name="total_actual_amount" readonly="1"/>
+                                </group>
+                                <group string="Відхилення">
+                                    <field name="variance_amount" readonly="1"/>
+                                    <field name="variance_percentage" readonly="1"/>
+                                    <field name="execution_percentage" readonly="1"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="🏗️ Консолідація" name="consolidation"
+                              attrs="{'invisible': [('consolidation_level', '=', 'site')]}">
+                            <group>
+                                <group string="Структура">
+                                    <field name="parent_budget_id" readonly="1"/>
+                                    <field name="child_budget_ids" readonly="1" widget="many2many_tags"/>
+                                </group>
+                                <group string="Налаштування">
+                                    <field name="auto_consolidate"/>
+                                    <button name="action_consolidate_up" string="Консолідувати зараз"
+                                            type="object" class="btn-info"/>
+                                </group>
+                            </group>
+                        </page>
+
+                        <page string="📝 Примітки" name="notes">
+                            <field name="notes" placeholder="Додаткові коментарі до бюджету..."/>
+                        </page>
+                    </notebook>
+                </sheet>
+
+                <!-- ЧАТЕР -->
+                <div class="oe_chatter">
+                    <field name="message_follower_ids"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <!-- ШВИДКА ФОРМА ДЛЯ РЕДАГУВАННЯ ЛІНІЇ -->
+    <record id="view_budget_line_quick_form" model="ir.ui.view">
+        <field name="name">budget.plan.line.quick.form</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">25</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group col="4">
+                        <field name="budget_category_id" colspan="2"/>
+                        <field name="cost_center_id" colspan="2"/>
+                        <field name="description" colspan="4"/>
+                        <field name="quantity"/>
+                        <field name="unit_price"/>
+                        <field name="planned_amount" readonly="1"/>
+                        <field name="calculation_method"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- МАСОВИЙ РЕДАКТОР БЮДЖЕТНИХ ЛІНІЙ -->
+    <record id="view_budget_lines_mass_edit" model="ir.ui.view">
+        <field name="name">budget.lines.mass.edit</field>
+        <field name="model">budget.plan.line</field>
+        <field name="priority">30</field>
+        <field name="arch" type="xml">
+            <tree editable="top" multi_edit="1" class="table-sm">
+                <field name="plan_id" readonly="1"/>
+                <field name="budget_category_id" options="{'no_create': True}"/>
+                <field name="cost_center_id" options="{'no_create': True}"/>
+                <field name="description"/>
+                <field name="quantity"/>
+                <field name="unit_price"/>
+                <field name="planned_amount"/>
+                <field name="notes"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ДІЯ ДЛЯ КОМПАКТНОГО РЕЖИМУ -->
+    <record id="action_budget_plan_compact" model="ir.actions.act_window">
+        <field name="name">🏢 Планування бюджетів (компактно)</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('budget.view_budget_plan_tree')}),
+            (0, 0, {'view_mode': 'form', 'view_id': ref('view_budget_plan_compact_form')})]"/>
+        <field name="domain">[('is_consolidated', '=', False)]</field>
+        <field name="context">{
+            'default_state': 'draft',
+            'search_default_my_budgets': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть ваш перший бюджет!
+            </p>
+            <p>
+                Компактний режим для швидкого планування бюджетів.<br/>
+                Мінімальна шапка, максимум місця для даних.
+            </p>
+        </field>
+    </record>
+
+    <!-- ДІЯ ДЛЯ МАСОВОГО РЕДАГУВАННЯ ЛІНІЙ -->
+    <record id="action_budget_lines_mass_edit" model="ir.actions.act_window">
+        <field name="name">✏️ Масове редагування ліній</field>
+        <field name="res_model">budget.plan.line</field>
+        <field name="view_mode">tree</field>
+        <field name="view_id" ref="view_budget_lines_mass_edit"/>
+        <field name="target">current</field>
+    </record>
+
+</odoo>

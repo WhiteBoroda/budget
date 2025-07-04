@@ -433,39 +433,5 @@
     </record>
 
     <!-- Menu items для бюджетних планів -->
-    <menuitem id="menu_budget_plan"
-              name="Всі бюджети"
-              parent="menu_budget_planning"
-              action="action_budget_plan"
-              sequence="20"/>
-
-    <menuitem id="menu_budget_plan_by_level"
-              name="За рівнями"
-              parent="menu_budget_planning"
-              sequence="25"/>
-
-    <menuitem id="menu_budget_plan_strategic"
-              name="Стратегічні"
-              parent="menu_budget_plan_by_level"
-              action="action_budget_plan_strategic"
-              sequence="10"/>
-
-    <menuitem id="menu_budget_plan_tactical"
-              name="Тактичні"
-              parent="menu_budget_plan_by_level"
-              action="action_budget_plan_tactical"
-              sequence="20"/>
-
-    <menuitem id="menu_budget_plan_operational"
-              name="Операційні"
-              parent="menu_budget_plan_by_level"
-              action="action_budget_plan_operational"
-              sequence="30"/>
-
-    <menuitem id="menu_budget_plan_functional"
-              name="Функціональні"
-              parent="menu_budget_plan_by_level"
-              action="action_budget_plan_functional"
-              sequence="40"/>
 
 </odoo>

@@ -64,9 +64,5 @@
         <field name="context">{'default_user_id': uid}</field>
     </record>
 
-    <menuitem id="menu_budget_notification"
-              name="Сповіщення"
-              parent="menu_budget_root"
-              action="action_budget_notification"
-              sequence="95"/>
+
 </odoo>

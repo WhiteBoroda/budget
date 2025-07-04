@@ -65,9 +65,4 @@
         </field>
     </record>
 
-    <menuitem id="menu_budget_analysis"
-              name="Аналіз виконання"
-              parent="menu_budget_reports"
-              action="action_budget_analysis"
-              sequence="10"/>
 </odoo>

@@ -239,11 +239,4 @@
         </field>
     </record>
 
-    <!-- Меню для панели управления -->
-    <menuitem id="menu_budget_dashboard"
-              name="Панель управління"
-              parent="menu_budget_root"
-              action="action_budget_dashboard"
-              sequence="5"/>
-
 </odoo>

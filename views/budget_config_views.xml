@@ -117,11 +117,6 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="menu_responsibility_center"
-              name="ЦБО"
-              parent="menu_budget_config"
-              action="action_responsibility_center"
-              sequence="10"/>
 
     <!-- Типи бюджетів -->
     <record id="view_budget_type_tree" model="ir.ui.view">
@@ -198,11 +193,6 @@
         <field name="view_mode">tree,form</field>
     </record>
 
-    <menuitem id="menu_budget_type"
-              name="Типи бюджетів"
-              parent="menu_budget_config"
-              action="action_budget_type"
-              sequence="20"/>
 
     <!-- Бюджетні періоди -->
     <record id="view_budget_period_tree" model="ir.ui.view">
@@ -262,11 +252,6 @@
         </field>
     </record>
 
-    <menuitem id="menu_budget_period"
-              name="Бюджетні періоди"
-              parent="menu_budget_config"
-              action="action_budget_period"
-              sequence="30"/>
 
     <!-- Tree view валютных настроек -->
     <record id="view_budget_currency_setting_tree" model="ir.ui.view">
@@ -421,10 +406,5 @@
             </p>
         </field>
     </record>
-    <menuitem id="menu_budget_currency_setting"
-              name="Валютні налаштування"
-              parent="menu_budget_config"
-              action="action_budget_currency_setting"
-              sequence="40"/>
 
 </odoo>

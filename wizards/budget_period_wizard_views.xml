@@ -53,10 +53,5 @@
     </record>
 
     <!-- ЕДИНСТВЕННОЕ меню в конфигурации -->
-    <menuitem id="menu_budget_period_wizard"
-              name="Майстер періодів"
-              parent="menu_budget_config"
-              action="action_budget_period_wizard"
-              sequence="35"/>
 
 </odoo>

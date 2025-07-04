@@ -67,22 +67,6 @@
     </record>
 
     <!-- Меню для аналитики -->
-    <menuitem id="menu_forecast_analytics"
-              name="Аналітика прогнозів"
-              parent="menu_sale_forecast_root"
-              sequence="60"/>
-
-    <menuitem id="menu_sales_project_dashboard"
-              name="По проектах"
-              parent="menu_forecast_analytics"
-              action="action_sales_project_dashboard"
-              sequence="10"/>
-
-    <menuitem id="menu_sales_cbo_dashboard"
-              name="По ЦБО"
-              parent="menu_forecast_analytics"
-              action="action_sales_cbo_dashboard"
-              sequence="20"/>
 
     <!-- Дополнительные фильтры для команд продаж -->
     <record id="action_teams_with_forecasts" model="ir.actions.act_window">

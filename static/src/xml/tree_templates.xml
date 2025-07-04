@@ -1,0 +1,684 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<templates xml:space="preserve">
+
+    <!-- ОСНОВНИЙ ШАБЛОН ДЕРЕВА -->
+    <t t-name="budget.HierarchyTreeWidget" owl="1">
+        <div class="hierarchy-tree-widget" t-att-class="state.loading ? 'loading' : ''">
+            <div class="tree-header">
+                <h4>🌳 <t t-esc="props.title || 'Структура організації'"/></h4>
+                <div class="tree-controls">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            t-on-click="expandAll"
+                            title="Розгорнути все">
+                        ⬇️ Розгорнути все
+                    </button>
+                    <button class="btn btn-sm btn-outline-secondary"
+                            t-on-click="collapseAll"
+                            title="Згорнути все">
+                        ⬆️ Згорнути все
+                    </button>
+                    <button class="btn btn-sm btn-outline-primary"
+                            t-on-click="() => this.loadTreeData(true)"
+                            title="Оновити">
+                        🔄 Оновити
+                    </button>
+                </div>
+            </div>
+
+            <div class="tree-container" t-if="!state.loading">
+                <t t-foreach="state.treeData" t-as="node" t-key="node.id">
+                    <t t-call="budget.TreeNode">
+                        <t t-set="node" t-value="node"/>
+                        <t t-set="level" t-value="0"/>
+                    </t>
+                </t>
+
+                <div class="tree-empty" t-if="state.treeData.length === 0">
+                    <div class="empty-icon">🌳</div>
+                    <h3>Структура порожня</h3>
+                    <p>Додайте ЦБО для відображення дерева організації</p>
+                </div>
+            </div>
+
+            <div class="tree-loading" t-if="state.loading">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Завантаження структури...</p>
+            </div>
+        </div>
+    </t>
+
+    <!-- ШАБЛОН ВУЗЛА ДЕРЕВА -->
+    <t t-name="budget.TreeNode" owl="1">
+        <div class="tree-node"
+             t-att-class="{
+                 'selected': state.selectedNode === node.id,
+                 'has-children': node.hasChildren,
+                 'expanded': state.expandedNodes.has(node.id)
+             }"
+             t-att-data-level="level"
+             t-att-data-node-id="node.id">
+
+            <!-- Відступ для рівня -->
+            <div class="tree-indent" t-att-style="'width: ' + (level * 20) + 'px'"></div>
+
+            <!-- Кнопка розгортання -->
+            <div class="tree-toggle"
+                 t-att-class="{'has-children': node.hasChildren}"
+                 t-on-click="(ev) => this.toggleNode(node.id)">
+                <t t-if="node.hasChildren">
+                    <t t-if="state.expandedNodes.has(node.id)">▼</t>
+                    <t t-else="">▶</t>
+                </t>
+            </div>
+
+            <!-- Контент вузла -->
+            <div class="tree-content"
+                 t-att-class="{'selected': state.selectedNode === node.id}"
+                 t-on-click="(ev) => this.selectNode(node)"
+                 t-on-dblclick="(ev) => this.openNode(node)">
+
+                <!-- Іконка -->
+                <span class="tree-icon" t-esc="node.icon"/>
+
+                <!-- Назва -->
+                <span class="tree-label" t-esc="node.name"/>
+
+                <!-- Код -->
+                <span class="tree-code" t-if="node.code">(<t t-esc="node.code"/>)</span>
+
+                <!-- Індикатори -->
+                <span class="tree-indicators">
+                    <span class="budget-indicator" t-if="node.budget_count > 0">
+                        <t t-esc="node.budget_count"/> 📊
+                    </span>
+                    <span class="children-indicator" t-if="node.child_count > 0">
+                        <t t-esc="node.child_count"/> 🏢
+                    </span>
+                </span>
+            </div>
+
+            <!-- Дії -->
+            <div class="tree-actions">
+                <button class="btn-sm btn-outline-primary"
+                        t-if="node.budget_count > 0"
+                        t-on-click="(ev) => this.viewBudgets(node)"
+                        title="Переглянути бюджети">
+                    📊
+                </button>
+                <button class="btn-sm btn-outline-success"
+                        t-on-click="(ev) => this.createBudget(node)"
+                        title="Створити бюджет">
+                    ➕
+                </button>
+            </div>
+
+            <!-- Дочірні вузли -->
+            <div class="tree-children" t-if="state.expandedNodes.has(node.id) and node.children">
+                <t t-foreach="node.children" t-as="childNode" t-key="childNode.id">
+                    <t t-call="budget.TreeNode">
+                        <t t-set="node" t-value="childNode"/>
+                        <t t-set="level" t-value="level + 1"/>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- РОЗШИРЕНИЙ ШАБЛОН ДЕРЕВА -->
+    <t t-name="budget.AdvancedTreeWidget" owl="1">
+        <div class="advanced-tree-widget"
+             t-att-class="{
+                 'loading': state.loading,
+                 'drag-mode': state.isDragMode,
+                 'view-mode-cards': state.viewMode === 'cards'
+             }">
+
+            <!-- Панель інструментів -->
+            <div class="tree-toolbar">
+                <div class="toolbar-left">
+                    <!-- Пошук -->
+                    <div class="search-container">
+                        <input type="text"
+                               class="tree-search form-control form-control-sm"
+                               placeholder="🔍 Пошук в дереві..."
+                               t-model="state.searchQuery"
+                               t-on-input="searchDebounced"/>
+                        <i class="fa fa-search search-icon" t-if="!state.searchQuery"/>
+                        <i class="fa fa-times search-clear"
+                           t-if="state.searchQuery"
+                           t-on-click="() => { state.searchQuery = ''; this._performSearch(); }"/>
+                    </div>
+
+                    <!-- Фільтри -->
+                    <div class="filter-container">
+                        <select class="form-control form-control-sm"
+                                t-model="state.filterType"
+                                t-on-change="() => this._performSearch()">
+                            <option value="all">Всі ЦБО</option>
+                            <option value="with_budgets">З бюджетами</option>
+                            <option value="without_budgets">Без бюджетів</option>
+                            <option value="holding">Холдинги</option>
+                            <option value="enterprise">Підприємства</option>
+                            <option value="department">Департаменти</option>
+                        </select>
+                    </div>
+
+                    <!-- Режим відображення -->
+                    <div class="view-mode-selector btn-group">
+                        <button class="btn btn-sm"
+                                t-att-class="state.viewMode === 'tree' ? 'btn-primary' : 'btn-outline-primary'"
+                                t-on-click="() => this.setViewMode('tree')">
+                            🌳
+                        </button>
+                        <button class="btn btn-sm"
+                                t-att-class="state.viewMode === 'cards' ? 'btn-primary' : 'btn-outline-primary'"
+                                t-on-click="() => this.setViewMode('cards')">
+                            🎴
+                        </button>
+                        <button class="btn btn-sm"
+                                t-att-class="state.viewMode === 'compact' ? 'btn-primary' : 'btn-outline-primary'"
+                                t-on-click="() => this.setViewMode('compact')">
+                            📄
+                        </button>
+                    </div>
+                </div>
+
+                <div class="toolbar-right">
+                    <!-- Статистика -->
+                    <div class="tree-stats">
+                        <span class="stat-item">
+                            <i class="fa fa-sitemap"/>
+                            <t t-esc="this._getTotalNodes()"/>
+                        </span>
+                        <span class="stat-item" t-if="state.selectedNodes.size > 0">
+                            <i class="fa fa-check-square"/>
+                            <t t-esc="state.selectedNodes.size"/>
+                        </span>
+                    </div>
+
+                    <!-- Дії -->
+                    <div class="tree-actions-group btn-group">
+                        <button class="btn btn-sm btn-outline-secondary"
+                                t-on-click="expandAll"
+                                title="Розгорнути все">
+                            <i class="fa fa-expand"/>
+                        </button>
+                        <button class="btn btn-sm btn-outline-secondary"
+                                t-on-click="collapseAll"
+                                title="Згорнути все">
+                            <i class="fa fa-compress"/>
+                        </button>
+                        <button class="btn btn-sm btn-outline-primary"
+                                t-on-click="() => this.loadTreeData(true)"
+                                title="Оновити">
+                            <i class="fa fa-refresh"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Контейнер дерева -->
+            <div class="tree-container"
+                 t-ref="tree-container"
+                 t-if="!state.loading">
+
+                <!-- Дерево -->
+                <div class="tree-content" t-if="state.viewMode === 'tree'">
+                    <t t-foreach="state.treeData" t-as="node" t-key="node.id">
+                        <t t-call="budget.AdvancedTreeNode">
+                            <t t-set="node" t-value="node"/>
+                            <t t-set="level" t-value="0"/>
+                        </t>
+                    </t>
+                </div>
+
+                <!-- Режим карток -->
+                <div class="cards-content" t-if="state.viewMode === 'cards'">
+                    <div class="row">
+                        <t t-foreach="state.treeData" t-as="node" t-key="node.id">
+                            <t t-call="budget.TreeNodeCard">
+                                <t t-set="node" t-value="node"/>
+                            </t>
+                        </t>
+                    </div>
+                </div>
+
+                <!-- Компактний режим -->
+                <div class="compact-content" t-if="state.viewMode === 'compact'">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Назва</th>
+                                <th>Тип</th>
+                                <th>Бюджетів</th>
+                                <th>Підрозділів</th>
+                                <th>Відповідальний</th>
+                                <th>Дії</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="this._getFlattenedNodes()" t-as="node" t-key="node.id">
+                                <t t-call="budget.TreeNodeRow">
+                                    <t t-set="node" t-value="node"/>
+                                </t>
+                            </t>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Порожній стан -->
+                <div class="tree-empty-state" t-if="state.treeData.length === 0">
+                    <div class="empty-content">
+                        <div class="empty-icon">🌳</div>
+                        <h3>Структура порожня</h3>
+                        <p t-if="state.searchQuery">Нічого не знайдено за запитом "<t t-esc="state.searchQuery"/>"</p>
+                        <p t-else="">Додайте ЦБО для відображення дерева організації</p>
+                        <button class="btn btn-primary"
+                                t-if="!state.searchQuery"
+                                t-on-click="_createRootNode">
+                            ➕ Створити перше ЦБО
+                        </button>
+                        <button class="btn btn-secondary"
+                                t-if="state.searchQuery"
+                                t-on-click="() => { state.searchQuery = ''; this._performSearch(); }">
+                            🔍 Очистити пошук
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Завантаження -->
+            <div class="tree-loading" t-if="state.loading">
+                <div class="loading-content">
+                    <i class="fa fa-spinner fa-spin fa-3x"></i>
+                    <h4>Завантаження структури...</h4>
+                    <p>Підготовка дерева організації</p>
+                </div>
+            </div>
+
+            <!-- Контекстне меню -->
+            <div class="context-menu"
+                 t-if="state.showContextMenu"
+                 t-att-style="'left: ' + state.contextMenuPosition.x + 'px; top: ' + state.contextMenuPosition.y + 'px'">
+                <t t-call="budget.ContextMenu">
+                    <t t-set="node" t-value="state.contextMenuNode"/>
+                </t>
+            </div>
+
+            <!-- Overlay для drag & drop -->
+            <div class="drag-overlay" t-if="state.isDragMode">
+                <div class="drag-instruction">
+                    🎯 Перетягніть для зміни структури
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- РОЗШИРЕНИЙ ВУЗОЛ ДЕРЕВА -->
+    <t t-name="budget.AdvancedTreeNode" owl="1">
+        <div class="tree-node advanced"
+             t-att-class="{
+                 'selected': state.selectedNodes.has(node.id),
+                 'has-children': node.hasChildren,
+                 'expanded': state.expandedNodes.has(node.id),
+                 'draggable': settings.enableDragDrop,
+                 'drag-over': state.dragOverNode === node.id
+             }"
+             t-att-data-level="level"
+             t-att-data-node-id="node.id"
+             t-att-draggable="settings.enableDragDrop"
+             t-on-click="(ev) => this.selectNode(node.id, ev.ctrlKey)"
+             t-on-dblclick="(ev) => this._openNodeForm(node)"
+             t-on-contextmenu="(ev) => this.showContextMenu(ev, node.id)"
+             t-on-dragstart="(ev) => this._handleDragStart(ev)"
+             t-on-dragover="(ev) => this._handleDragOver(ev)"
+             t-on-drop="(ev) => this._handleDrop(ev)">
+
+            <!-- Лінія зв'язку -->
+            <div class="tree-line" t-if="level > 0"></div>
+
+            <!-- Контент вузла -->
+            <div class="node-content" t-att-style="'padding-left: ' + (level * 24) + 'px'">
+                <!-- Кнопка розгортання -->
+                <span class="node-toggle"
+                      t-att-class="{'has-children': node.hasChildren, 'expanded': state.expandedNodes.has(node.id)}"
+                      t-on-click.stop="(ev) => this.toggleNode(node.id)">
+                    <i t-if="!node.hasChildren" class="fa fa-circle-o"/>
+                    <i t-elif="state.expandedNodes.has(node.id)" class="fa fa-minus-square-o"/>
+                    <i t-else="" class="fa fa-plus-square-o"/>
+                </span>
+
+                <!-- Іконка та назва -->
+                <div class="node-main">
+                    <span class="node-icon"
+                          t-att-style="node.tree_color ? 'color: ' + node.tree_color : ''">
+                        <t t-esc="node.icon"/>
+                    </span>
+
+                    <span class="node-label" t-esc="node.name"/>
+
+                    <span class="node-code" t-if="node.code">
+                        (<t t-esc="node.code"/>)
+                    </span>
+
+                    <!-- Badges -->
+                    <div class="node-badges">
+                        <span class="badge badge-info" t-if="node.budget_count > 0">
+                            <t t-esc="node.budget_count"/> 📊
+                        </span>
+                        <span class="badge badge-secondary" t-if="node.child_count > 0">
+                            <t t-esc="node.child_count"/> 🏢
+                        </span>
+                        <span class="badge badge-success" t-if="node.performance_score > 80">
+                            ⭐ <t t-esc="Math.round(node.performance_score)"/>%
+                        </span>
+                        <span class="badge badge-warning" t-if="node.performance_score &lt; 50 and node.performance_score > 0">
+                            ⚠️ <t t-esc="Math.round(node.performance_score)"/>%
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Дії -->
+                <div class="node-actions">
+                    <div class="btn-group btn-group-sm">
+                        <button class="btn btn-outline-primary"
+                                t-if="node.budget_count > 0"
+                                t-on-click.stop="(ev) => this._viewBudgets(node)"
+                                title="Переглянути бюджети">
+                            <i class="fa fa-chart-bar"/>
+                        </button>
+                        <button class="btn btn-outline-success"
+                                t-on-click.stop="(ev) => this._createBudget(node)"
+                                title="Створити бюджет">
+                            <i class="fa fa-plus"/>
+                        </button>
+                        <button class="btn btn-outline-info"
+                                t-on-click.stop="(ev) => this._createChildNode(node)"
+                                title="Додати підрозділ">
+                            <i class="fa fa-sitemap"/>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Прогрес бар для виконання бюджету -->
+            <div class="node-progress" t-if="node.budget_utilization > 0">
+                <div class="progress progress-sm">
+                    <div class="progress-bar"
+                         t-att-class="{
+                             'bg-success': node.budget_utilization >= 80,
+                             'bg-warning': node.budget_utilization >= 50 and node.budget_utilization &lt; 80,
+                             'bg-danger': node.budget_utilization &lt; 50
+                         }"
+                         t-att-style="'width: ' + node.budget_utilization + '%'"
+                         t-att-title="'Використання бюджету: ' + node.budget_utilization + '%'">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Дочірні вузли -->
+            <div class="tree-children"
+                 t-if="state.expandedNodes.has(node.id) and node.children and node.children.length > 0">
+                <t t-foreach="node.children" t-as="childNode" t-key="childNode.id">
+                    <t t-call="budget.AdvancedTreeNode">
+                        <t t-set="node" t-value="childNode"/>
+                        <t t-set="level" t-value="level + 1"/>
+                    </t>
+                </t>
+            </div>
+        </div>
+    </t>
+
+    <!-- КАРТКА ВУЗЛА -->
+    <t t-name="budget.TreeNodeCard" owl="1">
+        <div class="col-md-4 col-lg-3 mb-3">
+            <div class="card tree-node-card"
+                 t-att-class="{'selected': state.selectedNodes.has(node.id)}"
+                 t-on-click="(ev) => this.selectNode(node.id, ev.ctrlKey)"
+                 t-on-dblclick="(ev) => this._openNodeForm(node)">
+
+                <!-- Заголовок картки -->
+                <div class="card-header">
+                    <h6 class="card-title mb-0">
+                        <span class="node-icon" t-esc="node.icon"/>
+                        <t t-esc="node.name"/>
+                    </h6>
+                    <span class="badge"
+                          t-att-class="{
+                              'badge-purple': node.cbo_type === 'holding',
+                              'badge-primary': node.cbo_type === 'enterprise',
+                              'badge-info': node.cbo_type === 'department',
+                              'badge-secondary': true
+                          }">
+                        <t t-esc="node.cbo_type"/>
+                    </span>
+                </div>
+
+                <!-- Контент картки -->
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6">
+                            <div class="metric">
+                                <div class="metric-value text-primary">
+                                    <t t-esc="node.budget_count"/>
+                                </div>
+                                <div class="metric-label">Бюджетів</div>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="metric">
+                                <div class="metric-value text-info">
+                                    <t t-esc="node.child_count"/>
+                                </div>
+                                <div class="metric-label">Підрозділів</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Прогрес -->
+                    <div class="mt-3" t-if="node.performance_score > 0">
+                        <small class="text-muted">Ефективність:</small>
+                        <div class="progress progress-sm">
+                            <div class="progress-bar"
+                                 t-att-class="{
+                                     'bg-success': node.performance_score >= 80,
+                                     'bg-warning': node.performance_score >= 50,
+                                     'bg-danger': node.performance_score &lt; 50
+                                 }"
+                                 t-att-style="'width: ' + node.performance_score + '%'">
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            <t t-esc="Math.round(node.performance_score)"/>%
+                        </small>
+                    </div>
+
+                    <!-- Відповідальний -->
+                    <div class="mt-2" t-if="node.responsible_user_name">
+                        <small class="text-muted">
+                            👤 <t t-esc="node.responsible_user_name"/>
+                        </small>
+                    </div>
+                </div>
+
+                <!-- Дії картки -->
+                <div class="card-footer">
+                    <div class="btn-group btn-group-sm w-100">
+                        <button class="btn btn-outline-primary"
+                                t-if="node.budget_count > 0"
+                                t-on-click.stop="(ev) => this._viewBudgets(node)">
+                            📊 Бюджети
+                        </button>
+                        <button class="btn btn-outline-success"
+                                t-on-click.stop="(ev) => this._createBudget(node)">
+                            ➕ Бюджет
+                        </button>
+                        <button class="btn btn-outline-info"
+                                t-on-click.stop="(ev) => this._createChildNode(node)">
+                            🏢 Підрозділ
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+    <!-- РЯДОК ТАБЛИЦІ -->
+    <t t-name="budget.TreeNodeRow" owl="1">
+        <tr class="tree-node-row"
+            t-att-class="{'selected': state.selectedNodes.has(node.id)}"
+            t-on-click="(ev) => this.selectNode(node.id, ev.ctrlKey)"
+            t-on-dblclick="(ev) => this._openNodeForm(node)">
+
+            <td>
+                <span t-att-style="'padding-left: ' + (node.depth_level * 16) + 'px'">
+                    <span class="node-icon" t-esc="node.icon"/>
+                    <t t-esc="node.name"/>
+                    <small class="text-muted" t-if="node.code">
+                        (<t t-esc="node.code"/>)
+                    </small>
+                </span>
+            </td>
+
+            <td>
+                <span class="badge"
+                      t-att-class="{
+                          'badge-purple': node.cbo_type === 'holding',
+                          'badge-primary': node.cbo_type === 'enterprise',
+                          'badge-info': node.cbo_type === 'department',
+                          'badge-secondary': true
+                      }">
+                    <t t-esc="node.cbo_type"/>
+                </span>
+            </td>
+
+            <td class="text-center">
+                <span class="badge badge-info" t-if="node.budget_count > 0">
+                    <t t-esc="node.budget_count"/>
+                </span>
+                <span class="text-muted" t-else="">-</span>
+            </td>
+
+            <td class="text-center">
+                <span class="badge badge-secondary" t-if="node.child_count > 0">
+                    <t t-esc="node.child_count"/>
+                </span>
+                <span class="text-muted" t-else="">-</span>
+            </td>
+
+            <td>
+                <small t-if="node.responsible_user_name">
+                    👤 <t t-esc="node.responsible_user_name"/>
+                </small>
+                <span class="text-muted" t-else="">-</span>
+            </td>
+
+            <td>
+                <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary"
+                            t-if="node.budget_count > 0"
+                            t-on-click.stop="(ev) => this._viewBudgets(node)"
+                            title="Бюджети">
+                        📊
+                    </button>
+                    <button class="btn btn-outline-success"
+                            t-on-click.stop="(ev) => this._createBudget(node)"
+                            title="Створити бюджет">
+                        ➕
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </t>
+
+    <!-- КОНТЕКСТНЕ МЕНЮ -->
+    <t t-name="budget.ContextMenu" owl="1">
+        <div class="context-menu-content">
+            <div class="context-menu-header">
+                <strong><t t-esc="node.name"/></strong>
+                <small class="text-muted d-block"><t t-esc="node.code"/></small>
+            </div>
+
+            <div class="context-menu-separator"></div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('view')">
+                <i class="fa fa-eye"/> Переглянути
+            </div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('edit')">
+                <i class="fa fa-edit"/> Редагувати
+            </div>
+
+            <div class="context-menu-separator"></div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('create_child')">
+                <i class="fa fa-plus"/> Додати підрозділ
+            </div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('create_budget')">
+                <i class="fa fa-chart-bar"/> Створити бюджет
+            </div>
+
+            <div class="context-menu-item"
+                 t-if="node.budget_count > 0"
+                 t-on-click="(ev) => this.contextMenuAction('view_budgets')">
+                <i class="fa fa-list"/> Переглянути бюджети (<t t-esc="node.budget_count"/>)
+            </div>
+
+            <div class="context-menu-separator"></div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('clone')">
+                <i class="fa fa-copy"/> Клонувати структуру
+            </div>
+
+            <div class="context-menu-item"
+                 t-on-click="(ev) => this.contextMenuAction('export')">
+                <i class="fa fa-download"/> Експорт
+            </div>
+
+            <div class="context-menu-separator"></div>
+
+            <div class="context-menu-item danger"
+                 t-on-click="(ev) => this.contextMenuAction('delete')">
+                <i class="fa fa-trash"/> Видалити
+            </div>
+        </div>
+    </t>
+
+    <!-- ШАБЛОН СТАТИСТИКИ -->
+    <t t-name="budget.TreeStats" owl="1">
+        <div class="tree-stats-widget">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">🏢</div>
+                    <div class="stat-value" t-esc="props.stats.total_nodes"/>
+                    <div class="stat-label">Загалом ЦБО</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-value" t-esc="props.stats.total_budgets"/>
+                    <div class="stat-label">Всього бюджетів</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-value" t-esc="props.stats.approved_budgets"/>
+                    <div class="stat-label">Затверджено</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📊</div>
+                    <div class="stat-value" t-esc="Math.round(props.stats.avg_performance)"/>%
+                    <div class="stat-label">Середня ефективність</div>
+                </div>
+            </div>
+        </div>
+    </t>
+
+</templates>

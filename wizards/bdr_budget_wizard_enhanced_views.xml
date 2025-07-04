@@ -163,11 +163,6 @@
     </record>
 
     <!-- Меню для покращеного майстра -->
-    <menuitem id="menu_bdr_budget_wizard_enhanced"
-              name="БДР з категоріями"
-              parent="menu_budget_planning"
-              action="action_bdr_budget_wizard_enhanced"
-              sequence="25"/>
 
     <!-- Швидкі дії -->
     <record id="action_bdr_import_with_categories" model="ir.actions.act_window">
@@ -195,28 +190,7 @@
     </record>
 
     <!-- Додаткові меню в розділі "Імпорт/Експорт" -->
-    <menuitem id="menu_budget_import_export"
-          name="Імпорт/Експорт"
-          parent="menu_budget_root"
-          sequence="80"/>
 
-    <menuitem id="menu_bdr_import_categories"
-              name="Імпорт категорій"
-              parent="menu_budget_import_export"
-              action="action_bdr_import_categories_only"
-              sequence="10"/>
-
-    <menuitem id="menu_bdr_import_with_categories"
-              name="Імпорт БДР з категоріями"
-              parent="menu_budget_import_export"
-              action="action_bdr_import_with_categories"
-              sequence="15"/>
-
-    <menuitem id="menu_bdr_export_with_categories"
-              name="Експорт БДР з категоріями"
-              parent="menu_budget_import_export"
-              action="action_bdr_export_with_categories"
-              sequence="20"/>
 
     <!-- Server Action для швидкого доступу з планів бюджету -->
     <record id="action_enhance_budget_with_categories" model="ir.actions.server">

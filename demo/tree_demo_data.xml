@@ -1,0 +1,416 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ДЕМО ДАНІ ДЛЯ ТЕСТУВАННЯ ДЕРЕВА СТРУКТУРИ -->
+    <data noupdate="1">
+
+        <!-- РІВЕНЬ 1: ХОЛДИНГ -->
+        <record id="demo_cbo_hlibodar_holding" model="budget.responsibility.center">
+            <field name="name">Холдинг Hlibodar</field>
+            <field name="code">HLBD</field>
+            <field name="cbo_type">holding</field>
+            <field name="budget_level">strategic</field>
+            <field name="sequence">10</field>
+            <field name="is_expanded_by_default" eval="True"/>
+            <field name="tree_icon_custom">🏛️</field>
+            <field name="tree_color">#6f42c1</field>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- РІВЕНЬ 2: КОМПАНІЇ -->
+        <record id="demo_cbo_hd_bakery_east" model="budget.responsibility.center">
+            <field name="name">HD Bakery East</field>
+            <field name="code">HDBE</field>
+            <field name="cbo_type">enterprise</field>
+            <field name="budget_level">tactical</field>
+            <field name="parent_id" ref="demo_cbo_hlibodar_holding"/>
+            <field name="sequence">20</field>
+            <field name="is_expanded_by_default" eval="True"/>
+            <field name="tree_icon_custom">🏭</field>
+            <field name="tree_color">#007bff</field>
+        </record>
+
+        <record id="demo_cbo_hd_bakery_west" model="budget.responsibility.center">
+            <field name="name">HD Bakery West</field>
+            <field name="code">HDBW</field>
+            <field name="cbo_type">enterprise</field>
+            <field name="budget_level">tactical</field>
+            <field name="parent_id" ref="demo_cbo_hlibodar_holding"/>
+            <field name="sequence">30</field>
+            <field name="tree_icon_custom">🏭</field>
+            <field name="tree_color">#007bff</field>
+        </record>
+
+        <record id="demo_cbo_hd_logistics" model="budget.responsibility.center">
+            <field name="name">HD Logistics</field>
+            <field name="code">HDLOG</field>
+            <field name="cbo_type">enterprise</field>
+            <field name="budget_level">tactical</field>
+            <field name="parent_id" ref="demo_cbo_hlibodar_holding"/>
+            <field name="sequence">40</field>
+            <field name="tree_icon_custom">🚚</field>
+            <field name="tree_color">#28a745</field>
+        </record>
+
+        <!-- РІВЕНЬ 3: ПЛОЩАДКИ HD BAKERY EAST -->
+        <record id="demo_cbo_hdbe_site1" model="budget.responsibility.center">
+            <field name="name">Площадка 1 (Київ)</field>
+            <field name="code">HDBE01</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_east"/>
+            <field name="sequence">21</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#17a2b8</field>
+            <field name="region">Київська область</field>
+        </record>
+
+        <record id="demo_cbo_hdbe_site2" model="budget.responsibility.center">
+            <field name="name">Площадка 2 (Харків)</field>
+            <field name="code">HDBE02</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_east"/>
+            <field name="sequence">22</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#17a2b8</field>
+            <field name="region">Харківська область</field>
+        </record>
+
+        <record id="demo_cbo_hdbe_site3" model="budget.responsibility.center">
+            <field name="name">Площадка 3 (Дніпро)</field>
+            <field name="code">HDBE03</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_east"/>
+            <field name="sequence">23</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#17a2b8</field>
+            <field name="region">Дніпропетровська область</field>
+        </record>
+
+        <record id="demo_cbo_hdbe_site4" model="budget.responsibility.center">
+            <field name="name">Площадка 4 (Запоріжжя)</field>
+            <field name="code">HDBE04</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_east"/>
+            <field name="sequence">24</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#17a2b8</field>
+            <field name="region">Запорізька область</field>
+        </record>
+
+        <!-- РІВЕНЬ 3: ПЛОЩАДКИ HD BAKERY WEST -->
+        <record id="demo_cbo_hdbw_site1" model="budget.responsibility.center">
+            <field name="name">Площадка 1 (Львів)</field>
+            <field name="code">HDBW01</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_west"/>
+            <field name="sequence">31</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#ffc107</field>
+            <field name="region">Львівська область</field>
+        </record>
+
+        <record id="demo_cbo_hdbw_site2" model="budget.responsibility.center">
+            <field name="name">Площадка 2 (Івано-Франківськ)</field>
+            <field name="code">HDBW02</field>
+            <field name="cbo_type">department</field>
+            <field name="budget_level">operational</field>
+            <field name="parent_id" ref="demo_cbo_hd_bakery_west"/>
+            <field name="sequence">32</field>
+            <field name="tree_icon_custom">🏪</field>
+            <field name="tree_color">#ffc107</field>
+            <field name="region">Івано-Франківська область</field>
+        </record>
+
+        <!-- РІВЕНЬ 4: ВІДДІЛИ НА ПЛОЩАДКАХ -->
+        <record id="demo_cbo_hdbe01_production" model="budget.responsibility.center">
+            <field name="name">Відділ виробництва</field>
+            <field name="code">HDBE01_PROD</field>
+            <field name="cbo_type">division</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site1"/>
+            <field name="sequence">211</field>
+            <field name="tree_icon_custom">⚙️</field>
+        </record>
+
+        <record id="demo_cbo_hdbe01_quality" model="budget.responsibility.center">
+            <field name="name">Відділ якості</field>
+            <field name="code">HDBE01_QC</field>
+            <field name="cbo_type">division</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site1"/>
+            <field name="sequence">212</field>
+            <field name="tree_icon_custom">🔍</field>
+        </record>
+
+        <record id="demo_cbo_hdbe01_sales" model="budget.responsibility.center">
+            <field name="name">Відділ продажів</field>
+            <field name="code">HDBE01_SALES</field>
+            <field name="cbo_type">division</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site1"/>
+            <field name="sequence">213</field>
+            <field name="tree_icon_custom">💼</field>
+        </record>
+
+        <record id="demo_cbo_hdbe01_admin" model="budget.responsibility.center">
+            <field name="name">Адміністрація</field>
+            <field name="code">HDBE01_ADM</field>
+            <field name="cbo_type">office</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site1"/>
+            <field name="sequence">214</field>
+            <field name="tree_icon_custom">👔</field>
+        </record>
+
+        <!-- РІВЕНЬ 4: ВІДДІЛИ НА ПЛОЩАДЦІ 2 -->
+        <record id="demo_cbo_hdbe02_production" model="budget.responsibility.center">
+            <field name="name">Відділ виробництва</field>
+            <field name="code">HDBE02_PROD</field>
+            <field name="cbo_type">division</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site2"/>
+            <field name="sequence">221</field>
+            <field name="tree_icon_custom">⚙️</field>
+        </record>
+
+        <record id="demo_cbo_hdbe02_warehouse" model="budget.responsibility.center">
+            <field name="name">Склад</field>
+            <field name="code">HDBE02_WH</field>
+            <field name="cbo_type">division</field>
+            <field name="budget_level">functional</field>
+            <field name="parent_id" ref="demo_cbo_hdbe_site2"/>
+            <field name="sequence">222</field>
+            <field name="tree_icon_custom">📦</field>
+        </record>
+
+        <!-- ДЕМО БЮДЖЕТНІ ПЕРІОДИ -->
+        <record id="demo_period_2025_q1" model="budget.period">
+            <field name="name">Q1 2025</field>
+            <field name="date_start">2025-01-01</field>
+            <field name="date_end">2025-03-31</field>
+            <field name="state">open</field>
+        </record>
+
+        <record id="demo_period_2025_q2" model="budget.period">
+            <field name="name">Q2 2025</field>
+            <field name="date_start">2025-04-01</field>
+            <field name="date_end">2025-06-30</field>
+            <field name="state">draft</field>
+        </record>
+
+        <!-- ДЕМО ТИПИ БЮДЖЕТІВ -->
+        <record id="demo_budget_type_operational" model="budget.type">
+            <field name="name">Операційний бюджет</field>
+            <field name="code">OPER</field>
+            <field name="budget_category">operational</field>
+            <field name="calculation_method">detailed</field>
+            <field name="approval_required" eval="True"/>
+        </record>
+
+        <record id="demo_budget_type_investment" model="budget.type">
+            <field name="name">Інвестиційний бюджет</field>
+            <field name="code">INVEST</field>
+            <field name="budget_category">investment</field>
+            <field name="calculation_method">project_based</field>
+            <field name="approval_required" eval="True"/>
+        </record>
+
+        <!-- ДЕМО БЮДЖЕТИ ДЛЯ ТЕСТУВАННЯ КОНСОЛІДАЦІЇ -->
+        <record id="demo_budget_hdbe01_oper_q1" model="budget.plan">
+            <field name="name">Операційний бюджет - Площадка 1 Київ - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hdbe_site1"/>
+            <field name="consolidation_level">site</field>
+            <field name="is_consolidated" eval="False"/>
+            <field name="state">approved</field>
+        </record>
+
+        <record id="demo_budget_hdbe02_oper_q1" model="budget.plan">
+            <field name="name">Операційний бюджет - Площадка 2 Харків - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hdbe_site2"/>
+            <field name="consolidation_level">site</field>
+            <field name="is_consolidated" eval="False"/>
+            <field name="state">approved</field>
+        </record>
+
+        <record id="demo_budget_hdbe03_oper_q1" model="budget.plan">
+            <field name="name">Операційний бюджет - Площадка 3 Дніпро - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hdbe_site3"/>
+            <field name="consolidation_level">site</field>
+            <field name="is_consolidated" eval="False"/>
+            <field name="state">planning</field>
+        </record>
+
+        <record id="demo_budget_hdbe04_oper_q1" model="budget.plan">
+            <field name="name">Операційний бюджет - Площадка 4 Запоріжжя - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hdbe_site4"/>
+            <field name="consolidation_level">site</field>
+            <field name="is_consolidated" eval="False"/>
+            <field name="state">draft</field>
+        </record>
+
+        <!-- КОНСОЛІДОВАНИЙ БЮДЖЕТ КОМПАНІЇ -->
+        <record id="demo_budget_hdbe_consolidated_q1" model="budget.plan">
+            <field name="name">Консолідований бюджет HD Bakery East - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hd_bakery_east"/>
+            <field name="consolidation_level">company</field>
+            <field name="is_consolidated" eval="True"/>
+            <field name="auto_consolidate" eval="True"/>
+            <field name="state">review</field>
+        </record>
+
+        <!-- КОНСОЛІДОВАНИЙ БЮДЖЕТ ХОЛДИНГУ -->
+        <record id="demo_budget_holding_consolidated_q1" model="budget.plan">
+            <field name="name">Консолідований бюджет Холдингу Hlibodar - Q1 2025</field>
+            <field name="period_id" ref="demo_period_2025_q1"/>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_id" ref="demo_cbo_hlibodar_holding"/>
+            <field name="consolidation_level">holding</field>
+            <field name="is_consolidated" eval="True"/>
+            <field name="auto_consolidate" eval="True"/>
+            <field name="state">draft</field>
+        </record>
+
+        <!-- НАЛАШТУВАННЯ БАТЬКІВСЬКИХ БЮДЖЕТІВ -->
+        <record id="demo_budget_hdbe01_oper_q1" model="budget.plan">
+            <field name="parent_budget_id" ref="demo_budget_hdbe_consolidated_q1"/>
+        </record>
+
+        <record id="demo_budget_hdbe02_oper_q1" model="budget.plan">
+            <field name="parent_budget_id" ref="demo_budget_hdbe_consolidated_q1"/>
+        </record>
+
+        <record id="demo_budget_hdbe03_oper_q1" model="budget.plan">
+            <field name="parent_budget_id" ref="demo_budget_hdbe_consolidated_q1"/>
+        </record>
+
+        <record id="demo_budget_hdbe04_oper_q1" model="budget.plan">
+            <field name="parent_budget_id" ref="demo_budget_hdbe_consolidated_q1"/>
+        </record>
+
+        <record id="demo_budget_hdbe_consolidated_q1" model="budget.plan">
+            <field name="parent_budget_id" ref="demo_budget_holding_consolidated_q1"/>
+        </record>
+
+        <!-- ДЕМО ЛІНІЇ БЮДЖЕТУ -->
+        <record id="demo_budget_line_hdbe01_salaries" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_hdbe01_oper_q1"/>
+            <field name="description">Заробітна плата персоналу</field>
+            <field name="planned_amount">2500000</field>
+            <field name="actual_amount">2350000</field>
+            <field name="quantity">45</field>
+            <field name="unit_price">55556</field>
+        </record>
+
+        <record id="demo_budget_line_hdbe01_materials" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_hdbe01_oper_q1"/>
+            <field name="description">Сировина та матеріали</field>
+            <field name="planned_amount">1800000</field>
+            <field name="actual_amount">1750000</field>
+            <field name="quantity">1000</field>
+            <field name="unit_price">1800</field>
+        </record>
+
+        <record id="demo_budget_line_hdbe01_utilities" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_hdbe01_oper_q1"/>
+            <field name="description">Комунальні послуги</field>
+            <field name="planned_amount">450000</field>
+            <field name="actual_amount">423000</field>
+            <field name="quantity">3</field>
+            <field name="unit_price">150000</field>
+        </record>
+
+        <record id="demo_budget_line_hdbe02_salaries" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_hdbe02_oper_q1"/>
+            <field name="description">Заробітна плата персоналу</field>
+            <field name="planned_amount">2200000</field>
+            <field name="actual_amount">2180000</field>
+            <field name="quantity">38</field>
+            <field name="unit_price">57895</field>
+        </record>
+
+        <record id="demo_budget_line_hdbe02_equipment" model="budget.plan.line">
+            <field name="plan_id" ref="demo_budget_hdbe02_oper_q1"/>
+            <field name="description">Обслуговування обладнання</field>
+            <field name="planned_amount">320000</field>
+            <field name="actual_amount">298000</field>
+            <field name="quantity">8</field>
+            <field name="unit_price">40000</field>
+        </record>
+
+        <!-- ДЕМО ШАБЛОН БЮДЖЕТУ -->
+        <record id="demo_budget_template_operational" model="budget.template">
+            <field name="name">Стандартний операційний бюджет площадки</field>
+            <field name="description">Типовий шаблон для операційного бюджету виробничої площадки</field>
+            <field name="budget_type_id" ref="demo_budget_type_operational"/>
+            <field name="cbo_type">department</field>
+            <field name="is_default" eval="True"/>
+            <field name="active" eval="True"/>
+        </record>
+
+        <!-- ЛІНІЇ ШАБЛОНУ -->
+        <record id="demo_template_line_salaries" model="budget.template.line">
+            <field name="template_id" ref="demo_budget_template_operational"/>
+            <field name="description">Заробітна плата основного персоналу</field>
+            <field name="default_quantity">40</field>
+            <field name="default_unit_price">55000</field>
+            <field name="calculation_method">quantity_based</field>
+            <field name="sequence">10</field>
+        </record>
+
+        <record id="demo_template_line_materials" model="budget.template.line">
+            <field name="template_id" ref="demo_budget_template_operational"/>
+            <field name="description">Сировина та основні матеріали</field>
+            <field name="default_quantity">1000</field>
+            <field name="default_unit_price">1800</field>
+            <field name="calculation_method">quantity_based</field>
+            <field name="sequence">20</field>
+        </record>
+
+        <record id="demo_template_line_utilities" model="budget.template.line">
+            <field name="template_id" ref="demo_budget_template_operational"/>
+            <field name="description">Комунальні платежі (електроенергія, газ, вода)</field>
+            <field name="default_quantity">3</field>
+            <field name="default_unit_price">150000</field>
+            <field name="calculation_method">fixed_amount</field>
+            <field name="sequence">30</field>
+        </record>
+
+        <record id="demo_template_line_maintenance" model="budget.template.line">
+            <field name="template_id" ref="demo_budget_template_operational"/>
+            <field name="description">Технічне обслуговування та ремонт</field>
+            <field name="default_quantity">1</field>
+            <field name="default_unit_price">300000</field>
+            <field name="calculation_method">percentage_based</field>
+            <field name="sequence">40</field>
+        </record>
+
+        <!-- НАЛАШТУВАННЯ ВІДПОВІДАЛЬНИХ КОРИСТУВАЧІВ -->
+        <record id="demo_cbo_hlibodar_holding" model="budget.responsibility.center">
+            <field name="responsible_user_id" ref="base.user_admin"/>
+            <field name="approver_user_id" ref="base.user_admin"/>
+        </record>
+
+        <record id="demo_cbo_hd_bakery_east" model="budget.responsibility.center">
+            <field name="responsible_user_id" ref="base.user_admin"/>
+            <field name="approver_user_id" ref="base.user_admin"/>
+        </record>
+
+        <!-- НАЛАШТУВАННЯ ПОСЛІДОВНОСТЕЙ ДЛЯ КРАСИВОГО ВІДОБРАЖЕННЯ -->
+        <function model="budget.responsibility.center" name="action_bulk_update_tree_positions"/>
+
+    </data>
+</odoo>

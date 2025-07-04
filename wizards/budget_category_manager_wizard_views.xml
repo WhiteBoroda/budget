@@ -159,11 +159,6 @@
     </record>
 
     <!-- Меню для майстра -->
-    <menuitem id="menu_budget_category_manager"
-              name="Управління категоріями"
-              parent="menu_budget_config"
-              action="action_budget_category_manager_wizard"
-              sequence="15"/>
 
     <!-- Server Action для швидкого створення категорії -->
     <record id="action_quick_create_category" model="ir.actions.server">

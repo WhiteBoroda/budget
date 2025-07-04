@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- menu_actions.xml - ПРИВ'ЯЗКА ДІЙ ДО МЕНЮ -->
+    <!-- Цей файл завантажується після всіх views і actions і прив'язує дії до меню -->
+
+    <!-- ========== ПРОГНОЗИ ПРОДАЖІВ ========== -->
+    <record id="menu_sale_forecast" model="ir.ui.menu">
+        <field name="action" ref="action_sale_forecast"/>
+    </record>
+
+    <record id="menu_sale_forecast_my" model="ir.ui.menu">
+        <field name="action" ref="action_sale_forecast_my"/>
+    </record>
+
+    <record id="menu_sale_forecast_teams" model="ir.ui.menu">
+        <field name="action" ref="action_sale_forecast_team"/>
+    </record>
+
+    <record id="menu_sale_forecast_templates" model="ir.ui.menu">
+        <field name="action" ref="action_sale_forecast_template"/>
+    </record>
+
+    <record id="menu_sales_plan_wizard" model="ir.ui.menu">
+        <field name="action" ref="action_sales_plan_wizard"/>
+    </record>
+
+    <!-- Аналітика прогнозів -->
+    <record id="menu_sales_project_dashboard" model="ir.ui.menu">
+        <field name="action" ref="action_sales_project_dashboard"/>
+    </record>
+
+    <record id="menu_sales_cbo_dashboard" model="ir.ui.menu">
+        <field name="action" ref="action_sales_cbo_dashboard"/>
+    </record>
+
+    <!-- ========== ПЛАНУВАННЯ ========== -->
+    <record id="menu_budget_sales_teams" model="ir.ui.menu">
+        <field name="action" ref="action_crm_teams_with_budget"/>
+    </record>
+
+    <record id="menu_budget_plan" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan"/>
+    </record>
+
+    <record id="menu_budget_plan_strategic" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan_strategic"/>
+    </record>
+
+    <record id="menu_budget_plan_tactical" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan_tactical"/>
+    </record>
+
+    <record id="menu_budget_plan_operational" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan_operational"/>
+    </record>
+
+    <record id="menu_budget_plan_functional" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan_functional"/>
+    </record>
+
+    <!-- Швидкі дії планування -->
+    <record id="menu_budget_from_template" model="ir.ui.menu">
+        <field name="action" ref="action_budget_template_wizard"/>
+    </record>
+
+    <record id="menu_budget_import" model="ir.ui.menu">
+        <field name="action" ref="action_budget_import_wizard"/>
+    </record>
+
+    <record id="menu_investment_budget" model="ir.ui.menu">
+        <field name="action" ref="action_investment_budget_wizard"/>
+    </record>
+
+    <!-- ========== ВИКОНАННЯ ========== -->
+    <record id="menu_budget_execution_fact" model="ir.ui.menu">
+        <field name="action" ref="action_budget_execution"/>
+    </record>
+
+    <record id="menu_investment_projects" model="ir.ui.menu">
+        <field name="action" ref="action_investment_projects"/>
+    </record>
+
+    <!-- ========== ЗВІТНІСТЬ ========== -->
+    <record id="menu_budget_analysis" model="ir.ui.menu">
+        <field name="action" ref="action_budget_analysis"/>
+    </record>
+
+    <record id="menu_budget_summary_report" model="ir.ui.menu">
+        <field name="action" ref="action_budget_summary_report"/>
+    </record>
+
+    <record id="menu_budget_teams_dashboard" model="ir.ui.menu">
+        <field name="action" ref="action_crm_teams_dashboard"/>
+    </record>
+
+    <!-- Аналіз категорій -->
+    <record id="menu_budget_analysis_by_categories" model="ir.ui.menu">
+        <field name="action" ref="action_budget_analysis_by_categories"/>
+    </record>
+
+    <record id="menu_cost_centers_analysis" model="ir.ui.menu">
+        <field name="action" ref="action_cost_centers_analysis"/>
+    </record>
+
+    <record id="menu_categories_budget_types_analysis" model="ir.ui.menu">
+        <field name="action" ref="action_categories_budget_types_analysis"/>
+    </record>
+
+    <!-- Контроль якості -->
+    <record id="menu_budget_lines_without_categories" model="ir.ui.menu">
+        <field name="action" ref="action_budget_lines_without_categories"/>
+    </record>
+
+    <record id="menu_budget_lines_without_accounts" model="ir.ui.menu">
+        <field name="action" ref="action_budget_lines_without_accounts"/>
+    </record>
+
+    <!-- ========== НАЛАШТУВАННЯ ========== -->
+    <record id="menu_responsibility_center" model="ir.ui.menu">
+        <field name="action" ref="action_responsibility_center"/>
+    </record>
+
+    <record id="menu_budget_type" model="ir.ui.menu">
+        <field name="action" ref="action_budget_type"/>
+    </record>
+
+    <record id="menu_budget_period" model="ir.ui.menu">
+        <field name="action" ref="action_budget_period"/>
+    </record>
+
+    <record id="menu_budget_categories" model="ir.ui.menu">
+        <field name="action" ref="action_budget_categories"/>
+    </record>
+
+    <record id="menu_budget_template" model="ir.ui.menu">
+        <field name="action" ref="action_budget_template"/>
+    </record>
+
+    <record id="menu_budget_approval_config" model="ir.ui.menu">
+        <field name="action" ref="action_budget_approval_config"/>
+    </record>
+
+    <record id="menu_budget_integration" model="ir.ui.menu">
+        <field name="action" ref="action_budget_integration"/>
+    </record>
+
+    <record id="menu_budget_access_rights" model="ir.ui.menu">
+        <field name="action" ref="action_budget_access_rights"/>
+    </record>
+
+        <!-- ========== СТРУКТУРА ОРГАНІЗАЦІЇ ========== -->
+    <record id="menu_tree_dashboard" model="ir.ui.menu">
+        <field name="action" ref="action_budget_tree_dashboard"/>
+    </record>
+
+    <record id="menu_organization_tree" model="ir.ui.menu">
+        <field name="action" ref="action_organization_hierarchy_tree"/>
+    </record>
+
+    <record id="menu_budget_hierarchy" model="ir.ui.menu">
+        <field name="action" ref="action_budget_hierarchy_dashboard"/>
+    </record>
+
+    <record id="menu_combined_tree" model="ir.ui.menu">
+        <field name="action" ref="action_organization_budget_combined"/>
+    </record>
+
+    <!-- Інструменти -->
+    <record id="menu_restructure_wizard" model="ir.ui.menu">
+        <field name="action" ref="action_tree_restructure_wizard"/>
+    </record>
+
+    <record id="menu_tree_optimization" model="ir.ui.menu">
+        <field name="action" ref="action_tree_optimization_wizard"/>
+    </record>
+
+    <record id="menu_tree_export_import" model="ir.ui.menu">
+        <field name="action" ref="action_tree_export_import_wizard"/>
+    </record>
+
+    <record id="menu_tree_analytics" model="ir.ui.menu">
+        <field name="action" ref="action_tree_analytics_dashboard"/>
+    </record>
+
+</odoo>

@@ -215,10 +215,4 @@ for team in records:
         }</field>
     </record>
 
-    <menuitem id="menu_budget_teams_dashboard"
-              name="Дашборд команд"
-              parent="menu_budget_reports"
-              action="action_crm_teams_dashboard"
-              sequence="25"/>
-
 </odoo>

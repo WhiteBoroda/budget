@@ -192,13 +192,6 @@
         <field name="view_id" ref="view_investment_budget_wizard_form"/>
     </record>
 
-    <!-- Меню для инвестиционных бюджетов -->
-    <menuitem id="menu_investment_budget"
-              name="Інвестиційні бюджети"
-              parent="menu_budget_planning"
-              action="action_investment_budget_wizard"
-              sequence="35"/>
-
     <!-- Server Action для быстрого доступа -->
     <record id="action_quick_investment_import" model="ir.actions.server">
         <field name="name">Швидкий імпорт інвестиційного бюджету</field>
@@ -260,10 +253,5 @@ action = {
         </field>
     </record>
 
-    <menuitem id="menu_investment_projects"
-              name="Інвестиційні проекти"
-              parent="menu_budget_execution"
-              action="action_investment_projects"
-              sequence="15"/>
 
 </odoo>

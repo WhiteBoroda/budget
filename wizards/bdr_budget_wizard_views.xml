@@ -292,11 +292,6 @@
     </record>
 
     <!-- Меню для БДР -->
-    <menuitem id="menu_bdr_budget_wizard"
-              name="БДР (Доходи і витрати)"
-              parent="menu_budget_planning"
-              action="action_bdr_budget_wizard"
-              sequence="40"/>
 
     <!-- Server Action для швидкого імпорту БДР -->
     <record id="action_quick_import_bdr" model="ir.actions.server">
@@ -399,12 +394,6 @@ for period in periods:
         <field name="tag">bdr_dashboard</field>
     </record>
 
-    <!-- Menuitem для Dashboard -->
-    <menuitem id="menu_bdr_dashboard"
-              name="Dashboard БДР"
-              parent="menu_budget_root"
-              action="action_bdr_dashboard"
-              sequence="15"/>
 
     <!-- Security Rules -->
     <record id="bdr_wizard_rule_company" model="ir.rule">

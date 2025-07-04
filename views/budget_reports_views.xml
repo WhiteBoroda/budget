@@ -23,11 +23,6 @@
         <field name="domain">[('state', '=', 'approved')]</field>
     </record>
 
-    <menuitem id="menu_budget_summary_report"
-              name="Зведений звіт"
-              parent="menu_budget_reports"
-              action="action_budget_summary_report"
-              sequence="20"/>
 
     <!-- Server Actions -->
     <record id="action_mass_approve_budgets" model="ir.actions.server">

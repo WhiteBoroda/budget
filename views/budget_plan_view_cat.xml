@@ -418,11 +418,6 @@
     </record>
 
     <!-- МЕНЮ ДЛЯ РОБОТИ З КАТЕГОРІЯМИ -->
-    <menuitem id="menu_budget_lines_categories"
-              name="Позиції з категоріями"
-              parent="menu_budget_planning"
-              action="action_budget_lines_with_categories"
-              sequence="28"/>
 
     <!-- SERVER ACTION ДЛЯ ОНОВЛЕННЯ ОБЛІКОВИХ ДАНИХ -->
     <record id="action_update_accounting_data_bulk" model="ir.actions.server">

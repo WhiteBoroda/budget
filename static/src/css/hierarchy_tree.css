@@ -1,0 +1,509 @@
+/* СТИЛІ ДЛЯ ІЄРАРХІЧНОГО ДЕРЕВА */
+
+/* Загальний контейнер дерева */
+.hierarchy-tree-widget {
+    background: white;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Заголовок дерева */
+.tree-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 12px 16px;
+    border-bottom: 1px solid #dee2e6;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tree-header h4 {
+    margin: 0;
+    color: #495057;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.tree-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.tree-controls .btn {
+    padding: 4px 8px;
+    font-size: 12px;
+    border-radius: 4px;
+}
+
+/* Контейнер дерева */
+.tree-container {
+    max-height: 600px;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+/* Стилі для прокрутки */
+.tree-container::-webkit-scrollbar {
+    width: 8px;
+}
+
+.tree-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.tree-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.tree-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Вузол дерева */
+.tree-node {
+    display: flex;
+    align-items: center;
+    padding: 2px 8px;
+    min-height: 32px;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.tree-node:hover {
+    background-color: #f8f9fa;
+}
+
+/* Відступи для рівнів */
+.tree-indent {
+    flex-shrink: 0;
+    border-left: 1px dotted #dee2e6;
+}
+
+/* Кнопка розгортання */
+.tree-toggle {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    border-radius: 3px;
+    font-size: 12px;
+    color: #6c757d;
+    flex-shrink: 0;
+    transition: all 0.2s ease;
+}
+
+.tree-toggle:hover {
+    background-color: #e9ecef;
+    color: #495057;
+}
+
+.tree-toggle.has-children {
+    cursor: pointer;
+}
+
+.tree-toggle:not(.has-children) {
+    cursor: default;
+    opacity: 0.3;
+}
+
+/* Контент вузла */
+.tree-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    padding: 4px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    min-height: 24px;
+}
+
+.tree-content:hover {
+    background-color: #e3f2fd;
+}
+
+.tree-content.selected {
+    background-color: #1976d2;
+    color: white;
+}
+
+.tree-content.selected .tree-code,
+.tree-content.selected .budget-indicator {
+    color: rgba(255, 255, 255, 0.8);
+}
+
+/* Іконка вузла */
+.tree-icon {
+    margin-right: 8px;
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+/* Назва вузла */
+.tree-label {
+    font-weight: 500;
+    color: #212529;
+    margin-right: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Код ЦБО */
+.tree-code {
+    color: #6c757d;
+    font-size: 11px;
+    margin-right: 8px;
+    font-family: 'Courier New', monospace;
+}
+
+/* Індикатор бюджетів */
+.budget-indicator {
+    background: #28a745;
+    color: white;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: auto;
+    margin-right: 8px;
+}
+
+/* Дії вузла */
+.tree-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.tree-node:hover .tree-actions {
+    opacity: 1;
+}
+
+.tree-actions button {
+    padding: 2px 6px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.tree-actions button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tree-actions .btn-outline-primary:hover {
+    background: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.tree-actions .btn-outline-success:hover {
+    background: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+/* Порожнє дерево */
+.tree-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.tree-empty p {
+    margin: 5px 0;
+}
+
+/* Завантаження */
+.hierarchy-tree-widget.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.loading-spinner {
+    text-align: center;
+    color: #6c757d;
+}
+
+.loading-spinner i {
+    font-size: 24px;
+    margin-bottom: 8px;
+}
+
+/* СПЕЦІАЛЬНІ СТИЛІ ДЛЯ БЮДЖЕТНОГО ДЕРЕВА */
+
+/* Рівні консолідації */
+.tree-node[data-consolidation="holding"] .tree-content {
+    border-left: 4px solid #6f42c1;
+}
+
+.tree-node[data-consolidation="company"] .tree-content {
+    border-left: 4px solid #007bff;
+}
+
+.tree-node[data-consolidation="site"] .tree-content {
+    border-left: 4px solid #28a745;
+}
+
+/* Консолідовані бюджети */
+.tree-node.consolidated .tree-label {
+    font-weight: 600;
+    font-style: italic;
+}
+
+.tree-node.consolidated .tree-icon {
+    filter: drop-shadow(0 0 3px rgba(0,123,255,0.5));
+}
+
+/* Статуси бюджетів */
+.budget-status {
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+    margin-left: 8px;
+}
+
+.budget-status.draft {
+    background: #6c757d;
+    color: white;
+}
+
+.budget-status.planning {
+    background: #ffc107;
+    color: #212529;
+}
+
+.budget-status.review {
+    background: #17a2b8;
+    color: white;
+}
+
+.budget-status.approved {
+    background: #28a745;
+    color: white;
+}
+
+.budget-status.revision {
+    background: #fd7e14;
+    color: white;
+}
+
+/* Суми бюджетів */
+.budget-amount {
+    font-family: 'Courier New', monospace;
+    font-size: 11px;
+    color: #495057;
+    margin-left: 8px;
+    white-space: nowrap;
+}
+
+.budget-amount.positive {
+    color: #28a745;
+}
+
+.budget-amount.negative {
+    color: #dc3545;
+}
+
+/* АДАПТИВНІСТЬ */
+@media (max-width: 768px) {
+    .tree-header {
+        flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .tree-controls {
+        justify-content: center;
+    }
+
+    .tree-node {
+        padding: 4px;
+    }
+
+    .tree-content {
+        padding: 6px 4px;
+    }
+
+    .tree-label {
+        font-size: 14px;
+    }
+
+    .tree-actions {
+        position: static;
+        opacity: 1;
+        margin-top: 4px;
+    }
+}
+
+/* АНІМАЦІЇ */
+@keyframes nodeExpand {
+    from {
+        opacity: 0;
+        max-height: 0;
+    }
+    to {
+        opacity: 1;
+        max-height: 200px;
+    }
+}
+
+.tree-node.expanding {
+    animation: nodeExpand 0.3s ease-out;
+}
+
+/* ПОКРАЩЕННЯ ДОСТУПНОСТІ */
+.tree-content:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.tree-toggle:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* ТЕМНА ТЕМА (опційно) */
+@media (prefers-color-scheme: dark) {
+    .hierarchy-tree-widget {
+        background: #2d3748;
+        border-color: #4a5568;
+    }
+
+    .tree-header {
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+        border-color: #4a5568;
+    }
+
+    .tree-header h4 {
+        color: #e2e8f0;
+    }
+
+    .tree-node:hover {
+        background-color: #4a5568;
+    }
+
+    .tree-content:hover {
+        background-color: #2b6cb0;
+    }
+
+    .tree-label {
+        color: #e2e8f0;
+    }
+
+    .tree-code {
+        color: #a0aec0;
+    }
+
+    .tree-toggle {
+        color: #a0aec0;
+    }
+
+    .tree-actions button {
+        background: #4a5568;
+        border-color: #718096;
+        color: #e2e8f0;
+    }
+}
+
+/* ІНТЕГРАЦІЯ З ODOO */
+.o_form_view .hierarchy-tree-widget {
+    margin: 16px 0;
+}
+
+.o_kanban_view .hierarchy-tree-widget {
+    margin: 8px;
+}
+
+/* КАРТКОВЕ ВІДОБРАЖЕННЯ ДЕРЕВА */
+.organization-tree-card {
+    margin-bottom: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+}
+
+.organization-tree-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.organization-tree-card .o_kanban_image {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 8px;
+    margin-right: 12px;
+}
+
+.organization-tree-card .o_kanban_record_title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #212529;
+}
+
+.organization-tree-card .o_kanban_record_subtitle {
+    font-size: 12px;
+    color: #6c757d;
+}
+
+/* ПОКРАЩЕННЯ TREE VIEW В ODOO */
+.o_list_view.o_list_view_tree {
+    border: none;
+}
+
+.o_list_view.o_list_view_tree .o_list_table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.o_list_view.o_list_view_tree .o_data_row {
+    border-bottom: 1px solid #f8f9fa;
+}
+
+.o_list_view.o_list_view_tree .o_data_row:hover {
+    background-color: #f8f9fa;
+}
+
+/* Іконки в tree view */
+.hierarchy-icon,
+.budget-hierarchy-icon,
+.org-tree-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Badge стилі для tree view */
+.o_list_view .badge {
+    font-size: 10px;
+    padding: 2px 6px;
+}
+
+/* Кнопки в tree view */
+.o_list_view .btn-link {
+    padding: 2px 6px;
+    font-size: 11px;
+    text-decoration: none;
+}
+
+.o_list_view .btn-link:hover {
+    background-color: rgba(0,123,255,0.1);
+    border-radius: 3px;
+}

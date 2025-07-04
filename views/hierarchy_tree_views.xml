@@ -1,0 +1,363 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ІЄРАРХІЧНІ TREE VIEWS ЯК У WINDOWS EXPLORER -->
+
+    <!-- ІЄРАРХІЧНЕ ДЕРЕВО ЦБО -->
+    <record id="view_responsibility_center_hierarchy_tree" model="ir.ui.view">
+        <field name="name">budget.responsibility.center.hierarchy.tree</field>
+        <field name="model">budget.responsibility.center</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <tree string="Структура ЦБО"
+                  decoration-bf="cbo_type in ['holding']"
+                  decoration-info="cbo_type in ['enterprise', 'business_direction']"
+                  decoration-success="cbo_type in ['department', 'division', 'office']"
+                  expand="1"
+                  default_order="sequence, name">
+
+                <!-- ІКОНКИ ТА НАЗВИ -->
+                <field name="sequence" invisible="1"/>
+                <field name="name" string="🏢 Структура організації">
+                    <span class="hierarchy-icon">
+                        <t t-if="record.cbo_type.raw_value == 'holding'">🏛️</t>
+                        <t t-elif="record.cbo_type.raw_value == 'enterprise'">🏭</t>
+                        <t t-elif="record.cbo_type.raw_value == 'business_direction'">🏢</t>
+                        <t t-elif="record.cbo_type.raw_value == 'department'">🏪</t>
+                        <t t-elif="record.cbo_type.raw_value == 'division'">📁</t>
+                        <t t-elif="record.cbo_type.raw_value == 'office'">🏬</t>
+                        <t t-else="">📂</t>
+                    </span>
+                    <field name="name"/>
+                </field>
+
+                <!-- ІНФОРМАЦІЯ ПРО ЦБО -->
+                <field name="code" string="Код"/>
+                <field name="cbo_type" string="Тип" widget="badge"/>
+                <field name="budget_level" string="Рівень бюджетування"
+                       widget="badge"
+                       decoration-purple="budget_level == 'strategic'"
+                       decoration-primary="budget_level == 'tactical'"
+                       decoration-info="budget_level == 'operational'"
+                       decoration-success="budget_level == 'functional'"/>
+
+                <!-- ВІДПОВІДАЛЬНІ -->
+                <field name="responsible_user_id" string="Відповідальний" widget="many2one_avatar_user"/>
+                <field name="approver_user_id" string="Затверджувач" widget="many2one_avatar_user"/>
+
+                <!-- СТАТИСТИКА -->
+                <field name="budget_count" string="Бюджетів" widget="integer"/>
+                <field name="child_count" string="Підрозділів" widget="integer"/>
+
+                <!-- ДІЇ -->
+                <field name="active" invisible="1"/>
+                <button name="action_view_budgets" string="📊 Бюджети"
+                        type="object" class="btn-link"
+                        attrs="{'invisible': [('budget_count', '=', 0)]}"/>
+                <button name="action_create_budget" string="➕ Новий бюджет"
+                        type="object" class="btn-link text-primary"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- ДЕРЕВО БЮДЖЕТІВ З ГРУПУВАННЯМ ПО ЦБО -->
+    <record id="view_budget_plan_hierarchy_tree" model="ir.ui.view">
+        <field name="name">budget.plan.hierarchy.tree</field>
+        <field name="model">budget.plan</field>
+        <field name="priority">10</field>
+        <field name="arch" type="xml">
+            <tree string="Структура бюджетів"
+                  expand="1"
+                  decoration-bf="is_consolidated == True"
+                  decoration-info="consolidation_level == 'holding'"
+                  decoration-primary="consolidation_level == 'company'"
+                  decoration-success="consolidation_level == 'site'"
+                  default_order="consolidation_level desc, cbo_id, period_id desc">
+
+                <!-- ІЄРАРХІЧНА НАЗВА З ІКОНКАМИ -->
+                <field name="name" string="🏗️ Структура бюджетів">
+                    <!-- Іконки залежно від рівня консолідації -->
+                    <span class="budget-hierarchy-icon">
+                        <t t-if="record.consolidation_level.raw_value == 'holding'">🏛️</t>
+                        <t t-elif="record.consolidation_level.raw_value == 'company'">🏭</t>
+                        <t t-elif="record.consolidation_level.raw_value == 'site'">🏪</t>
+                        <t t-else="">📊</t>
+                    </span>
+
+                    <!-- Назва з індикатором консолідації -->
+                    <field name="name"/>
+                    <span t-if="record.is_consolidated.raw_value" class="badge badge-info ml-2">
+                        Консолідований
+                    </span>
+                </field>
+
+                <!-- ОСНОВНА ІНФОРМАЦІЯ -->
+                <field name="period_id" string="Період"/>
+                <field name="budget_type_id" string="Тип"/>
+                <field name="cbo_id" string="ЦБО" invisible="1"/>
+
+                <!-- СУМИ -->
+                <field name="total_planned_amount" string="💰 Планова сума"
+                       widget="monetary" sum="Загалом планово"/>
+                <field name="total_actual_amount" string="✅ Фактична сума"
+                       widget="monetary" sum="Загалом фактично" optional="hide"/>
+                <field name="variance_amount" string="📊 Відхилення"
+                       widget="monetary" sum="Загальне відхилення" optional="hide"/>
+
+                <!-- ПРОГРЕС -->
+                <field name="execution_percentage" string="% виконання"
+                       widget="progressbar" optional="show"/>
+
+                <!-- СТАТУС -->
+                <field name="state" string="Статус" widget="badge"
+                       decoration-muted="state == 'draft'"
+                       decoration-warning="state == 'planning'"
+                       decoration-info="state == 'review'"
+                       decoration-success="state == 'approved'"
+                       decoration-danger="state == 'revision'"/>
+
+                <!-- ВІДПОВІДАЛЬНИЙ -->
+                <field name="responsible_user_id" string="Відповідальний"
+                       widget="many2one_avatar_user" optional="show"/>
+
+                <!-- ДІЇ -->
+                <field name="consolidation_level" invisible="1"/>
+                <field name="is_consolidated" invisible="1"/>
+                <field name="parent_budget_id" invisible="1"/>
+                <field name="child_budget_ids" invisible="1"/>
+
+                <button name="action_view_lines" string="📋 Лінії"
+                        type="object" class="btn-link"/>
+                <button name="action_consolidate_up" string="⬆️ Консолідувати"
+                        type="object" class="btn-link text-info"
+                        attrs="{'invisible': [('parent_budget_id', '=', False)]}"/>
+                <button name="action_copy_from_previous_period" string="📋 Копіювати"
+                        type="object" class="btn-link text-primary"
+                        attrs="{'invisible': [('state', 'not in', ['draft', 'planning'])]}"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- КОМБІНОВАНЕ ДЕРЕВО: ЦБО + БЮДЖЕТИ -->
+    <record id="view_organization_budget_tree" model="ir.ui.view">
+        <field name="name">organization.budget.combined.tree</field>
+        <field name="model">budget.responsibility.center</field>
+        <field name="priority">5</field>
+        <field name="arch" type="xml">
+            <tree string="Організація та бюджети"
+                  expand="1"
+                  decoration-bf="cbo_type in ['holding', 'enterprise']"
+                  default_order="sequence, name">
+
+                <!-- НАЗВА З ІКОНКАМИ -->
+                <field name="display_name" string="Організаційна структура та бюджети">
+                    <!-- Іконка ЦБО -->
+                    <span class="org-tree-icon">
+                        <t t-if="record.cbo_type.raw_value == 'holding'">🏛️</t>
+                        <t t-elif="record.cbo_type.raw_value == 'enterprise'">🏭</t>
+                        <t t-elif="record.cbo_type.raw_value == 'business_direction'">🏢</t>
+                        <t t-elif="record.cbo_type.raw_value == 'department'">🏪</t>
+                        <t t-elif="record.cbo_type.raw_value == 'division'">📁</t>
+                        <t t-else="">📂</t>
+                    </span>
+
+                    <field name="name"/>
+                    <span class="text-muted">(<field name="code"/>)</span>
+                </field>
+
+                <!-- ТИП ТА РІВЕНЬ -->
+                <field name="cbo_type" string="Тип" widget="selection"/>
+                <field name="budget_level" string="Рівень бюджетування" widget="selection"/>
+
+                <!-- СТАТИСТИКА -->
+                <field name="budget_count" string="📊 Бюджетів"/>
+                <field name="total_budget_amount" string="💰 Загальна сума бюджетів"
+                       widget="monetary" optional="show"/>
+                <field name="child_count" string="🏢 Підрозділів"/>
+
+                <!-- ВІДПОВІДАЛЬНІ -->
+                <field name="responsible_user_id" string="Відповідальний"
+                       widget="many2one_avatar_user" optional="hide"/>
+
+                <!-- ДІЇ -->
+                <field name="sequence" invisible="1"/>
+                <field name="parent_id" invisible="1"/>
+
+                <button name="action_view_budgets" string="📊 Всі бюджети"
+                        type="object" class="btn-link"
+                        attrs="{'invisible': [('budget_count', '=', 0)]}"/>
+                <button name="action_create_consolidation_structure" string="🏗️ Створити структуру бюджетів"
+                        type="object" class="btn-link text-success"
+                        groups="budget.group_budget_manager"/>
+                <button name="action_view_organization_chart" string="📊 Оргчарт"
+                        type="object" class="btn-link text-info"/>
+            </tree>
+        </field>
+    </record>
+
+    <!-- KANBAN VIEW З КАРТКАМИ ДЕРЕВА -->
+    <record id="view_organization_tree_kanban" model="ir.ui.view">
+        <field name="name">organization.tree.kanban</field>
+        <field name="model">budget.responsibility.center</field>
+        <field name="priority">15</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_tree_view" default_group_by="parent_id">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="cbo_type"/>
+                <field name="budget_level"/>
+                <field name="budget_count"/>
+                <field name="child_count"/>
+                <field name="responsible_user_id"/>
+                <field name="parent_id"/>
+
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click organization-tree-card">
+                            <!-- Іконка організації -->
+                            <div class="o_kanban_image">
+                                <t t-if="record.cbo_type.raw_value == 'holding'">
+                                    <i class="fa fa-university fa-2x text-purple"/>
+                                </t>
+                                <t t-elif="record.cbo_type.raw_value == 'enterprise'">
+                                    <i class="fa fa-industry fa-2x text-primary"/>
+                                </t>
+                                <t t-elif="record.cbo_type.raw_value == 'business_direction'">
+                                    <i class="fa fa-building fa-2x text-info"/>
+                                </t>
+                                <t t-elif="record.cbo_type.raw_value == 'department'">
+                                    <i class="fa fa-store fa-2x text-success"/>
+                                </t>
+                                <t t-else="">
+                                    <i class="fa fa-folder fa-2x text-secondary"/>
+                                </t>
+                            </div>
+
+                            <!-- Контент картки -->
+                            <div class="oe_kanban_details">
+                                <div class="o_kanban_record_top">
+                                    <div class="o_kanban_record_headings">
+                                        <strong class="o_kanban_record_title">
+                                            <field name="name"/>
+                                        </strong>
+                                        <span class="o_kanban_record_subtitle text-muted">
+                                            <field name="code"/>
+                                        </span>
+                                    </div>
+
+                                    <!-- Відповідальний -->
+                                    <div class="o_kanban_record_top_right">
+                                        <field name="responsible_user_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+
+                                <!-- Статистика -->
+                                <div class="o_kanban_record_body">
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <span class="badge badge-info">
+                                                📊 <field name="budget_count"/> бюджетів
+                                            </span>
+                                        </div>
+                                        <div class="col-6">
+                                            <span class="badge badge-secondary">
+                                                🏢 <field name="child_count"/> підрозділів
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2">
+                                        <span t-attf-class="badge badge-#{record.budget_level.raw_value == 'strategic' and 'purple' or record.budget_level.raw_value == 'tactical' and 'primary' or record.budget_level.raw_value == 'operational' and 'info' or 'success'}">
+                                            <field name="budget_level"/>
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Дії -->
+                                <div class="o_kanban_record_bottom">
+                                    <div class="oe_kanban_bottom_left">
+                                        <button name="action_view_budgets" string="Бюджети"
+                                                type="object" class="btn btn-sm btn-outline-primary"
+                                                t-if="record.budget_count.raw_value > 0"/>
+                                    </div>
+                                    <div class="oe_kanban_bottom_right">
+                                        <button name="action_create_budget" string="➕"
+                                                type="object" class="btn btn-sm btn-outline-success"
+                                                title="Створити бюджет"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+    <!-- ДІЇ ДЛЯ ІЄРАРХІЧНИХ VIEWS -->
+    <record id="action_organization_hierarchy_tree" model="ir.actions.act_window">
+        <field name="name">Структура організації</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_responsibility_center_hierarchy_tree')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_organization_tree_kanban')})]"/>
+        <field name="domain">[('active', '=', True)]</field>
+        <field name="context">{
+            'group_by': ['parent_id'],
+            'expand': True,
+            'tree_view_ref': 'budget.view_responsibility_center_hierarchy_tree'
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть структуру організації!
+            </p>
+            <p>
+                Тут відображається ієрархічна структура ЦБО у вигляді дерева.<br/>
+                Додайте ЦБО різних рівнів для створення повної структури.
+            </p>
+        </field>
+    </record>
+
+    <record id="action_budget_hierarchy_tree" model="ir.actions.act_window">
+        <field name="name">🏗️ Структура бюджетів</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_budget_plan_hierarchy_tree"/>
+        <field name="context">{
+            'group_by': ['consolidation_level', 'cbo_id'],
+            'expand': True
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Переглядайте бюджети у вигляді дерева!
+            </p>
+            <p>
+                Ієрархічне відображення всіх бюджетів з консолідацією по рівнях.<br/>
+                Структура: Холдинг → Компанії → Площадки
+            </p>
+        </field>
+    </record>
+
+    <record id="action_organization_budget_combined" model="ir.actions.act_window">
+        <field name="name">🏛️ Організація + Бюджети</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_organization_budget_tree')}),
+            (0, 0, {'view_mode': 'kanban', 'view_id': ref('view_organization_tree_kanban')})]"/>
+        <field name="context">{
+            'group_by': ['parent_id'],
+            'expand': True
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Переглядайте організацію та бюджети разом!
+            </p>
+            <p>
+                Комбінований вигляд структури організації з інформацією про бюджети.<br/>
+                Зручно для загального огляду та планування.
+            </p>
+        </field>
+    </record>
+
+</odoo>

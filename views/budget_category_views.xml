@@ -272,23 +272,5 @@
     </record>
 
     <!-- МЕНЮ -->
-    <menuitem id="menu_budget_category"
-              name="Категорії витрат"
-              parent="menu_budget_config"
-              action="action_budget_category"
-              sequence="60"/>
-
-    <menuitem id="menu_budget_cost_center"
-              name="Центри витрат"
-              parent="menu_budget_config"
-              action="action_budget_cost_center"
-              sequence="65"/>
-
-    <menuitem id="menu_budget_mapping"
-              name="Зопоставлення рахунків"
-              parent="menu_budget_config"
-              action="action_budget_category_account_mapping"
-              sequence="70"
-              groups="account.group_account_manager"/>
 
 </odoo>

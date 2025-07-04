@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- WIZARD КОПІЮВАННЯ БЮДЖЕТІВ -->
+
+    <record id="view_budget_copy_wizard_form" model="ir.ui.view">
+        <field name="name">budget.copy.wizard.form</field>
+        <field name="model">budget.copy.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>📋 Копіювання бюджету</h1>
+                        <p>Швидке копіювання даних з попередніх періодів або шаблонів</p>
+                    </div>
+
+                    <group>
+                        <group string="🎯 Цільовий бюджет">
+                            <field name="target_budget_id" options="{'no_create': True}" readonly="1"/>
+                            <label for="target_budget_id" string="Куди копіюємо:"/>
+                            <div>
+                                <strong><field name="target_budget_id" readonly="1" options="{'no_create': True}"/></strong><br/>
+                                <span class="text-muted">
+                                    Період: <field name="target_budget_id" readonly="1" options="{'no_create': True}" string=" "/>
+                                </span>
+                            </div>
+                        </group>
+
+                        <group string="📂 Джерело копіювання">
+                            <field name="copy_mode" widget="radio"/>
+
+                            <field name="source_period_id"
+                                   attrs="{'invisible': [('copy_mode', 'not in', ['specific_period'])],
+                                          'required': [('copy_mode', '=', 'specific_period')]}"
+                                   options="{'no_create': True}"/>
+
+                            <field name="source_budget_id"
+                                   attrs="{'invisible': [('copy_mode', 'not in', ['specific_period', 'another_budget', 'previous_period', 'same_period_previous_year'])],
+                                          'required': [('copy_mode', 'in', ['another_budget'])]}"
+                                   options="{'no_create': True}"/>
+
+                            <field name="template_id"
+                                   attrs="{'invisible': [('copy_mode', '!=', 'template')],
+                                          'required': [('copy_mode', '=', 'template')]}"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <!-- НАЛАШТУВАННЯ КОПІЮВАННЯ -->
+                    <group string="⚙️ Налаштування копіювання">
+                        <group string="Що копіювати">
+                            <field name="copy_amounts"/>
+                            <field name="copy_quantities"/>
+                            <field name="copy_descriptions"/>
+                            <field name="copy_categories"/>
+                        </group>
+
+                        <group string="Коригування сум">
+                            <field name="amount_adjustment_type"/>
+                            <field name="adjustment_value"
+                                   attrs="{'invisible': [('amount_adjustment_type', 'in', ['none', 'inflation'])],
+                                          'required': [('amount_adjustment_type', 'in', ['percentage', 'fixed_amount'])]}"
+                                   string="Значення"/>
+                            <field name="inflation_rate"
+                                   attrs="{'invisible': [('amount_adjustment_type', '!=', 'inflation')],
+                                          'required': [('amount_adjustment_type', '=', 'inflation')]}"/>
+                        </group>
+                    </group>
+
+                    <!-- ФІЛЬТРИ -->
+                    <group string="🔍 Фільтри (опційно)" col="1">
+                        <field name="filter_by_category"/>
+                        <field name="category_ids" widget="many2many_tags"
+                               attrs="{'invisible': [('filter_by_category', '=', False)]}"
+                               placeholder="Оберіть категорії для копіювання..."/>
+
+                        <group col="2">
+                            <field name="min_amount" string="Мінімальна сума"/>
+                            <field name="max_amount" string="Максимальна сума"/>
+                        </group>
+                    </group>
+
+                    <!-- РЕЗУЛЬТАТ ПОПЕРЕДНЬОГО ПЕРЕГЛЯДУ -->
+                    <group string="📋 Результат" attrs="{'invisible': [('copy_summary', '=', False)]}">
+                        <field name="copy_summary" widget="text" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_preview_copy" string="👁️ Попередній перегляд"
+                            type="object" class="btn-info"
+                            attrs="{'invisible': [('preview_mode', '=', True)]}"/>
+
+                    <button name="action_execute_copy" string="✅ Виконати копіювання"
+                            type="object" class="btn-primary"
+                            confirm="Ви впевнені, що хочете скопіювати дані? Існуючі лінії будуть збережені."/>
+
+                    <button string="❌ Скасувати" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ДІЯ ДЛЯ ЗАПУСКУ WIZARD -->
+    <record id="action_budget_copy_wizard" model="ir.actions.act_window">
+        <field name="name">Копіювання бюджету</field>
+        <field name="res_model">budget.copy.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="binding_view_types">form</field>
+    </record>
+
+    <!-- WIZARD СТВОРЕННЯ СТРУКТУРИ КОНСОЛІДАЦІЇ -->
+    <record id="view_budget_consolidation_wizard_form" model="ir.ui.view">
+        <field name="name">budget.consolidation.wizard.form</field>
+        <field name="model">budget.consolidation.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>🏗️ Створення структури консолідації</h1>
+                        <p>Автоматичне створення ієрархії бюджетів для консолідації</p>
+                    </div>
+
+                    <group>
+                        <group string="Параметри консолідації">
+                            <field name="period_id" required="1"/>
+                            <field name="budget_type_id" required="1"/>
+                            <field name="create_for_all_levels" widget="boolean_toggle"/>
+                        </group>
+
+                        <group string="Рівні створення">
+                            <field name="create_holding_budgets"/>
+                            <field name="create_company_budgets"/>
+                            <field name="create_site_budgets"/>
+                        </group>
+                    </group>
+
+                    <group string="Налаштування">
+                        <field name="auto_consolidate_enabled" widget="boolean_toggle"/>
+                        <field name="copy_from_previous_period" widget="boolean_toggle"/>
+                        <field name="send_notifications" widget="boolean_toggle"/>
+                    </group>
+
+                    <!-- ПОПЕРЕДНІЙ ПЕРЕГЛЯД СТРУКТУРИ -->
+                    <group string="📊 Структура для створення" attrs="{'invisible': [('preview_structure', '=', False)]}">
+                        <field name="preview_structure" widget="text" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_preview_structure" string="👁️ Попередній перегляд"
+                            type="object" class="btn-info"/>
+
+                    <button name="action_create_structure" string="🏗️ Створити структуру"
+                            type="object" class="btn-primary"
+                            confirm="Створити всю структуру бюджетів для консолідації?"/>
+
+                    <button string="❌ Скасувати" class="btn-default" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+</odoo>

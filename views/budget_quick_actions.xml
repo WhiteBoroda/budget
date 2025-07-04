@@ -10,11 +10,6 @@
         <field name="target">new</field>
     </record>
 
-    <menuitem id="menu_quick_create_sales_plan"
-              name="Швидко створити план продажів"
-              parent="menu_budget_planning"
-              action="action_quick_create_sales_plan"
-              sequence="5"/>
 
     <record id="action_quick_create_budget" model="ir.actions.act_window">
         <field name="name">Швидке створення бюджету</field>
@@ -27,10 +22,5 @@
             }</field>
     </record>
 
-    <menuitem id="menu_quick_create_budget"
-              name="Швидко створити бюджет"
-              parent="menu_budget_planning"
-              action="action_quick_create_budget"
-              sequence="15"/>
 
 </odoo>

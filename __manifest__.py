@@ -49,6 +49,7 @@
         'data/ir_sequence_data.xml',
 
         # 4. ОСНОВНІ ПРЕДСТАВЛЕННЯ МОДЕЛЕЙ
+        'menu_structure.xml',
         'views/budget_config_views.xml',
         'views/budget_category_views.xml',  # ДОДАНО: категорії витрат
         'views/sales_forecast_views.xml',
@@ -67,7 +68,14 @@
         'views/budget_categories_reports.xml',  # ДОДАНО: звіти по категоріях
         'views/budget_help_views.xml',
         'views/budget_quick_actions.xml',
+        'views/hierarchy_tree_views.xml',
+        'views/tree_dashboard_views.xml',
+        'views/tree_advanced_views.xml',
+        'views/tree_additional_actions.xml',
+        'wizards/tree_restructure_wizard.py',
+        'wizards/tree_restructure_wizard_views.xml',
         'data/bdr_categories_data.xml',
+
 
         # 5. WIZARDS (після основних представлень)
         'wizards/budget_approval_wizard_views.xml',
@@ -83,7 +91,7 @@
 
 
         # 3. МЕНЮ (базова структура) - ПЕРЕНЕСЕНО СЮДИ, ПІСЛЯ ВСІХ ДІЙ
-        'views/menu_views.xml',
+        'menu_actions.xml',
 
         # 6. ЗВІТИ
         'report/budget_report_templates.xml',
@@ -107,6 +115,9 @@
         'web.assets_backend': [
             'budget/static/src/css/budget_dashboard.css',
             'budget/static/src/js/budget_widgets.js',
+            'budget/static/src/css/hierarchy_tree.css',  # ← НОВИЙ
+            'budget/static/src/js/hierarchy_tree_widget.js',  # ← НОВИЙ
+            'budget/static/src/js/tree_advanced_widget.js',
 
         ],
         # Стили для frontend (портала) - если планируется портальная часть
@@ -116,6 +127,9 @@
         # Дополнительно: стили для отчетов PDF
         'web.report_assets_common': [
             'budget/static/src/css/budget_reports.css',
+        ],
+        'web.assets_qweb': [
+                'budget/static/src/xml/tree_templates.xml',    # ← НОВИЙ
         ],
     },
     'qweb': [],

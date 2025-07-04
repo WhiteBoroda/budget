@@ -9,10 +9,5 @@
         <field name="target">new</field>
     </record>
 
-    <menuitem id="menu_budget_documentation"
-              name="Документація"
-              parent="menu_budget_help"
-              action="action_budget_help"
-              sequence="10"/>
 
 </odoo>

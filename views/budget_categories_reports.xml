@@ -150,45 +150,7 @@
     </record>
 
     <!-- МЕНЮ ДЛЯ ЗВІТІВ ПО КАТЕГОРІЯХ -->
-    <menuitem id="menu_budget_categories_analysis"
-              name="Аналіз по категоріях"
-              parent="menu_budget_reports"
-              sequence="40"/>
-
-    <menuitem id="menu_budget_analysis_by_categories"
-              name="Витрати по категоріях"
-              parent="menu_budget_categories_analysis"
-              action="action_budget_analysis_by_categories"
-              sequence="10"/>
-
-    <menuitem id="menu_cost_centers_analysis"
-              name="По центрах витрат"
-              parent="menu_budget_categories_analysis"
-              action="action_cost_centers_analysis"
-              sequence="20"/>
-
-    <menuitem id="menu_categories_budget_types_analysis"
-              name="Категорії по типах бюджетів"
-              parent="menu_budget_categories_analysis"
-              action="action_categories_budget_types_analysis"
-              sequence="30"/>
 
     <!-- МЕНЮ КОНТРОЛЮ ЯКОСТІ -->
-    <menuitem id="menu_budget_quality_control"
-              name="Контроль якості"
-              parent="menu_budget_reports"
-              sequence="50"/>
-
-    <menuitem id="menu_budget_lines_without_categories"
-              name="Без категорій"
-              parent="menu_budget_quality_control"
-              action="action_budget_lines_without_categories"
-              sequence="10"/>
-
-    <menuitem id="menu_budget_lines_without_accounts"
-              name="Без рахунків"
-              parent="menu_budget_quality_control"
-              action="action_budget_lines_without_accounts"
-              sequence="20"/>
 
 </odoo>

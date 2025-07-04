@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ДОДАТКОВІ ДІЇ ДЛЯ МЕНЮ -->
+
+    <!-- Оптимізація структури -->
+    <record id="action_tree_optimization_wizard" model="ir.actions.act_window">
+        <field name="name">⚙️ Оптимізація структури дерева</field>
+        <field name="res_model">tree.optimization.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Експорт/Імпорт -->
+    <record id="action_tree_export_import_wizard" model="ir.actions.act_window">
+        <field name="name">📤📥 Експорт та імпорт структури</field>
+        <field name="res_model">tree.export.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Аналітика дерева -->
+    <record id="action_tree_analytics_dashboard" model="ir.actions.act_window">
+        <field name="name">📊 Аналітика структури організації</field>
+        <field name="res_model">tree.analytics.dashboard</field>
+        <field name="view_mode">form</field>
+        <field name="target">current</field>
+    </record>
+
+    <!-- Швидкі дії Server Actions -->
+    <record id="server_action_expand_all_tree" model="ir.actions.server">
+        <field name="name">🌳 Розгорнути все дерево</field>
+        <field name="model_id" ref="model_budget_responsibility_center"/>
+        <field name="binding_model_id" ref="model_budget_responsibility_center"/>
+        <field name="binding_view_types">tree</field>
+        <field name="state">code</field>
+        <field name="code">
+# Розгортання всіх вузлів в localStorage
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'tree_expand_all',
+    'params': {
+        'model': 'budget.responsibility.center',
+        'action': 'expand_all'
+    }
+}
+        </field>
+    </record>
+
+    <record id="server_action_collapse_all_tree" model="ir.actions.server">
+        <field name="name">🌲 Згорнути все дерево</field>
+        <field name="model_id" ref="model_budget_responsibility_center"/>
+        <field name="binding_model_id" ref="model_budget_responsibility_center"/>
+        <field name="binding_view_types">tree</field>
+        <field name="state">code</field>
+        <field name="code">
+# Згортання всіх вузлів
+action = {
+    'type': 'ir.actions.client',
+    'tag': 'tree_collapse_all',
+    'params': {
+        'model': 'budget.responsibility.center',
+        'action': 'collapse_all'
+    }
+}
+        </field>
+    </record>
+
+    <!-- Швидке створення структури -->
+    <record id="action_quick_create_structure" model="ir.actions.server">
+        <field name="name">🚀 Швидке створення структури</field>
+        <field name="model_id" ref="model_budget_responsibility_center"/>
+        <field name="state">code</field>
+        <field name="code">
+# Швидке створення базової структури організації
+action = env['budget.responsibility.center'].action_quick_create_demo_structure()
+        </field>
+    </record>
+
+</odoo>
