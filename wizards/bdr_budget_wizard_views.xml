@@ -9,7 +9,7 @@
         <field name="arch" type="xml">
             <form string="Майстер роботи з БДР (Бюджет доходів і витрат)">
                 <div class="alert alert-info">
-                    <h4>💼 Робота з БДР (Бюджет доходів і витрат)</h4>
+                    <h4>Робота з БДР (Бюджет доходів і витрат)</h4>
                     <p>Цей майстер дозволяє імпортувати структуру БДР з Excel файлів та створювати на їх основі детальні бюджети в системі.</p>
                 </div>
 
@@ -20,15 +20,15 @@
                 </group>
 
                 <!-- Секція імпорту -->
-                <group string="📥 Параметри імпорту" invisible="operation_type != 'import'">
-                    <group string="📂 Файл БДР">
+                <group string="Параметри імпорту" invisible="operation_type != 'import'">
+                    <group string="Файл БДР">
                         <field name="import_file" widget="binary" filename="filename"
                                help="Завантажте Excel файл з БДР вашого підприємства"/>
                         <field name="filename" invisible="1"/>
                         <field name="sheet_name" placeholder="БДР"/>
                         <field name="start_row"/>
                     </group>
-                    <group string="🏢 Параметри бюджету">
+                    <group string="Параметри бюджету">
                         <field name="period_id" options="{'no_create': True}"/>
                         <field name="company_id" options="{'no_create': True}"/>
                         <field name="cbo_id" options="{'no_create': True}"
@@ -38,33 +38,33 @@
                 </group>
 
                 <!-- Секція експорту -->
-                <group string="📤 Параметри експорту" invisible="operation_type != 'export'">
-                    <group string="🗓️ Період та організація">
+                <group string="Параметри експорту" invisible="operation_type != 'export'">
+                    <group string="Період та організація">
                         <field name="period_id" options="{'no_create': True}"/>
                         <field name="company_id" options="{'no_create': True}"/>
                         <field name="sheet_name" placeholder="БДР"/>
                     </group>
-                    <group string="⚙️ Налаштування експорту">
+                    <group string="Налаштування експорту">
                         <field name="currency_multiplier"/>
                     </group>
                 </group>
 
                 <!-- Детальні налаштування -->
                 <notebook>
-                    <page string="🗂️ Структура колонок БДР" invisible="operation_type == 'analyze'">
+                    <page string="Структура колонок БДР" invisible="operation_type == 'analyze'">
                         <div class="alert alert-info">
-                            <strong>📋 Структура Excel файлу БДР:</strong>
+                            <strong>Структура Excel файлу БДР:</strong>
                             <p>Вкажіть в яких колонках розташовані дані у вашому файлі БДР</p>
                         </div>
 
                         <group>
-                            <group string="📊 Основні колонки">
+                            <group string="Основні колонки">
                                 <field name="item_column" placeholder="A"/>
                                 <field name="total_column" placeholder="N"/>
                             </group>
                         </group>
 
-                        <group string="📅 Помісячні дані">
+                        <group string="Помісячні дані">
                             <group string="Січень - Червень">
                                 <field name="jan_column" placeholder="B"/>
                                 <field name="feb_column" placeholder="C"/>
@@ -86,7 +86,7 @@
 
                     <page string="⚙️ Додаткові налаштування" invisible="operation_type == 'analyze'">
                         <group>
-                            <group string="🔄 Обробка даних">
+                            <group string="Обробка даних">
                                 <field name="create_monthly_budgets"/>
                                 <field name="update_existing"/>
                                 <field name="auto_categorize"/>
@@ -94,7 +94,7 @@
                         </group>
 
                         <div class="alert alert-warning">
-                            <h5>⚠️ Налаштування обробки:</h5>
+                            <h5>Налаштування обробки:</h5>
                             <ul>
                                 <li><strong>Помісячні бюджети:</strong> Створює окремі бюджети для кожного місяця</li>
                                 <li><strong>Оновити існуючі:</strong> Оновлює наявні бюджети замість створення нових</li>
@@ -103,9 +103,9 @@
                         </div>
                     </page>
 
-                    <page string="📊 Статистика" invisible="not total_income and not total_expenses">
+                    <page string="Статистика" invisible="not total_income and not total_expenses">
                         <group>
-                            <group string="💰 Фінансові показники">
+                            <group string="Фінансові показники">
                                 <field name="total_income" widget="monetary"/>
                                 <field name="total_expenses" widget="monetary"/>
                                 <field name="net_profit" widget="monetary"/>
@@ -116,16 +116,16 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="alert alert-success" invisible="net_profit &lt;= 0">
-                                    <strong>✅ Прибутковість:</strong> Підприємство отримує прибуток
+                                    <strong>Прибутковість:</strong> Підприємство отримує прибуток
                                 </div>
                                 <div class="alert alert-danger" invisible="net_profit &gt; 0">
-                                    <strong>❌ Збитковість:</strong> Підприємство несе збитки
+                                    <strong>Збитковість:</strong> Підприємство несе збитки
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="card">
                                     <div class="card-body">
-                                        <h6>📈 Показники рентабельності:</h6>
+                                        <h6>Показники рентабельності:</h6>
                                         <p invisible="total_income == 0">
                                             Маржа: <field name="profit_margin" readonly="1" nolabel="1"/>%
                                         </p>
@@ -135,22 +135,22 @@
                         </div>
                     </page>
 
-                    <page string="👁️ Попередній перегляд" invisible="not preview_data">
+                    <page string="Попередній перегляд" invisible="not preview_data">
                         <div class="alert alert-info">
-                            <strong>📋 Структура БДР:</strong>
+                            <strong>Структура БДР:</strong>
                             <p>Попередній перегляд даних з вашого файлу БДР</p>
                         </div>
                         <field name="preview_data" widget="text" readonly="1" nolabel="1"/>
                     </page>
 
-                    <page string="✅ Результати" invisible="not import_summary">
+                    <page string="Результати" invisible="not import_summary">
                         <div class="alert alert-success">
-                            <strong>🎯 Результат операції:</strong>
+                            <strong>Результат операції:</strong>
                         </div>
                         <field name="import_summary" widget="text" readonly="1" nolabel="1"/>
                     </page>
 
-                    <page string="📥 Завантаження" invisible="not result_file">
+                    <page string="Завантаження" invisible="not result_file">
                         <group>
                             <field name="result_file" widget="binary"
                                    filename="result_filename" readonly="1"/>
@@ -158,15 +158,15 @@
                         </group>
                     </page>
 
-                    <page string="📖 Інструкція">
+                    <page string="Інструкція">
                         <div class="container-fluid">
                             <div class="alert alert-info">
-                                <h4>📋 Інструкція роботи з БДР</h4>
+                                <h4>Інструкція роботи з БДР</h4>
                             </div>
 
                             <div class="row">
                                 <div class="col-md-6">
-                                    <h5>📂 Структура файлу БДР:</h5>
+                                    <h5>Структура файлу БДР:</h5>
                                     <table class="table table-sm table-bordered">
                                         <thead class="table-light">
                                             <tr>
@@ -181,7 +181,7 @@
                                         </tbody>
                                     </table>
 
-                                    <h5>🏗️ Розділи БДР:</h5>
+                                    <h5>Розділи БДР:</h5>
                                     <ul>
                                         <li><strong>Доходи:</strong> Виручка, послуги, інші доходи</li>
                                         <li><strong>Прямі витрати:</strong> Собівартість, матеріали</li>
@@ -194,15 +194,15 @@
                                 <div class="col-md-6">
                                     <h5>⚡ Можливості системи:</h5>
                                     <ul>
-                                        <li>✅ <strong>Імпорт БДР:</strong> Завантаження з Excel</li>
-                                        <li>✅ <strong>Автокатегоризація:</strong> Автоматичне визначення категорій</li>
-                                        <li>✅ <strong>Помісячне планування:</strong> Деталізація по місяцях</li>
-                                        <li>✅ <strong>Мультивалютність:</strong> Підтримка різних валют</li>
-                                        <li>✅ <strong>Експорт звітів:</strong> Створення звітних форм</li>
-                                        <li>✅ <strong>Аналіз даних:</strong> Перевірка коректності</li>
+                                        <li><strong>Імпорт БДР:</strong> Завантаження з Excel</li>
+                                        <li><strong>Автокатегоризація:</strong> Автоматичне визначення категорій</li>
+                                        <li><strong>Помісячне планування:</strong> Деталізація по місяцях</li>
+                                        <li><strong>Мультивалютність:</strong> Підтримка різних валют</li>
+                                        <li><strong>Експорт звітів:</strong> Створення звітних форм</li>
+                                        <li><strong>Аналіз даних:</strong> Перевірка коректності</li>
                                     </ul>
 
-                                    <h5>🎯 Алгоритм роботи:</h5>
+                                    <h5>Алгоритм роботи:</h5>
                                     <ol>
                                         <li>Завантажте Excel файл з БДР</li>
                                         <li>Натисніть "Попередній перегляд"</li>
@@ -215,7 +215,7 @@
                             </div>
 
                             <div class="alert alert-warning">
-                                <h5>⚠️ Важливі моменти:</h5>
+                                <h5>Важливі моменти:</h5>
                                 <ul>
                                     <li>Файл повинен мати стандартну структуру БДР</li>
                                     <li>Статті БДР групуються по розділах (доходи, витрати)</li>
@@ -230,33 +230,33 @@
                 <footer>
                     <!-- Кнопки для імпорту -->
                     <button name="action_preview_bdr"
-                            string="👁️ Попередній перегляд"
+                            string="Попередній перегляд"
                             type="object"
                             class="btn-info"
                             invisible="operation_type != 'import' or not import_file"/>
 
                     <button name="action_import_bdr"
-                            string="📥 Імпортувати БДР"
+                            string="Імпортувати БДР"
                             type="object"
                             class="btn-primary"
                             invisible="operation_type != 'import' or not import_file"/>
 
                     <button name="action_analyze_bdr"
-                            string="🔍 Аналізувати БДР"
+                            string="Аналізувати БДР"
                             type="object"
                             class="btn-warning"
                             invisible="operation_type != 'analyze' and operation_type != 'import'"/>
 
                     <!-- Кнопки для експорту -->
                     <button name="action_export_bdr"
-                            string="📤 Експортувати БДР"
+                            string="Експортувати БДР"
                             type="object"
                             class="btn-success"
                             invisible="operation_type != 'export'"/>
 
                     <!-- Додаткові дії -->
                     <button name="action_create_bdr_template"
-                            string="🗂️ Створити шаблони БДР"
+                            string="Створити шаблони БДР"
                             type="object"
                             class="btn-secondary"/>
 
@@ -293,7 +293,7 @@
 
     <!-- Меню для БДР -->
     <menuitem id="menu_bdr_budget_wizard"
-              name="💼 БДР (Доходи і витрати)"
+              name="БДР (Доходи і витрати)"
               parent="menu_budget_planning"
               action="action_bdr_budget_wizard"
               sequence="40"/>
@@ -401,7 +401,7 @@ for period in periods:
 
     <!-- Menuitem для Dashboard -->
     <menuitem id="menu_bdr_dashboard"
-              name="📊 Dashboard БДР"
+              name="Dashboard БДР"
               parent="menu_budget_root"
               action="action_bdr_dashboard"
               sequence="15"/>
@@ -418,13 +418,13 @@ for period in periods:
     <record id="email_template_bdr_imported" model="mail.template">
         <field name="name">БДР Імпортовано</field>
         <field name="model_id" ref="model_budget_plan"/>
-        <field name="subject">✅ БДР успішно імпортовано - ${object.display_name}</field>
+        <field name="subject">БДР успішно імпортовано - ${object.display_name}</field>
         <field name="body_html" type="html">
             <div style="margin: 0px; padding: 0px;">
                 <p>Вітаємо!</p>
                 <p>БДР <strong>${object.display_name}</strong> успішно імпортовано в систему бюджетування.</p>
 
-                <h3>📊 Деталі імпорту:</h3>
+                <h3>Деталі імпорту:</h3>
                 <ul>
                     <li><strong>Період:</strong> ${object.period_id.name}</li>
                     <li><strong>ЦБО:</strong> ${object.cbo_id.name}</li>
@@ -432,7 +432,7 @@ for period in periods:
                     <li><strong>Кількість позицій:</strong> ${len(object.line_ids)}</li>
                 </ul>
 
-                <h3>💰 Фінансові показники:</h3>
+                <h3>Фінансові показники:</h3>
                 <ul>
                     <li><strong>Загальна сума:</strong> ${object.total_planned_amount} ${object.currency_id.name}</li>
                 </ul>
@@ -460,7 +460,7 @@ for period in periods:
     if records.filtered(lambda r: 'Імпортовано з БДР' in (r.notes or '')):
         for record in records:
             record.message_post(
-                body="🎯 БДР успішно імпортовано! Створено %d позицій бюджету." % len(record.line_ids),
+                body="БДР успішно імпортовано! Створено %d позицій бюджету." % len(record.line_ids),
                 subject="БДР імпортовано"
             )
         </field>

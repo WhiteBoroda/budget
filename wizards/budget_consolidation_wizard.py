@@ -38,7 +38,7 @@ class BudgetConsolidationWizard(models.TransientModel):
             functional_budgets = self.env['budget.plan'].search([  # ИСПРАВЛЕНО
                 ('period_id', '=', self.period_id.id),
                 ('company_id', '=', company.id),
-                ('budget_level', '=', 'functional'),  # ИСПРАВЛЕНО: level3 → functional
+                ('budget_level', '=', 'functional'),
                 ('state', '=', 'approved')
             ])
 
@@ -52,8 +52,8 @@ class BudgetConsolidationWizard(models.TransientModel):
 
                 # Знаходимо ЦБО керівництва підприємства
                 company_cbo = self.env['budget.responsibility.center'].search([
-                    ('budget_level', '=', 'operational'),  # ИСПРАВЛЕНО
-                    ('company_ids', 'in', [company.id]),  # ИСПРАВЛЕНО: many2many поле
+                    ('budget_level', '=', 'operational'),
+                    ('company_ids', 'in', [company.id]),
                     ('cbo_type', '=', 'enterprise')
                 ], limit=1)
 

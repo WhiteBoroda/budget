@@ -9,13 +9,13 @@
         <field name="arch" type="xml">
             <form string="Управління категоріями БДР">
                 <div class="alert alert-info" invisible="context.get('show_result', False)">
-                    <strong>🏗️ Управління категоріями БДР</strong><br/>
+                    <strong>Управління категоріями БДР</strong><br/>
                     Створюйте, редагуйте або імпортуйте категорії бюджетних витрат
                 </div>
 
                 <!-- Результат операції -->
                 <div class="alert alert-success" invisible="not context.get('show_result', False)">
-                    <h4>✅ Операція завершена!</h4>
+                    <h4>Операція завершена!</h4>
                     <field name="result_message" readonly="1" nolabel="1"/>
                 </div>
 
@@ -76,13 +76,13 @@
                     </group>
                     <group>
                         <div class="alert alert-warning" invisible="operation_type != 'import_excel'">
-                            <strong>📋 Формат Excel файлу:</strong><br/>
+                            <strong>Формат Excel файлу:</strong><br/>
                             Колонка B: Код категорії (наприклад: 1.100.)<br/>
                             Колонка C: Назва категорії<br/>
                             Колонка D: Опис (опціонально)
                         </div>
                         <div class="alert alert-info" invisible="operation_type != 'import_xml'">
-                            <strong>📄 XML файл:</strong><br/>
+                            <strong>XML файл:</strong><br/>
                             Завантажте XML файл з категоріями у форматі Odoo
                         </div>
                     </group>
@@ -92,7 +92,7 @@
                 <group invisible="operation_type != 'bulk_create' or context.get('show_result', False)">
                     <group string="Масове створення категорій" colspan="2">
                         <div class="alert alert-info" role="status">
-                            <strong>📝 Формат введення:</strong><br/>
+                            <strong>Формат введення:</strong><br/>
                             <code>код|назва|батьківський_код</code> (кожна категорія з нового рядка)<br/><br/>
                             <strong>Приклади:</strong><br/>
                             <code>1.000.|Доходи</code><br/>
@@ -122,26 +122,26 @@
 
                 <footer>
                     <!-- Кнопки для виконання операцій -->
-                    <button string="✅ Виконати"
+                    <button string="Виконати"
                             name="action_execute"
                             type="object"
                             class="btn-primary"
                             invisible="context.get('show_result', False)"/>
 
                     <!-- Кнопки для результату -->
-                    <button string="👁️ Переглянути категорії"
+                    <button string="Переглянути категорії"
                             name="action_open_categories"
                             type="object"
                             class="btn-primary"
                             invisible="not context.get('show_result', False) or not created_categories"/>
 
-                    <button string="➕ Створити ще"
+                    <button string="Створити ще"
                             name="action_create_another"
                             type="object"
                             class="btn-secondary"
                             invisible="not context.get('show_result', False)"/>
 
-                    <button string="❌ Скасувати"
+                    <button string="Скасувати"
                             class="btn-default"
                             special="cancel"/>
                 </footer>
@@ -151,7 +151,7 @@
 
     <!-- Action для майстра -->
     <record id="action_budget_category_manager_wizard" model="ir.actions.act_window">
-        <field name="name">🏗️ Управління категоріями БДР</field>
+        <field name="name">Управління категоріями БДР</field>
         <field name="res_model">budget.category.manager.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -160,7 +160,7 @@
 
     <!-- Меню для майстра -->
     <menuitem id="menu_budget_category_manager"
-              name="🏗️ Управління категоріями"
+              name="Управління категоріями"
               parent="menu_budget_config"
               action="action_budget_category_manager_wizard"
               sequence="15"/>
@@ -200,7 +200,7 @@ action = {
 
                 <!-- Кнопки дій -->
                 <button name="%(action_budget_category_manager_wizard)d"
-                        string="✏️ Редагувати"
+                        string="Редагувати"
                         type="action"
                         context="{'default_operation_type': 'edit', 'default_category_id': active_id}"
                         class="btn-link"/>
@@ -215,11 +215,11 @@ action = {
         <field name="arch" type="xml">
             <form string="Категорія БДР">
                 <header>
-                    <button string="🔗 Зопоставити рахунки"
+                    <button string="Зопоставити рахунки"
                             name="action_map_accounts"
                             type="object"
                             class="btn-primary"/>
-                    <button string="📊 Аналіз використання"
+                    <button string="Аналіз використання"
                             name="action_usage_analysis"
                             type="object"
                             class="btn-secondary"/>
@@ -257,7 +257,7 @@ action = {
                     </group>
 
                     <notebook>
-                        <page string="🔗 Зопоставлення рахунків">
+                        <page string="Зопоставлення рахунків">
                             <field name="account_mapping_ids">
                                 <tree editable="bottom">
                                     <field name="account_id" options="{'no_create': True}"/>
@@ -268,12 +268,12 @@ action = {
                                 </tree>
                             </field>
                             <div class="alert alert-info" role="status">
-                                <strong>💡 Підказка:</strong> Зопоставлення дозволяють автоматично призначати
+                                <strong>Підказка:</strong> Зопоставлення дозволяють автоматично призначати
                                 облікові рахунки при створенні позицій бюджету.
                             </div>
                         </page>
 
-                        <page string="👥 Підкатегорії">
+                        <page string="Підкатегорії">
                             <field name="child_ids" readonly="1">
                                 <tree>
                                     <field name="code"/>
@@ -289,7 +289,7 @@ action = {
                                 </tree>
                             </field>
                             <div class="mt16">
-                                <button string="➕ Додати підкатегорію"
+                                <button string="Додати підкатегорію"
                                         name="%(action_budget_category_manager_wizard)d"
                                         type="action"
                                         context="{'default_operation_type': 'create', 'default_parent_id': active_id}"
@@ -297,7 +297,7 @@ action = {
                             </div>
                         </page>
 
-                        <page string="📊 Статистика" groups="budget.group_budget_manager">
+                        <page string="Статистика" groups="budget.group_budget_manager">
                             <group>
                                 <group string="Використання">
                                     <field name="budget_line_count" readonly="1"/>
@@ -358,7 +358,7 @@ action = {
 
     <!-- Оновлений action для категорій -->
     <record id="action_budget_category_enhanced" model="ir.actions.act_window">
-        <field name="name">📂 Категорії БДР</field>
+        <field name="name">Категорії БДР</field>
         <field name="res_model">budget.category</field>
         <field name="view_mode">tree,form</field>
         <field name="view_ids" eval="[(5, 0, 0),
@@ -389,7 +389,7 @@ action = {
 
     <!-- Швидкі дії -->
     <record id="action_categories_import_from_excel" model="ir.actions.act_window">
-        <field name="name">📥 Імпорт категорій з Excel</field>
+        <field name="name">Імпорт категорій з Excel</field>
         <field name="res_model">budget.category.manager.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -397,7 +397,7 @@ action = {
     </record>
 
     <record id="action_categories_bulk_create" model="ir.actions.act_window">
-        <field name="name">📝 Масове створення категорій</field>
+        <field name="name">Масове створення категорій</field>
         <field name="res_model">budget.category.manager.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

@@ -30,7 +30,7 @@
 
     <!-- ACTION ДЛЯ АНАЛІЗУ ПО КАТЕГОРІЯХ -->
     <record id="action_budget_analysis_by_categories" model="ir.actions.act_window">
-        <field name="name">📊 Аналіз по категоріях витрат</field>
+        <field name="name">Аналіз по категоріях витрат</field>
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">graph,pivot,tree</field>
         <field name="domain">[('budget_category_id', '!=', False)]</field>
@@ -72,7 +72,7 @@
     </record>
 
     <record id="action_cost_centers_analysis" model="ir.actions.act_window">
-        <field name="name">🏢 Аналіз по центрах витрат</field>
+        <field name="name">Аналіз по центрах витрат</field>
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">graph,pivot,tree</field>
         <field name="domain">[('cost_center_id', '!=', False)]</field>
@@ -100,7 +100,7 @@
     </record>
 
     <record id="action_categories_budget_types_analysis" model="ir.actions.act_window">
-        <field name="name">📋 Категорії по типах бюджетів</field>
+        <field name="name">Категорії по типах бюджетів</field>
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">pivot,graph,tree</field>
         <field name="domain">[('budget_category_id', '!=', False)]</field>
@@ -112,7 +112,7 @@
 
     <!-- КОНТРОЛЬ ЯКОСТІ КАТЕГОРИЗАЦІЇ -->
     <record id="action_budget_lines_without_categories" model="ir.actions.act_window">
-        <field name="name">⚠️ Позиції без категорій</field>
+        <field name="name">Позиції без категорій</field>
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('budget_category_id', '=', False), ('is_consolidation', '=', False)]</field>
@@ -131,7 +131,7 @@
     </record>
 
     <record id="action_budget_lines_without_accounts" model="ir.actions.act_window">
-        <field name="name">🧾 Позиції без рахунків</field>
+        <field name="name">Позиції без рахунків</field>
         <field name="res_model">budget.plan.line</field>
         <field name="view_mode">tree,form</field>
         <field name="domain">[('account_id', '=', False), ('is_consolidation', '=', False)]</field>
@@ -151,7 +151,7 @@
 
     <!-- МЕНЮ ДЛЯ ЗВІТІВ ПО КАТЕГОРІЯХ -->
     <menuitem id="menu_budget_categories_analysis"
-              name="📂 Аналіз по категоріях"
+              name="Аналіз по категоріях"
               parent="menu_budget_reports"
               sequence="40"/>
 
@@ -175,7 +175,7 @@
 
     <!-- МЕНЮ КОНТРОЛЮ ЯКОСТІ -->
     <menuitem id="menu_budget_quality_control"
-              name="🔍 Контроль якості"
+              name="Контроль якості"
               parent="menu_budget_reports"
               sequence="50"/>
 

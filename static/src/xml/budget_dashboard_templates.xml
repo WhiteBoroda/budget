@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- static/src/xml/budget_dashboard_templates.xml -->
+    <!-- Шаблони для виджетів бюджетування -->
+
+    <!-- Шаблон для основного виджету панелі управління -->
+    <template id="budget.BudgetDashboardWidget" name="Budget Dashboard Widget">
+        <div class="budget-dashboard-widget">
+            <div t-if="state.loading" class="text-center">
+                <i class="fa fa-spinner fa-spin"/>
+                <span>Завантаження...</span>
+            </div>
+
+            <div t-else="" class="budget-dashboard-content">
+                <div class="budget-stats-grid">
+                    <div class="budget-stat-card total">
+                        <div class="stat-icon">📋</div>
+                        <div class="stat-number">
+                            <t t-esc="state.totalBudgets"/>
+                        </div>
+                        <div class="stat-label">Всього бюджетів</div>
+                    </div>
+
+                    <div class="budget-stat-card approved">
+                        <div class="stat-icon">✅</div>
+                        <div class="stat-number">
+                            <t t-esc="state.approvedBudgets"/>
+                        </div>
+                        <div class="stat-label">Затверджені</div>
+                    </div>
+
+                    <div class="budget-stat-card pending">
+                        <div class="stat-icon">⏳</div>
+                        <div class="stat-number">
+                            <t t-esc="state.pendingBudgets"/>
+                        </div>
+                        <div class="stat-label">Очікують</div>
+                    </div>
+
+                    <div class="budget-stat-card overdue">
+                        <div class="stat-icon">⚠️</div>
+                        <div class="stat-number">
+                            <t t-esc="state.overdueBudgets"/>
+                        </div>
+                        <div class="stat-label">Прострочені</div>
+                    </div>
+                </div>
+
+                <div class="budget-action-buttons">
+                    <button type="button" class="btn btn-primary" t-on-click="onViewBudgets">
+                        📋 Переглянути всі бюджети
+                    </button>
+                    <button type="button" class="btn btn-secondary" t-on-click="onRefreshClick">
+                        🔄 Оновити
+                    </button>
+                    <button type="button" class="btn btn-warning" t-on-click="onViewOverdue"
+                            t-if="state.overdueBudgets > 0">
+                        ⚠️ Прострочені (<t t-esc="state.overdueBudgets"/>)
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Шаблон для виджету БДР Dashboard -->
+    <template id="budget.BdrDashboardWidget" name="BDR Dashboard Widget">
+        <div class="bdr-dashboard-widget">
+            <div t-if="state.loading" class="text-center">
+                <i class="fa fa-spinner fa-spin"/>
+                <span>Завантаження даних БДР...</span>
+            </div>
+
+            <div t-else="" class="bdr-dashboard-content">
+                <div class="bdr-header">
+                    <h3>💼 Бюджет доходів і витрат (БДР)</h3>
+                </div>
+
+                <div class="bdr-stats-grid">
+                    <div class="bdr-stat-card income">
+                        <div class="stat-icon">💰</div>
+                        <div class="stat-number">
+                            <t t-esc="state.totalIncome"/>
+                        </div>
+                        <div class="stat-label">Загальні доходи</div>
+                    </div>
+
+                    <div class="bdr-stat-card expenses">
+                        <div class="stat-icon">💸</div>
+                        <div class="stat-number">
+                            <t t-esc="state.totalExpenses"/>
+                        </div>
+                        <div class="stat-label">Загальні витрати</div>
+                    </div>
+
+                    <div class="bdr-stat-card profit" t-attf-class="#{state.netProfit >= 0 ? 'positive' : 'negative'}">
+                        <div class="stat-icon">
+                            <t t-if="state.netProfit >= 0">📈</t>
+                            <t t-else="">📉</t>
+                        </div>
+                        <div class="stat-number">
+                            <t t-esc="state.netProfit"/>
+                        </div>
+                        <div class="stat-label">Чистий прибуток</div>
+                    </div>
+                </div>
+
+                <div class="bdr-sections" t-if="state.sections.length">
+                    <h4>📊 Структура БДР</h4>
+                    <div class="bdr-sections-list">
+                        <div t-foreach="state.sections" t-as="section" class="bdr-section-item">
+                            <span class="section-name"><t t-esc="section.name"/></span>
+                            <span class="section-amount"><t t-esc="section.amount"/></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bdr-action-buttons">
+                    <button type="button" class="btn btn-primary" t-on-click="onViewBdrWizard">
+                        🧙‍♂️ Майстер БДР
+                    </button>
+                    <button type="button" class="btn btn-secondary" t-on-click="onRefreshClick">
+                        🔄 Оновити
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Шаблон для виджету прогресу -->
+    <template id="budget.BudgetProgressWidget" name="Budget Progress Widget">
+        <div class="budget-progress-widget">
+            <div class="progress-info">
+                <div class="progress-labels">
+                    <span>Планово: <t t-esc="props.planned"/></span>
+                    <span>Фактично: <t t-esc="props.actual"/></span>
+                    <span class="variance" t-attf-class="#{varianceClass}">
+                        Відхилення: <t t-esc="props.variance || 0"/>
+                    </span>
+                </div>
+                <div class="progress-percentage">
+                    <t t-esc="executionPercent"/>%
+                </div>
+            </div>
+
+            <div class="progress">
+                <div class="progress-bar"
+                     t-attf-class="#{progressBarClass}"
+                     t-attf-style="width: #{executionPercent}%">
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Шаблон для виджету швидкого створення прогнозу -->
+    <template id="budget.QuickForecastWidget" name="Quick Forecast Widget">
+        <div class="quick-forecast-widget">
+            <h4>🚀 Швидке створення прогнозу</h4>
+
+            <div class="quick-forecast-form">
+                <div class="form-group">
+                    <label>Команда:</label>
+                    <select class="form-control" t-model="state.selectedTeam">
+                        <option value="">Оберіть команду</option>
+                        <option t-foreach="state.teams" t-as="team" t-att-value="team.id">
+                            <t t-esc="team.name"/>
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label>Період:</label>
+                    <select class="form-control" t-model="state.selectedPeriod">
+                        <option value="">Оберіть період</option>
+                        <option t-foreach="state.periods" t-as="period" t-att-value="period.id">
+                            <t t-esc="period.name"/>
+                        </option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <button type="button" class="btn btn-success"
+                            t-on-click="onCreateForecast"
+                            t-att-disabled="state.loading">
+                        <span t-if="state.loading">
+                            <i class="fa fa-spinner fa-spin"/> Створення...
+                        </span>
+                        <span t-else="">
+                            ➕ Створити прогноз
+                        </span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <!-- Шаблон для виджету аналітики -->
+    <template id="budget.BudgetAnalyticsWidget" name="Budget Analytics Widget">
+        <div class="budget-analytics-widget">
+            <div t-if="state.loading" class="text-center">
+                <i class="fa fa-spinner fa-spin"/>
+                <span>Завантаження аналітики...</span>
+            </div>
+
+            <div t-else="" class="budget-analytics-content">
+                <h4>📊 Аналітика бюджетів</h4>
+
+                <div class="chart-container">
+                    <canvas id="budgetChart" width="400" height="200"></canvas>
+                </div>
+
+                <div class="analytics-summary" t-if="state.chartData">
+                    <p>Графік показує виконання бюджетів за обраний період</p>
+                </div>
+            </div>
+        </div>
+    </template>
+
+</odoo>

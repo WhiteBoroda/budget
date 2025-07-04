@@ -57,7 +57,7 @@
                     <t t-name="kanban-box">
                         <div class="budget-dashboard">
                             <div class="dashboard-header">
-                                <h1>📊 Панель управління бюджетами</h1>
+                                <h1>Панель управління бюджетами</h1>
                                 <div class="subtitle">
                                     Період: <t t-esc="record.period_id.value"/>
                                 </div>
@@ -105,7 +105,7 @@
                             <div class="row mt-3">
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <h4>💰 Планова сума</h4>
+                                        <h4>Планова сума</h4>
                                         <h3>
                                             <t t-esc="record.total_planned.value"/> грн
                                         </h3>
@@ -113,7 +113,7 @@
                                 </div>
                                 <div class="col-6">
                                     <div class="text-center">
-                                        <h4>📈 Фактична сума</h4>
+                                        <h4>Фактична сума</h4>
                                         <h3>
                                             <t t-esc="record.total_actual.value"/> грн
                                         </h3>
@@ -126,23 +126,23 @@
                                 <button type="object"
                                         name="action_view_all_budgets"
                                         class="budget-btn primary">
-                                    📋 Всі бюджети
+                                        Всі бюджети
                                 </button>
                                 <button type="object"
                                         name="action_quick_create_budget"
                                         class="budget-btn success">
-                                    ➕ Створити бюджет
+                                        Створити бюджет
                                 </button>
                                 <button type="object"
                                         name="action_view_overdue"
                                         class="budget-btn warning"
                                         invisible="overdue_budgets == 0">
-                                    ⚠️ Прострочені
+                                    Прострочені
                                 </button>
                                 <button type="object"
                                         name="action_analytics"
                                         class="budget-btn primary">
-                                    📊 Аналітика
+                                    Аналітика
                                 </button>
                             </div>
                         </div>
@@ -160,7 +160,7 @@
             <form create="false" edit="false">
                 <sheet>
                     <div class="oe_title">
-                        <h1>📊 Панель управління бюджетами</h1>
+                        <h1>Панель управління бюджетами</h1>
                     </div>
 
                     <group>
@@ -193,28 +193,28 @@
                             <div class="row">
                                 <div class="col-12">
                                     <div class="quick-forecast-widget">
-                                        <h3>🚀 Швидкі дії</h3>
+                                        <h3>Швидкі дії</h3>
                                         <div class="budget-action-buttons">
                                             <button name="action_view_all_budgets"
                                                     type="object"
                                                     class="budget-btn primary">
-                                                📋 Переглянути всі бюджети
+                                                Переглянути всі бюджети
                                             </button>
                                             <button name="action_quick_create_budget"
                                                     type="object"
                                                     class="budget-btn success">
-                                                ➕ Створити новий бюджет
+                                                Створити новий бюджет
                                             </button>
                                             <button name="action_view_overdue"
                                                     type="object"
                                                     class="budget-btn warning"
                                                     invisible="overdue_budgets == 0">
-                                                ⚠️ Прострочені бюджети (<field name="overdue_budgets"/>)
+                                                Прострочені бюджети (<field name="overdue_budgets"/>)
                                             </button>
                                             <button name="action_analytics"
                                                     type="object"
                                                     class="budget-btn primary">
-                                                📊 Детальна аналітика
+                                                Детальна аналітика
                                             </button>
                                         </div>
                                     </div>
@@ -227,7 +227,7 @@
                                 <div class="col-12">
                                     <!-- Здесь можно добавить графики и аналитику -->
                                     <div class="alert alert-info" role="status">
-                                        <h4>📈 Аналітичні дані</h4>
+                                        <h4>Аналітичні дані</h4>
                                         <p>Детальну аналітику можна переглянути в розділі "Аналіз бюджетів"</p>
                                     </div>
                                 </div>
@@ -241,7 +241,7 @@
 
     <!-- Меню для панели управления -->
     <menuitem id="menu_budget_dashboard"
-              name="📊 Панель управління"
+              name="Панель управління"
               parent="menu_budget_root"
               action="action_budget_dashboard"
               sequence="5"/>

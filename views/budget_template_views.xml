@@ -273,14 +273,14 @@
 
     <!-- Меню для шаблонов -->
     <menuitem id="menu_budget_template"
-              name="🗂️ Шаблони бюджетів"
+              name="Шаблони бюджетів"
               parent="menu_budget_config"
               action="action_budget_template"
               sequence="50"/>
 
     <!-- Меню для создания из шаблона -->
     <menuitem id="menu_budget_from_template"
-              name="📋 Створити з шаблону"
+              name="Створити з шаблону"
               parent="menu_budget_planning"
               action="action_budget_template_wizard"
               sequence="25"/>

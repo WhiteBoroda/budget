@@ -11,13 +11,13 @@
 
                 <!-- Заголовок -->
                 <div class="alert alert-info" role="status" invisible="context.get('show_result', False)">
-                    <h4>🏗️ Покращений майстер роботи з БДР</h4>
+                    <h4>Покращений майстер роботи з БДР</h4>
                     <p>Імпорт та експорт бюджетів доходів і витрат з автоматичним створенням категорій</p>
                 </div>
 
                 <!-- Результат операції -->
                 <div class="alert alert-success" role="status" invisible="not context.get('show_result', False)">
-                    <h4>✅ Операція завершена успішно!</h4>
+                    <h4>Операція завершена успішно!</h4>
                     <field name="import_summary" readonly="1" nolabel="1"/>
                 </div>
 
@@ -63,12 +63,12 @@
                     </group>
                     <group>
                         <div class="alert alert-warning" role="alert">
-                            <strong>📋 Структура Excel файлу:</strong><br/>
+                            <strong>Структура Excel файлу:</strong><br/>
                             <strong>Колонка B:</strong> Код категорії (1.100., 2.300.1)<br/>
                             <strong>Колонка C:</strong> Назва статті бюджету<br/>
                             <strong>Колонка G:</strong> Планова сума<br/>
                             <br/>
-                            <strong>💡 Підказка:</strong> Коди категорій мають формат X.XXX., X.XXX.X або X.XXX.X.X
+                            <strong>Підказка:</strong> Коди категорій мають формат X.XXX., X.XXX.X або X.XXX.X.X
                         </div>
                     </group>
                 </group>
@@ -107,19 +107,19 @@
                 <footer>
                     <!-- Кнопки для операцій -->
                     <div invisible="context.get('show_result', False)">
-                        <button string="📥 Імпортувати"
+                        <button string="Імпортувати"
                                 name="action_import_bdr"
                                 type="object"
                                 class="btn-primary"
                                 invisible="operation_type not in ['import', 'import_categories']"/>
 
-                        <button string="📤 Експортувати"
+                        <button string="Експортувати"
                                 name="action_export_bdr"
                                 type="object"
                                 class="btn-primary"
                                 invisible="operation_type != 'export'"/>
 
-                        <button string="📋 Завантажити шаблон"
+                        <button string="Завантажити шаблон"
                                 name="action_download_template"
                                 type="object"
                                 class="btn-secondary"/>
@@ -127,25 +127,25 @@
 
                     <!-- Кнопки для результатів -->
                     <div invisible="not context.get('show_result', False)">
-                        <button string="👁️ Переглянути категорії"
+                        <button string="Переглянути категорії"
                                 name="action_open_created_categories"
                                 type="object"
                                 class="btn-primary"
                                 invisible="not created_categories"/>
 
-                        <button string="📊 Переглянути позиції бюджету"
+                        <button string="Переглянути позиції бюджету"
                                 name="action_open_created_budget_lines"
                                 type="object"
                                 class="btn-primary"
                                 invisible="not created_budget_lines"/>
 
-                        <button string="🔄 Створити новий"
+                        <button string="Створити новий"
                                 name="%(action_bdr_budget_wizard)d"
                                 type="action"
                                 class="btn-secondary"/>
                     </div>
 
-                    <button string="❌ Скасувати"
+                    <button string="Скасувати"
                             class="btn-default"
                             special="cancel"/>
                 </footer>
@@ -155,7 +155,7 @@
 
     <!-- Action для покращеного майстра -->
     <record id="action_bdr_budget_wizard_enhanced" model="ir.actions.act_window">
-        <field name="name">🏗️ Покращений БДР майстер</field>
+        <field name="name">Покращений БДР майстер</field>
         <field name="res_model">bdr.budget.wizard.enhanced</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -164,14 +164,14 @@
 
     <!-- Меню для покращеного майстра -->
     <menuitem id="menu_bdr_budget_wizard_enhanced"
-              name="🏗️ БДР з категоріями"
+              name="БДР з категоріями"
               parent="menu_budget_planning"
               action="action_bdr_budget_wizard_enhanced"
               sequence="25"/>
 
     <!-- Швидкі дії -->
     <record id="action_bdr_import_with_categories" model="ir.actions.act_window">
-        <field name="name">📥 Імпорт БДР з категоріями</field>
+        <field name="name">Імпорт БДР з категоріями</field>
         <field name="res_model">bdr.budget.wizard.enhanced</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -179,7 +179,7 @@
     </record>
 
     <record id="action_bdr_import_categories_only" model="ir.actions.act_window">
-        <field name="name">📂 Імпорт тільки категорій БДР</field>
+        <field name="name">Імпорт тільки категорій БДР</field>
         <field name="res_model">bdr.budget.wizard.enhanced</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -187,7 +187,7 @@
     </record>
 
     <record id="action_bdr_export_with_categories" model="ir.actions.act_window">
-        <field name="name">📤 Експорт БДР з категоріями</field>
+        <field name="name">Експорт БДР з категоріями</field>
         <field name="res_model">bdr.budget.wizard.enhanced</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -196,31 +196,31 @@
 
     <!-- Додаткові меню в розділі "Імпорт/Експорт" -->
     <menuitem id="menu_budget_import_export"
-          name="📥📤 Імпорт/Експорт"
+          name="Імпорт/Експорт"
           parent="menu_budget_root"
           sequence="80"/>
 
     <menuitem id="menu_bdr_import_categories"
-              name="📂 Імпорт категорій"
+              name="Імпорт категорій"
               parent="menu_budget_import_export"
               action="action_bdr_import_categories_only"
               sequence="10"/>
 
     <menuitem id="menu_bdr_import_with_categories"
-              name="📥 Імпорт БДР з категоріями"
+              name="Імпорт БДР з категоріями"
               parent="menu_budget_import_export"
               action="action_bdr_import_with_categories"
               sequence="15"/>
 
     <menuitem id="menu_bdr_export_with_categories"
-              name="📤 Експорт БДР з категоріями"
+              name="Експорт БДР з категоріями"
               parent="menu_budget_import_export"
               action="action_bdr_export_with_categories"
               sequence="20"/>
 
     <!-- Server Action для швидкого доступу з планів бюджету -->
     <record id="action_enhance_budget_with_categories" model="ir.actions.server">
-        <field name="name">🏗️ Покращити категоріями</field>
+        <field name="name">Покращити категоріями</field>
         <field name="model_id" ref="model_budget_plan"/>
         <field name="binding_model_id" ref="model_budget_plan"/>
         <field name="binding_view_types">list,form</field>
@@ -263,9 +263,9 @@ else:
         <field name="arch" type="xml">
             <form string="Довідка по роботі з БДР">
                 <div class="alert alert-info" role="status">
-                    <h4>📖 Довідка по покращеному майстру БДР</h4>
+                    <h4>Довідка по покращеному майстру БДР</h4>
 
-                    <h5>🔧 Функціональність:</h5>
+                    <h5>Функціональність:</h5>
                     <ul>
                         <li><strong>Автоматичне створення категорій:</strong> Система сама створює категорії на основі кодів з Excel</li>
                         <li><strong>Ієрархічна структура:</strong> Підтримка багаторівневих категорій (1.100., 1.100.1, 1.100.1.1)</li>
@@ -273,7 +273,7 @@ else:
                         <li><strong>Гнучкий імпорт:</strong> Можливість імпорту тільки категорій або з даними</li>
                     </ul>
 
-                    <h5>📋 Формат Excel файлу:</h5>
+                    <h5>Формат Excel файлу:</h5>
                     <table class="table table-sm">
                         <thead>
                             <tr><th>Колонка</th><th>Призначення</th><th>Приклад</th></tr>
@@ -285,14 +285,14 @@ else:
                         </tbody>
                     </table>
 
-                    <h5>🏷️ Формат кодів категорій:</h5>
+                    <h5>Формат кодів категорій:</h5>
                     <ul>
                         <li><code>X.XXX.</code> - основна категорія (1.100.)</li>
                         <li><code>X.XXX.X</code> - підкатегорія (1.100.1)</li>
                         <li><code>X.XXX.X.X</code> - підкатегорія 3-го рівня (1.100.1.1)</li>
                     </ul>
 
-                    <h5>💡 Приклади використання:</h5>
+                    <h5>Приклади використання:</h5>
                     <div class="row">
                         <div class="col-6">
                             <strong>Доходи:</strong>
@@ -312,7 +312,7 @@ else:
                         </div>
                     </div>
 
-                    <h5>⚙️ Рекомендації:</h5>
+                    <h5>Рекомендації:</h5>
                     <ol>
                         <li>Спочатку імпортуйте тільки категорії для перевірки структури</li>
                         <li>Переконайтеся що коди категорій унікальні</li>

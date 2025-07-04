@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 {
     'name': 'Система бюджетування',
-    'version': '17.0.2.3.2',
+    'version': '17.0.2.3.3',
     'category': 'Accounting/Management',
     'summary': 'Гнучка система бюджетування з багаторівневою структурою ЦБО, категоріями витрат та інтеграцією з прогнозами продажів',
     'description': """
@@ -44,7 +44,6 @@
         # 1. БЕЗПЕКА (завжди першою)
         'security/budget_security.xml',
         'security/ir.model.access.csv',
-        'security/ir.model.access_categories.csv',  # ДОДАНО: права для категорій
 
         # 2. ПОСЛІДОВНОСТІ (потрібні для моделей)
         'data/ir_sequence_data.xml',
@@ -108,6 +107,7 @@
         'web.assets_backend': [
             'budget/static/src/css/budget_dashboard.css',
             'budget/static/src/js/budget_widgets.js',
+
         ],
         # Стили для frontend (портала) - если планируется портальная часть
         'web.assets_frontend': [

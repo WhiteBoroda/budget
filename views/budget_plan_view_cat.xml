@@ -12,7 +12,7 @@
             <!-- Додаємо кнопку оновлення облікових даних -->
             <xpath expr="//header" position="inside">
                 <button name="action_update_accounting_data"
-                        string="🔄 Оновити облікові дані"
+                        string="Оновити облікові дані"
                         type="object"
                         class="btn-secondary"
                         groups="account.group_account_user"
@@ -21,7 +21,7 @@
 
             <!-- ВИПРАВЛЕННЯ: Використовуємо правильний селектор -->
             <xpath expr="//notebook/page[1]" position="replace">
-                <page string="💰 Позиції бюджету">
+                <page string="Позиції бюджету">
                     <div class="alert alert-info" role="alert">
                         <strong>Спрощене введення:</strong> Оберіть категорію витрат та центр витрат.
                         Облікові рахунки визначаться автоматично згідно з налаштуваннями.
@@ -38,23 +38,23 @@
                         <tree editable="bottom" decoration-muted="is_consolidation">
                             <!-- СПРОЩЕНІ ПОЛЯ для користувачів -->
                             <field name="budget_category_id"
-                                   string="📂 Категорія витрат"
+                                   string="Категорія витрат"
                                    options="{'no_create': True, 'no_edit': True}"
                                    required="1"/>
 
                             <field name="cost_center_id"
-                                   string="🏢 Центр витрат"
+                                   string="Центр витрат"
                                    options="{'no_create': True, 'no_edit': True}"/>
 
                             <field name="description"
-                                   string="📝 Опис"/>
+                                   string="Опис"/>
 
                             <!-- ПЛАНУВАННЯ -->
                             <field name="quantity" string="Кількість"/>
                             <field name="unit_price" string="Ціна за одиницю"
                                    widget="monetary"/>
                             <field name="planned_amount"
-                                   string="💰 Планова сума"
+                                   string="Планова сума"
                                    widget="monetary"
                                    sum="Всього"/>
 
@@ -88,7 +88,7 @@
                                 </div>
 
                                 <group>
-                                    <group string="📂 Категоризація">
+                                    <group string="Категоризація">
                                         <field name="budget_category_id"
                                                options="{'no_create': True}"/>
                                         <field name="cost_center_id"
@@ -96,7 +96,7 @@
                                         <field name="description"/>
                                     </group>
 
-                                    <group string="💰 Планування">
+                                    <group string="Планування">
                                         <field name="quantity"/>
                                         <field name="unit_price"/>
                                         <field name="planned_amount"
@@ -106,13 +106,13 @@
                                     </group>
                                 </group>
 
-                                <group string="📋 Обґрунтування">
+                                <group string="Обґрунтування">
                                     <field name="calculation_basis" nolabel="1"
                                            placeholder="Як розраховано цю суму?"/>
                                 </group>
 
                                 <notebook>
-                                    <page string="💼 Виконання">
+                                    <page string="Виконання">
                                         <group>
                                             <group string="Витрачено">
                                                 <field name="committed_amount"/>
@@ -125,7 +125,7 @@
                                         </group>
                                     </page>
 
-                                    <page string="🧾 Облікові дані"
+                                    <page string="Облікові дані"
                                           groups="account.group_account_user">
                                         <div class="alert alert-warning" role="alert">
                                             <strong>Увага:</strong> Ці поля заповнюються автоматично
@@ -146,14 +146,14 @@
                                         </group>
                                     </page>
 
-                                    <page string="📈 Прогноз продажів"
+                                    <page string="Прогноз продажів"
                                           invisible="not sales_forecast_line_id">
                                         <group string="Зв'язок з прогнозом">
                                             <field name="sales_forecast_line_id" readonly="1"/>
                                         </group>
                                     </page>
 
-                                    <page string="📝 Примітки">
+                                    <page string="Примітки">
                                         <field name="notes" nolabel="1"/>
                                     </page>
                                 </notebook>
@@ -174,16 +174,16 @@
         <field name="arch" type="xml">
             <tree editable="bottom" decoration-muted="is_consolidation">
                 <!-- ОСНОВНІ ПОЛЯ -->
-                <field name="budget_category_id" string="📂 Категорія"
+                <field name="budget_category_id" string="Категорія"
                        options="{'no_create': True}"/>
-                <field name="cost_center_id" string="🏢 Центр витрат"
+                <field name="cost_center_id" string="Центр витрат"
                        options="{'no_create': True}"/>
-                <field name="description" string="📝 Опис"/>
+                <field name="description" string="Опис"/>
 
                 <!-- ПЛАНУВАННЯ -->
                 <field name="quantity" string="Кіл-ть"/>
                 <field name="unit_price" string="Ціна за од." widget="monetary"/>
-                <field name="planned_amount" string="💰 Сума" widget="monetary" sum="Всього"/>
+                <field name="planned_amount" string="Сума" widget="monetary" sum="Всього"/>
 
                 <!-- ВИКОНАННЯ -->
                 <field name="actual_amount" string="Факт" widget="monetary" readonly="1"/>
@@ -211,7 +211,7 @@
                     </div>
 
                     <group>
-                        <group string="🏷️ Категоризація">
+                        <group string="Категоризація">
                             <field name="budget_category_id"/>
                             <field name="cost_center_id"/>
                             <field name="category_code" readonly="1"/>
@@ -228,19 +228,19 @@
                     </group>
 
                     <group>
-                        <group string="🧾 Облікові дані">
+                        <group string="Облікові дані">
                             <field name="account_id"/>
                             <field name="analytic_account_id"/>
                         </group>
 
-                        <group string="⚙️ Методологія">
+                        <group string="Методологія">
                             <field name="calculation_method"/>
                             <field name="percentage_base"
                                    invisible="calculation_method != 'percentage'"/>
                         </group>
                     </group>
 
-                    <group string="💼 Організаційна аналітика">
+                    <group string="Організаційна аналітика">
                         <group>
                             <field name="department_id"/>
                             <field name="project_id"/>
@@ -252,7 +252,7 @@
                     </group>
 
                     <notebook>
-                        <page string="📊 Виконання">
+                        <page string="Виконання">
                             <group>
                                 <group string="Заплановано">
                                     <field name="planned_amount" readonly="1"/>
@@ -263,12 +263,12 @@
                                 </group>
                             </group>
 
-                            <group string="📈 Розрахунки">
+                            <group string="Розрахунки">
                                 <field name="calculation_basis" nolabel="1"/>
                             </group>
                         </page>
 
-                        <page string="🔗 Зв'язки">
+                        <page string="Зв'язки">
                             <group>
                                 <group string="Проект">
                                     <field name="project_id"/>
@@ -279,7 +279,7 @@
                             </group>
                         </page>
 
-                        <page string="📝 Додаткова інформація">
+                        <page string="Додаткова інформація">
                             <field name="notes" nolabel="1"/>
                         </page>
                     </notebook>
@@ -308,12 +308,12 @@
                                     <div class="o_kanban_record_headings">
                                         <strong class="o_kanban_record_title">
                                             <span t-if="record.budget_category_id.raw_value">
-                                                📂 <t t-esc="record.budget_category_id.value"/>
+                                                <t t-esc="record.budget_category_id.value"/>
                                             </span>
                                         </strong>
                                         <small class="o_kanban_record_subtitle text-muted">
                                             <span t-if="record.cost_center_id.raw_value">
-                                                🏢 <t t-esc="record.cost_center_id.value"/>
+                                                <t t-esc="record.cost_center_id.value"/>
                                             </span>
                                         </small>
                                     </div>
@@ -419,7 +419,7 @@
 
     <!-- МЕНЮ ДЛЯ РОБОТИ З КАТЕГОРІЯМИ -->
     <menuitem id="menu_budget_lines_categories"
-              name="📂 Позиції з категоріями"
+              name="Позиції з категоріями"
               parent="menu_budget_planning"
               action="action_budget_lines_with_categories"
               sequence="28"/>
