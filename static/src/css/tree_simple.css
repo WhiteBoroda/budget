@@ -1,0 +1,248 @@
+/* БАЗОВІ СТИЛІ ДЛЯ ДЕРЕВА - СУМІСНО З ODOO 17 */
+
+/* Покращення tree view для ієрархічного відображення */
+.o_list_view .o_data_row {
+    transition: background-color 0.2s ease;
+}
+
+.o_list_view .o_data_row:hover {
+    background-color: #f8f9fa !important;
+}
+
+/* Стилі для різних типів ЦБО */
+.o_list_view .o_data_row.decoration-bf {
+    font-weight: bold;
+    border-left: 3px solid #007bff;
+}
+
+.o_list_view .o_data_row.decoration-info {
+    border-left: 3px solid #17a2b8;
+    background-color: rgba(23, 162, 184, 0.05);
+}
+
+/* Kanban покращення */
+.o_kanban_view .oe_kanban_card {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    margin-bottom: 8px;
+}
+
+.o_kanban_view .oe_kanban_card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* Іконки ЦБО */
+.o_kanban_image .fa-university {
+    color: #6f42c1;
+}
+
+.o_kanban_image .fa-industry {
+    color: #007bff;
+}
+
+.o_kanban_image .fa-building {
+    color: #28a745;
+}
+
+.o_kanban_image .fa-folder {
+    color: #6c757d;
+}
+
+/* Badge стилі */
+.badge-pill {
+    border-radius: 10px;
+    font-size: 11px;
+    padding: 3px 8px;
+}
+
+/* Статистичні значення */
+.o_stat_value {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #007bff;
+    line-height: 1;
+}
+
+.o_stat_text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Dashboard стилі */
+.o_form_view .oe_title h1 {
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.o_form_view .oe_title p {
+    color: #6c757d;
+    font-size: 1.1rem;
+    margin-bottom: 20px;
+}
+
+/* Кнопки дій */
+.btn-block {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.btn-outline-primary:hover {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-outline-info:hover {
+    background-color: #17a2b8;
+    border-color: #17a2b8;
+    color: white;
+}
+
+/* Групи полів */
+.o_group {
+    margin-bottom: 20px;
+}
+
+.o_group .o_form_label {
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Handle для drag & drop в tree */
+.ui-sortable-handle {
+    cursor: move;
+    color: #6c757d;
+}
+
+.ui-sortable-handle:hover {
+    color: #495057;
+}
+
+/* Покращення для мобільних пристроїв */
+@media (max-width: 768px) {
+    .o_kanban_view .oe_kanban_card {
+        margin-bottom: 12px;
+    }
+
+    .o_stat_value {
+        font-size: 1.5rem;
+    }
+
+    .btn-block {
+        margin-bottom: 8px;
+    }
+}
+
+/* Анімації для плавності */
+.o_field_widget {
+    transition: all 0.2s ease;
+}
+
+.o_field_widget:focus {
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+/* Покращення читабельності */
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-primary {
+    color: #007bff !important;
+}
+
+.text-info {
+    color: #17a2b8 !important;
+}
+
+.text-success {
+    color: #28a745 !important;
+}
+
+.text-secondary {
+    color: #6c757d !important;
+}
+
+/* Стилі для вкладок */
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    border-bottom: 2px solid #007bff;
+    background: none;
+}
+
+/* Покращення для заголовків груп */
+.o_horizontal_separator {
+    color: #495057;
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin: 20px 0 10px 0;
+}
+
+/* Стилі для пустого стану */
+.o_view_nocontent {
+    padding: 40px 20px;
+    text-align: center;
+}
+
+.o_view_nocontent_smiling_face {
+    font-size: 3rem;
+    margin-bottom: 20px;
+}
+
+/* Покращення для пошуку */
+.o_searchview_input {
+    border-radius: 20px;
+}
+
+.o_searchview .o_searchview_facet {
+    border-radius: 15px;
+}
+
+/* Додаткові utility класи */
+.tree-hierarchy-indent {
+    padding-left: 20px;
+}
+
+.tree-hierarchy-indent-2 {
+    padding-left: 40px;
+}
+
+.tree-hierarchy-indent-3 {
+    padding-left: 60px;
+}
+
+/* Стилі для статусів */
+.badge-draft {
+    background-color: #6c757d;
+    color: white;
+}
+
+.badge-planning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-approved {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-review {
+    background-color: #17a2b8;
+    color: white;
+}

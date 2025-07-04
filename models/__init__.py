@@ -13,3 +13,4 @@ from . import budget_config_extension
 from . import hierarchy_tree_methods
 from . import tree_advanced_features
 from . import budget_consolidatation
+from . import budget_cbo_extention

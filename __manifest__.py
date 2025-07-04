@@ -72,8 +72,7 @@
         'views/tree_dashboard_views.xml',
         'views/tree_advanced_views.xml',
         'views/tree_additional_actions.xml',
-        'wizards/tree_restructure_wizard.py',
-        'wizards/tree_restructure_wizard_views.xml',
+        'views/tree_simple_dashboard.xml'
         'data/bdr_categories_data.xml',
 
 
@@ -123,6 +122,9 @@
         # Стили для frontend (портала) - если планируется портальная часть
         'web.assets_frontend': [
             'budget/static/src/css/budget_portal.css',
+            'budget/static/src/css/budget_compact.css',
+            'budget/static/src/css/hierarchy_tree.css',
+            'budget/static/src/css/tree_simple.css',
         ],
         # Дополнительно: стили для отчетов PDF
         'web.report_assets_common': [
