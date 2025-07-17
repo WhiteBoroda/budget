@@ -212,8 +212,8 @@ budget/
 
 ### Зворотний зв'язок
 Для повідомлення про помилки або пропозицій щодо покращення:
-- Email: support@company.com
-- Телефон: +380 XX XXX XX XX
+- Email: y.varaksin@hlibodar.com.ua
+- Телефон: +380 50 3415656
 
 ## Ліцензія
 LGPL-3 - деталі в файлі LICENSE
