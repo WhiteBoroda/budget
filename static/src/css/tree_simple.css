@@ -246,3 +246,404 @@
     background-color: #17a2b8;
     color: white;
 }
+
+/* СПЕЦІАЛЬНІ СТИЛІ ДЛЯ ДЕРЕВА ЦБО */
+.hierarchy-tree-container {
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 16px;
+    background: white;
+    margin: 16px 0;
+}
+
+.hierarchy-tree-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.hierarchy-tree-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+}
+
+.hierarchy-tree-controls {
+    display: flex;
+    gap: 8px;
+}
+
+.hierarchy-tree-node {
+    margin-bottom: 4px;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+}
+
+.hierarchy-tree-node:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+.hierarchy-tree-node.selected {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.hierarchy-tree-node.has-children {
+    border-left: 3px solid #007bff;
+}
+
+.hierarchy-tree-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.hierarchy-tree-toggle {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.hierarchy-tree-icon {
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.hierarchy-tree-label {
+    flex: 1;
+    font-weight: 500;
+    color: #212529;
+}
+
+.hierarchy-tree-meta {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.hierarchy-tree-badge {
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-size: 10px;
+    font-weight: 600;
+}
+
+.hierarchy-tree-actions {
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.hierarchy-tree-node:hover .hierarchy-tree-actions {
+    opacity: 1;
+}
+
+.hierarchy-tree-action {
+    padding: 2px 6px;
+    border: 1px solid #dee2e6;
+    background: white;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+    color: #6c757d;
+    transition: all 0.2s ease;
+}
+
+.hierarchy-tree-action:hover {
+    background-color: #f8f9fa;
+    border-color: #adb5bd;
+    color: #495057;
+}
+
+/* Індентація для рівнів */
+.hierarchy-tree-level-0 { padding-left: 0; }
+.hierarchy-tree-level-1 { padding-left: 20px; }
+.hierarchy-tree-level-2 { padding-left: 40px; }
+.hierarchy-tree-level-3 { padding-left: 60px; }
+.hierarchy-tree-level-4 { padding-left: 80px; }
+.hierarchy-tree-level-5 { padding-left: 100px; }
+
+/* Стилі для різних типів ЦБО */
+.cbo-type-holding {
+    border-left-color: #6f42c1 !important;
+    background-color: rgba(111, 66, 193, 0.05);
+}
+
+.cbo-type-enterprise {
+    border-left-color: #007bff !important;
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.cbo-type-department {
+    border-left-color: #28a745 !important;
+    background-color: rgba(40, 167, 69, 0.05);
+}
+
+.cbo-type-division {
+    border-left-color: #ffc107 !important;
+    background-color: rgba(255, 193, 7, 0.05);
+}
+
+/* Стилі для статусу активності */
+.hierarchy-tree-node.inactive {
+    opacity: 0.6;
+}
+
+.hierarchy-tree-node.inactive .hierarchy-tree-label {
+    text-decoration: line-through;
+    color: #6c757d;
+}
+
+/* Стилі для завантаження */
+.hierarchy-tree-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.hierarchy-tree-loading i {
+    margin-right: 8px;
+}
+
+/* Стилі для пустого стану */
+.hierarchy-tree-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #6c757d;
+}
+
+.hierarchy-tree-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 16px;
+    color: #dee2e6;
+}
+
+.hierarchy-tree-empty-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.hierarchy-tree-empty-description {
+    margin-bottom: 16px;
+}
+
+/* Responsive дизайн */
+@media (max-width: 768px) {
+    .hierarchy-tree-header {
+        flex-direction: column;
+        gap: 12px;
+        align-items: stretch;
+    }
+
+    .hierarchy-tree-controls {
+        justify-content: center;
+    }
+
+    .hierarchy-tree-content {
+        flex-wrap: wrap;
+    }
+
+    .hierarchy-tree-meta {
+        flex-wrap: wrap;
+    }
+
+    .hierarchy-tree-level-1,
+    .hierarchy-tree-level-2,
+    .hierarchy-tree-level-3,
+    .hierarchy-tree-level-4,
+    .hierarchy-tree-level-5 {
+        padding-left: 16px;
+    }
+}
+
+/* Стилі для drag & drop */
+.hierarchy-tree-node.dragging {
+    opacity: 0.5;
+    transform: rotate(5deg);
+}
+
+.hierarchy-tree-node.drop-target {
+    background-color: #e8f5e8;
+    border-color: #28a745;
+}
+
+.hierarchy-tree-node.drop-above::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #28a745;
+}
+
+.hierarchy-tree-node.drop-below::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #28a745;
+}
+
+/* Стилі для контекстного меню */
+.hierarchy-context-menu {
+    position: fixed;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1050;
+    min-width: 180px;
+    padding: 4px 0;
+}
+
+.hierarchy-context-menu-item {
+    padding: 8px 16px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.hierarchy-context-menu-item:hover {
+    background-color: #f8f9fa;
+}
+
+.hierarchy-context-menu-separator {
+    height: 1px;
+    background: #dee2e6;
+    margin: 4px 0;
+}
+
+.hierarchy-context-menu-item.danger {
+    color: #dc3545;
+}
+
+.hierarchy-context-menu-item.danger:hover {
+    background-color: #f8d7da;
+}
+
+/* Стилі для tooltips */
+.hierarchy-tooltip {
+    position: absolute;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    z-index: 1040;
+    pointer-events: none;
+    max-width: 200px;
+    word-wrap: break-word;
+}
+
+/* Анімації */
+@keyframes hierarchyFadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes hierarchySlideDown {
+    from { max-height: 0; opacity: 0; }
+    to { max-height: 200px; opacity: 1; }
+}
+
+.hierarchy-tree-node.animate-in {
+    animation: hierarchyFadeIn 0.3s ease;
+}
+
+.hierarchy-tree-children.expanding {
+    animation: hierarchySlideDown 0.3s ease;
+}
+
+/* Покращення для accessibility */
+.hierarchy-tree-node:focus {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+.hierarchy-tree-node[aria-expanded="true"] .hierarchy-tree-toggle::before {
+    content: "▼";
+}
+
+.hierarchy-tree-node[aria-expanded="false"] .hierarchy-tree-toggle::before {
+    content: "▶";
+}
+
+/* Стилі для фільтрації */
+.hierarchy-tree-filter {
+    margin-bottom: 16px;
+    padding: 8px 12px;
+    border: 1px solid #dee2e6;
+    border-radius: 20px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.hierarchy-tree-filter:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+}
+
+.hierarchy-tree-node.filtered {
+    background-color: #fff3cd;
+    border-color: #ffc107;
+}
+
+/* Додаткові стилі для кнопок */
+.btn-tree-action {
+    padding: 4px 8px;
+    font-size: 12px;
+    line-height: 1.2;
+    border-radius: 4px;
+}
+
+.btn-tree-primary {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.btn-tree-secondary {
+    background-color: #6c757d;
+    border-color: #6c757d;
+    color: white;
+}
+
+.btn-tree-success {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-tree-danger {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}

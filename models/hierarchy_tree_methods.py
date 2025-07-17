@@ -19,13 +19,13 @@ class ResponsibilityCenterTreeMethods(models.Model):
     display_name_with_icon = fields.Char('Назва з іконкою', compute='_compute_display_name_with_icon')
     tree_summary = fields.Char('Підсумок для дерева', compute='_compute_tree_summary')
 
-    @api.depends('budget_plan_ids', 'budget_plan_ids.total_planned_amount')
+    @api.depends('budget_plan_id', 'budget_plan_id.planned_amount')
     def _compute_budget_stats(self):
         """Розрахунок статистики бюджетів для ЦБО"""
         for cbo in self:
-            budgets = cbo.budget_plan_ids.filtered(lambda b: b.state != 'cancelled')
+            budgets = cbo.budget_plan_id.filtered(lambda b: b.state != 'draft')
             cbo.budget_count = len(budgets)
-            cbo.total_budget_amount = sum(budgets.mapped('total_planned_amount'))
+            cbo.total_budget_amount = sum(budgets.mapped('planned_amount'))
 
     @api.depends('child_ids')
     def _compute_child_count(self):
@@ -251,17 +251,17 @@ class BudgetPlanTreeMethods(models.Model):
                     break
             budget.consolidation_path = ' → '.join(path_parts)
 
-    @api.depends('child_budget_ids', 'total_planned_amount', 'execution_percentage')
+    @api.depends('child_budget_ids', 'available_amount', 'variance_percent')
     def _compute_consolidation_summary(self):
         """Підсумок для консолідованих бюджетів"""
         for budget in self:
             if budget.is_consolidated and budget.child_budget_ids:
                 child_count = len(budget.child_budget_ids)
                 avg_execution = sum(
-                    budget.child_budget_ids.mapped('execution_percentage')) / child_count if child_count else 0
+                    budget.child_budget_ids.mapped('variance_percent')) / child_count if child_count else 0
                 budget.consolidation_summary = f"{child_count} дочірніх • {avg_execution:.1f}% виконання"
             else:
-                budget.consolidation_summary = f"{budget.execution_percentage:.1f}% виконання"
+                budget.consolidation_summary = f"{budget.variance_percent:.1f}% виконання"
 
     def get_budget_tree_data(self, domain=None):
         """Отримання даних бюджетів для дерева"""
@@ -286,9 +286,9 @@ class BudgetPlanTreeMethods(models.Model):
                 'parent_budget_id': budget.parent_budget_id.id if budget.parent_budget_id else None,
                 'child_budget_ids': budget.child_budget_ids.ids,
                 'state': budget.state,
-                'total_planned_amount': budget.total_planned_amount,
-                'total_actual_amount': budget.total_actual_amount,
-                'execution_percentage': budget.execution_percentage,
+                'total_planned_amount': budget.planned_amount,
+                'total_actual_amount': budget.actual_amount,
+                'execution_percentage': budget.variance_percent,
                 'responsible_user_id': budget.responsible_user_id.id if budget.responsible_user_id else None,
                 'tree_display_name': budget.tree_display_name,
                 'consolidation_path': budget.consolidation_path,
@@ -306,7 +306,7 @@ class BudgetPlanTreeMethods(models.Model):
             'name': 'Дерево консолідації бюджетів',
             'res_model': 'budget.plan',
             'view_mode': 'tree,form',
-            'view_id': self.env.ref('budget.view_budget_plan_hierarchy_tree').id,
+            'view_id': self.env.ref('budget.view_hierarchy_tree_dashboard').id,
             'domain': [('id', 'in', self._get_consolidation_tree_ids())],
             'context': {
                 'group_by': ['consolidation_level', 'parent_budget_id'],

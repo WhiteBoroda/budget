@@ -24,7 +24,7 @@ class BudgetExecution(models.Model):
     description = fields.Char('Опис')
     responsible_user_id = fields.Many2one('res.users', 'Відповідальний', default=lambda self: self.env.user)
 
-    currency_id = fields.Many2one('res.currency', related='budget_plan_id.company_id.currency_id', readonly=True)
+    currency_id = fields.Many2one('res.currency', related='budget_plan_id.company_ids.currency_id', readonly=True)
 
     @api.depends('actual_amount', 'budget_plan_id.planned_amount', 'budget_line_id.planned_amount')
     def _compute_variance(self):

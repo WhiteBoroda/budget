@@ -11,6 +11,7 @@ class TreeAdvancedFeatures(models.Model):
     """Розширені функції для роботи з деревом структури"""
     _inherit = 'budget.responsibility.center'
 
+    budget_plan_id = fields.Many2one('budget.plan', 'Бюджетний план')
     # Додаткові поля для розширеної функціональності
     tree_position = fields.Integer('Позиція в дереві', default=0)
     is_expanded_by_default = fields.Boolean('Розгорнутий за замовчуванням', default=False)
@@ -38,13 +39,13 @@ class TreeAdvancedFeatures(models.Model):
 
             cbo.total_employees = direct_employees + child_employees
 
-    @api.depends('budget_plan_ids', 'budget_plan_ids.execution_percentage')
+    @api.depends('budget_plan_id', 'budget_plan_id')
     def _compute_budget_utilization(self):
         """Розрахунок середнього використання бюджету"""
         for cbo in self:
-            active_budgets = cbo.budget_plan_ids.filtered(lambda b: b.state == 'approved')
+            active_budgets = cbo.budget_plan_id.filtered(lambda b: b.state == 'approved')
             if active_budgets:
-                cbo.budget_utilization = sum(active_budgets.mapped('execution_percentage')) / len(active_budgets)
+                cbo.budget_utilization = sum(active_budgets.mapped('execution')) / len(active_budgets)
             else:
                 cbo.budget_utilization = 0.0
 

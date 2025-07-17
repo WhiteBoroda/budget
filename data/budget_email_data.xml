@@ -30,7 +30,7 @@
     <record id="sales_plan_message_subtype_approved" model="mail.message.subtype">
         <field name="name">План продажів затверджено</field>
         <field name="description">План продажів успішно затверджено</field>
-        <field name="res_model">budget.sales_forecast</field>
+        <field name="res_model">sale.forecast</field>
         <field name="default">True</field>
         <field name="sequence">1</field>
     </record>

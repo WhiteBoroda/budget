@@ -4,7 +4,7 @@
 
     <!-- Оптимізація структури -->
     <record id="action_tree_optimization_wizard" model="ir.actions.act_window">
-        <field name="name">⚙️ Оптимізація структури дерева</field>
+        <field name="name">Оптимізація структури дерева</field>
         <field name="res_model">tree.optimization.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -12,7 +12,7 @@
 
     <!-- Експорт/Імпорт -->
     <record id="action_tree_export_import_wizard" model="ir.actions.act_window">
-        <field name="name">📤📥 Експорт та імпорт структури</field>
+        <field name="name">Експорт та імпорт структури</field>
         <field name="res_model">tree.export.import.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>
@@ -20,7 +20,7 @@
 
     <!-- Аналітика дерева -->
     <record id="action_tree_analytics_dashboard" model="ir.actions.act_window">
-        <field name="name">📊 Аналітика структури організації</field>
+        <field name="name">Аналітика структури організації</field>
         <field name="res_model">tree.analytics.dashboard</field>
         <field name="view_mode">form</field>
         <field name="target">current</field>
@@ -28,7 +28,7 @@
 
     <!-- Швидкі дії Server Actions -->
     <record id="server_action_expand_all_tree" model="ir.actions.server">
-        <field name="name">🌳 Розгорнути все дерево</field>
+        <field name="name">Розгорнути все дерево</field>
         <field name="model_id" ref="model_budget_responsibility_center"/>
         <field name="binding_model_id" ref="model_budget_responsibility_center"/>
         <field name="binding_view_types">tree</field>
@@ -47,7 +47,7 @@ action = {
     </record>
 
     <record id="server_action_collapse_all_tree" model="ir.actions.server">
-        <field name="name">🌲 Згорнути все дерево</field>
+        <field name="name">Згорнути все дерево</field>
         <field name="model_id" ref="model_budget_responsibility_center"/>
         <field name="binding_model_id" ref="model_budget_responsibility_center"/>
         <field name="binding_view_types">tree</field>
