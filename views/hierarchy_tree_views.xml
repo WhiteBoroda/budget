@@ -59,111 +59,113 @@
                     <button name="action_create_budget" string="Створити бюджет"
                             type="object" class="btn-secondary"/>
                     <button name="action_view_hierarchy" string="Ієрархія"
-                            type="object" class="btn-secondary"/>
+                            type="object" class="btn-info"/>
                 </header>
 
                 <sheet>
                     <div class="oe_title">
                         <h1>
-                            <field name="name" placeholder="Назва ЦБО..."/>
+                            <field name="name" readonly="1"/>
                         </h1>
-                        <h3>
-                            <field name="code" placeholder="Код ЦБО"/>
-                        </h3>
+                        <p class="text-muted">
+                            <field name="cbo_type" readonly="1" widget="selection"/>
+                            (<field name="code" readonly="1"/>)
+                        </p>
                     </div>
 
                     <!-- ОСНОВНА ІНФОРМАЦІЯ -->
                     <group>
-                        <group string="Основні дані">
-                            <field name="parent_id"
-                                   options="{'no_create': True, 'no_open': True}"/>
-                            <field name="cbo_type"/>
-                            <field name="budget_level"/>
+                        <group string="Базова інформація">
+                            <field name="parent_id" widget="many2one_tree"
+                                   domain="[('id', '!=', id)]"/>
                             <field name="sequence"/>
-                            <field name="active"/>
+                            <field name="active" widget="boolean_toggle"/>
+                            <field name="budget_level" widget="selection"/>
                         </group>
 
-                        <group string="Відповідальність">
-                            <field name="responsible_user_id"
-                                   options="{'no_create': True}"/>
-                            <field name="company_id"
-                                   options="{'no_create': True}"/>
-                            <field name="region"/>
+                        <group string="Відповідальні особи">
+                            <field name="responsible_user_id" widget="many2one_avatar_user"/>
+                            <field name="approver_user_id" widget="many2one_avatar_user"/>
                         </group>
                     </group>
 
-                    <!-- СТАТИСТИКА (computed поля) -->
+                    <!-- СТАТИСТИКА -->
                     <group string="Статистика">
                         <group>
-                            <field name="budget_count" readonly="1"/>
-                            <field name="child_count" readonly="1"/>
-                            <field name="hierarchy_level" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="total_budget_amount" readonly="1"
-                                   widget="monetary"/>
-                            <field name="executed_amount" readonly="1"
-                                   widget="monetary"/>
-                            <field name="execution_rate" readonly="1"
-                                   widget="percentage"/>
-                        </group>
-                    </group>
+                            <label for="child_count"/>
+                            <div>
+                                <field name="child_count" class="o_stat_value"/>
+                                <span class="o_stat_text">дочірніх ЦБО</span>
+                            </div>
 
-                    <!-- ОПИС -->
-                    <group string="Опис та примітки">
-                        <field name="de" nolabel="1"
-                               placeholder="Опис центру бюджетної відповідальності..."/>
+                            <label for="budget_count"/>
+                            <div>
+                                <field name="budget_count" class="o_stat_value"/>
+                                <span class="o_stat_text">бюджетів</span>
+                            </div>
+                        </group>
+
+                        <group>
+                            <label for="descendant_count"/>
+                            <div>
+                                <field name="descendant_count" class="o_stat_value"/>
+                                <span class="o_stat_text">всього нащадків</span>
+                            </div>
+
+                            <label for="hierarchy_level"/>
+                            <div>
+                                <field name="hierarchy_level" class="o_stat_value"/>
+                                <span class="o_stat_text">рівень в ієрархії</span>
+                            </div>
+                        </group>
                     </group>
 
                     <!-- ДОЧІРНІ ЦБО -->
                     <notebook>
-                        <page string="Підпорядковані ЦБО"
-                              invisible="child_count == 0">
-                            <field name="child_ids" nolabel="1">
-                                <tree editable="bottom">
-                                    <field name="sequence" widget="handle"/>
+                        <page string="Дочірні ЦБО" invisible="child_count == 0">
+                            <field name="child_ids" readonly="1">
+                                <tree string="Підпорядковані ЦБО"
+                                      decoration-bf="cbo_type == 'holding'"
+                                      decoration-info="cbo_type == 'enterprise'">
                                     <field name="name"/>
                                     <field name="code"/>
-                                    <field name="cbo_type"/>
-                                    <field name="responsible_user_id"
-                                           widget="many2one_avatar_user"/>
+                                    <field name="cbo_type" widget="selection"/>
+                                    <field name="responsible_user_id" widget="many2one_avatar_user"/>
                                     <field name="budget_count"/>
-                                    <field name="active"/>
+                                    <field name="child_count"/>
+                                    <field name="active" column_invisible="1"/>
 
-                                    <button name="action_view_budgets"
-                                            string="Бюджети" type="object"
-                                            class="btn-link"
+                                    <button name="action_view_budgets" string="Бюджети"
+                                            type="object" class="btn-link"
                                             invisible="budget_count == 0"/>
                                 </tree>
                             </field>
                         </page>
 
-                        <page string="Бюджети"
-                              invisible="budget_count == 0">
-                            <!-- Включаємо віджет дерева бюджетів -->
-                            <div class="o_form_view">
-                                <field name="id" widget="hierarchy_tree" nolabel="1"/>
-                            </div>
+                        <page string="Бюджети" invisible="budget_count == 0">
+                            <button name="action_view_budgets" string="Всі бюджети"
+                                    type="object" class="btn-primary"/>
                         </page>
 
-                        <page string="Аналітика">
+                        <page string="Додаткова інформація">
                             <group>
-                                <group string="Загальна інформація">
-                                    <field name="full_path" readonly="1"/>
-                                    <field name="descendant_count" readonly="1"/>
+                                <group string="Географія">
+                                    <field name="country_id"/>
+                                    <field name="region"/>
                                 </group>
 
-                                <group string="Фінансові показники">
-                                    <field name="company_currency_id" readonly="1"/>
+                                <group string="Бізнес">
+                                    <field name="business_segment"/>
+                                    <field name="department_id"/>
                                 </group>
                             </group>
                         </page>
                     </notebook>
                 </sheet>
 
-                <!-- CHATTER -->
+                <!-- ПОВІДОМЛЕННЯ ТА АКТИВНІСТЬ -->
                 <div class="oe_chatter">
-                    <field name="message_follower_ids"/>
+                    <field name="message_follower_ids" groups="base.group_user"/>
                     <field name="activity_ids"/>
                     <field name="message_ids"/>
                 </div>
@@ -171,94 +173,50 @@
         </field>
     </record>
 
-    <!-- KANBAN ПРЕДСТАВЛЕННЯ З КАРТКАМИ -->
+    <!-- КАНБАН З ІЄРАРХІЄЮ -->
     <record id="view_responsibility_center_hierarchy_kanban" model="ir.ui.view">
         <field name="name">budget.responsibility.center.hierarchy.kanban</field>
         <field name="model">budget.responsibility.center</field>
-        <field name="priority">12</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="cbo_type" class="o_kanban_small_column">
-                <field name="id"/>
-                <field name="name"/>
-                <field name="code"/>
+            <kanban class="o_kanban_mobile" default_order="sequence, name">
                 <field name="cbo_type"/>
-                <field name="budget_level"/>
-                <field name="responsible_user_id"/>
                 <field name="budget_count"/>
                 <field name="child_count"/>
+                <field name="active"/>
                 <field name="tree_icon"/>
                 <field name="tree_color_class"/>
-                <field name="execution_rate"/>
-                <field name="active"/>
 
                 <templates>
                     <t t-name="kanban-box">
-                        <div class="organization-tree-card"
-                             t-att-class="'cbo-type-' + record.cbo_type.raw_value">
+                        <div class="oe_kanban_card oe_kanban_global_click">
+                            <div class="o_kanban_image">
+                                <i t-att-class="record.tree_icon.raw_value or 'fa fa-building'"/>
+                            </div>
 
-                            <div class="oe_kanban_content">
-                                <!-- Заголовок картки -->
-                                <div class="row">
-                                    <div class="col-2">
-                                        <div class="o_kanban_image">
-                                            <i t-att-class="'fa ' + record.tree_icon.raw_value + ' fa-2x ' + record.tree_color_class.raw_value"/>
-                                        </div>
-                                    </div>
-                                    <div class="col-10">
-                                        <div class="o_kanban_record_title">
-                                            <field name="name"/>
-                                        </div>
-                                        <div class="o_kanban_record_subtitle">
-                                            <field name="code"/>
-                                        </div>
-                                        <div class="text-muted">
-                                            <field name="cbo_type"/>
-                                        </div>
-                                    </div>
+                            <div class="oe_kanban_details">
+                                <strong class="o_kanban_record_title">
+                                    <field name="name"/>
+                                </strong>
+
+                                <div class="o_kanban_record_subtitle">
+                                    <field name="code"/> - <field name="cbo_type"/>
                                 </div>
 
-                                <!-- Статистика -->
-                                <div class="mt-2">
-                                    <t t-if="record.budget_count.raw_value > 0">
-                                        <span class="badge badge-info mr-1">
-                                            <i class="fa fa-bar-chart"></i>
-                                            <field name="budget_count"/>
-                                        </span>
-                                    </t>
-
-                                    <t t-if="record.child_count.raw_value > 0">
-                                        <span class="badge badge-secondary mr-1">
-                                            <i class="fa fa-building"></i>
-                                            <field name="child_count"/>
-                                        </span>
-                                    </t>
-
-                                    <t t-if="record.execution_rate.raw_value > 0">
-                                        <span class="badge mr-1"
-                                              t-att-class="record.execution_rate.raw_value >= 80 ? 'badge-success' :
-                                                          record.execution_rate.raw_value >= 60 ? 'badge-warning' : 'badge-danger'">
-                                            <field name="execution_rate" widget="percentage"/>
-                                        </span>
-                                    </t>
+                                <div class="o_kanban_tags_section">
+                                    <field name="budget_level" widget="selection"/>
                                 </div>
 
-                                <!-- Відповідальний -->
-                                <div class="mt-2" t-if="record.responsible_user_id.raw_value">
+                                <div class="oe_kanban_bottom_left">
                                     <field name="responsible_user_id" widget="many2one_avatar_user"/>
                                 </div>
 
-                                <!-- Дії -->
-                                <div class="mt-2">
-                                    <button name="action_view_budgets" type="object"
-                                            class="btn btn-sm btn-outline-primary"
-                                            t-if="record.budget_count.raw_value > 0">
-                                        Бюджети
-                                    </button>
-
-                                    <button name="action_create_budget" type="object"
-                                            class="btn btn-sm btn-outline-success ml-1">
-                                        Новий бюджет
-                                    </button>
+                                <div class="oe_kanban_bottom_right">
+                                    <span class="badge badge-pill badge-info">
+                                        <field name="budget_count"/> бюдж.
+                                    </span>
+                                    <span class="badge badge-pill badge-secondary">
+                                        <field name="child_count"/> дочір.
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -268,23 +226,7 @@
         </field>
     </record>
 
-    <!-- СПРОЩЕНИЙ TREE ДЛЯ ВИБОРУ -->
-    <record id="view_responsibility_center_simple_tree" model="ir.ui.view">
-        <field name="name">budget.responsibility.center.simple.tree</field>
-        <field name="model">budget.responsibility.center</field>
-        <field name="priority">20</field>
-        <field name="arch" type="xml">
-            <tree string="Вибір ЦБО" limit="80">
-                <field name="name"/>
-                <field name="code"/>
-                <field name="cbo_type"/>
-                <field name="parent_id"/>
-                <field name="responsible_user_id" widget="many2one_avatar_user"/>
-            </tree>
-        </field>
-    </record>
-
-    <!-- SEARCH ПРЕДСТАВЛЕННЯ -->
+    <!-- ПОШУК ТА ФІЛЬТРИ -->
     <record id="view_responsibility_center_hierarchy_search" model="ir.ui.view">
         <field name="name">budget.responsibility.center.hierarchy.search</field>
         <field name="model">budget.responsibility.center</field>
@@ -294,98 +236,93 @@
                        filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
                 <field name="parent_id"/>
                 <field name="responsible_user_id"/>
+                <field name="cbo_type"/>
+                <field name="budget_level"/>
                 <field name="region"/>
 
-                <separator/>
-
-                <!-- Фільтри -->
-                <filter string="Активні" name="active"
+                <!-- ФІЛЬТРИ -->
+                <filter string="Активні"
+                        name="filter_active"
                         domain="[('active', '=', True)]"/>
-                <filter string="Неактивні" name="inactive"
+
+                <filter string="Неактивні"
+                        name="filter_inactive"
                         domain="[('active', '=', False)]"/>
 
                 <separator/>
 
-                <filter string="З бюджетами" name="has_budgets"
-                        domain="[('budget_count', '>', 0)]"/>
-                <filter string="Без бюджетів" name="no_budgets"
-                        domain="[('budget_count', '=', 0)]"/>
+                <filter string="Холдинги"
+                        name="filter_holding"
+                        domain="[('cbo_type', '=', 'holding')]"/>
+
+                <filter string="Підприємства"
+                        name="filter_enterprise"
+                        domain="[('cbo_type', '=', 'enterprise')]"/>
+
+                <filter string="Департаменти"
+                        name="filter_department"
+                        domain="[('cbo_type', '=', 'department')]"/>
 
                 <separator/>
 
-                <filter string="Корінні ЦБО" name="root_cbos"
-                        domain="[('parent_id', '=', False)]"/>
+                <filter string="З бюджетами"
+                        name="filter_with_budgets"
+                        domain="[('budget_count', '>', 0)]"/>
 
-                <!-- Групування -->
-                <group string="Групувати за">
-                    <filter string="Тип ЦБО" name="group_cbo_type"
+                <filter string="Без бюджетів"
+                        name="filter_without_budgets"
+                        domain="[('budget_count', '=', 0)]"/>
+
+                <filter string="З підрозділами"
+                        name="filter_with_children"
+                        domain="[('child_count', '>', 0)]"/>
+
+                <!-- ГРУПУВАННЯ -->
+                <group expand="0" string="Групувати за">
+                    <filter string="Тип ЦБО"
+                            name="group_by_type"
                             context="{'group_by': 'cbo_type'}"/>
-                    <filter string="Рівень бюджетування" name="group_budget_level"
+
+                    <filter string="Рівень бюджетування"
+                            name="group_by_level"
                             context="{'group_by': 'budget_level'}"/>
-                    <filter string="Батьківський ЦБО" name="group_parent"
+
+                    <filter string="Батьківський ЦБО"
+                            name="group_by_parent"
                             context="{'group_by': 'parent_id'}"/>
-                    <filter string="Відповідальний" name="group_responsible"
+
+                    <filter string="Відповідальний"
+                            name="group_by_responsible"
                             context="{'group_by': 'responsible_user_id'}"/>
-                    <filter string="Регіон" name="group_region"
+
+                    <filter string="Регіон"
+                            name="group_by_region"
                             context="{'group_by': 'region'}"/>
                 </group>
             </search>
         </field>
     </record>
 
-    <!-- ДАШБОРД З ДЕРЕВОМ -->
-    <record id="view_hierarchy_tree_dashboard" model="ir.ui.view">
-        <field name="name">budget.hierarchy.tree.dashboard</field>
-        <field name="model">budget.responsibility.center</field>
-        <field name="priority">5</field>
-        <field name="arch" type="xml">
-            <form string="Дашборд ієрархії ЦБО">
-                <sheet>
-                    <div class="oe_title">
-                        <h1>Організаційна структура</h1>
-                        <p>
-                            Ієрархічне відображення всіх центрів бюджетної відповідальності.<br/>
-                            Структура: Холдинг → Підприємства → Департаменти → Підрозділи
-                        </p>
-                    </div>
-
-                    <!-- Віджет дерева -->
-                    <group>
-                        <field name="id" widget="hierarchy_tree" nolabel="1"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-
-    <!-- ДІЇ -->
-    <record id="action_responsibility_center_hierarchy" model="ir.actions.act_window">
-        <field name="name">Структура ЦБО</field>
+    <!-- ДІЇ ДЛЯ ІЄРАРХІЧНОГО ДЕРЕВА -->
+    <record id="action_organization_hierarchy_tree" model="ir.actions.act_window">
+        <field name="name">Організаційна структура</field>
         <field name="res_model">budget.responsibility.center</field>
         <field name="view_mode">tree,kanban,form</field>
         <field name="view_id" ref="view_responsibility_center_hierarchy_tree"/>
         <field name="search_view_id" ref="view_responsibility_center_hierarchy_search"/>
         <field name="context">{
-            'search_default_active': 1,
+            'search_default_filter_active': 1,
             'tree_view_ref': 'budget.view_responsibility_center_hierarchy_tree'
         }</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
-                Створіть першу структуру ЦБО
+                Створіть перший центр бюджетної відповідальності!
             </p>
             <p>
-                Центри бюджетної відповідальності (ЦБО) формують організаційну структуру
+                Центри відповідальності дозволяють структурувати організацію
                 для бюджетного планування та контролю.
             </p>
         </field>
-    </record>
-
-    <record id="action_hierarchy_tree_dashboard" model="ir.actions.act_window">
-        <field name="name">Дашборд структури</field>
-        <field name="res_model">budget.responsibility.center</field>
-        <field name="view_mode">form</field>
-        <field name="view_id" ref="view_hierarchy_tree_dashboard"/>
-        <field name="target">current</field>
     </record>
 
 </odoo>

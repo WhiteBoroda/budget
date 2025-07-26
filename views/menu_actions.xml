@@ -150,20 +150,17 @@
 
         <!-- ========== СТРУКТУРА ОРГАНІЗАЦІЇ ========== -->
     <record id="menu_tree_dashboard" model="ir.ui.menu">
-        <field name="action" ref="action_budget_tree_dashboard"/>
+        <field name="action" ref="action_tree_dashboard"/>
     </record>
 
     <record id="menu_organization_tree" model="ir.ui.menu">
-        <field name="action" ref="action_organization_hierarchy_tree"/>
+        <field name="action" ref="action_responsibility_center_hierarchy"/>
     </record>
 
     <record id="menu_budget_hierarchy" model="ir.ui.menu">
-        <field name="action" ref="action_budget_hierarchy_dashboard"/>
+        <field name="action" ref="action_hierarchy_tree_dashboard"/>
     </record>
 
-    <record id="menu_combined_tree" model="ir.ui.menu">
-        <field name="action" ref="action_organization_budget_combined"/>
-    </record>
 
     <!-- Інструменти -->
     <record id="menu_restructure_wizard" model="ir.ui.menu">

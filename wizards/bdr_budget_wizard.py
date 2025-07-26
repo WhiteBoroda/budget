@@ -112,7 +112,7 @@ class BdrBudgetWizard(models.TransientModel):
                 ('state', 'in', ['approved', 'executed'])
             ]
             if wizard.company_id:
-                income_domain.append(('company_id', '=', wizard.company_id.id))
+                income_domain.append(('company_ids', '=', wizard.company_id.id))
             if wizard.cbo_id:
                 income_domain.append(('cbo_id', '=', wizard.cbo_id.id))
 
@@ -126,7 +126,7 @@ class BdrBudgetWizard(models.TransientModel):
                 ('state', 'in', ['approved', 'executed'])
             ]
             if wizard.company_id:
-                expense_domain.append(('company_id', '=', wizard.company_id.id))
+                expense_domain.append(('company_ids', '=', wizard.company_id.id))
             if wizard.cbo_id:
                 expense_domain.append(('cbo_id', '=', wizard.cbo_id.id))
 
@@ -152,7 +152,7 @@ class BdrBudgetWizard(models.TransientModel):
                     ('state', 'in', ['approved', 'executed'])
                 ]
                 if wizard.company_id:
-                    prev_income_domain.append(('company_id', '=', wizard.company_id.id))
+                    prev_income_domain.append(('company_ids', '=', wizard.company_id.id))
                 if wizard.cbo_id:
                     prev_income_domain.append(('cbo_id', '=', wizard.cbo_id.id))
 
@@ -479,7 +479,7 @@ class BdrBudgetWizard(models.TransientModel):
             'period_id': self.period_id.id,
             'budget_type_id': budget_type.id,
             'cbo_id': self.cbo_id.id,
-            'company_id': self.company_id.id,
+            'company_ids': self.company_id.id,
             'responsible_user_id': self.env.user.id,
             'state': 'draft',
             'notes': f'Імпортовано з БДР: {section_name}\nФайл: {self.filename}'
@@ -600,7 +600,7 @@ class BdrBudgetWizard(models.TransientModel):
         # Знаходимо всі бюджети за період
         budgets = self.env['budget.plan'].search([
             ('period_id', '=', self.period_id.id),
-            ('company_id', '=', self.company_id.id),
+            ('company_ids', '=', self.company_id.id),
             ('state', 'in', ['approved', 'executed'])
         ])
 
@@ -804,7 +804,7 @@ class BdrBudgetWizard(models.TransientModel):
                         'period_id': month_period.id,
                         'budget_type_id': parent_budget.budget_type_id.id,
                         'cbo_id': parent_budget.cbo_id.id,
-                        'company_id': parent_budget.company_id.id,
+                        'company_ids': parent_budget.company_id.id,
                         'responsible_user_id': parent_budget.responsible_user_id.id,
                         'parent_budget_id': parent_budget.id,
                         'state': 'draft',

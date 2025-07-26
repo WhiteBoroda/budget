@@ -27,7 +27,7 @@
                     <!-- СТАТИСТИКА -->
                     <group>
                         <group string="Загальна статистика">
-                            <label for="total_cbos"/>
+                            <label for="child_count"/>
                             <div>
                                 <span class="o_stat_value">
                                     <field name="child_count" readonly="1"/>
@@ -35,61 +35,107 @@
                                 <span class="o_stat_text">дочірніх ЦБО</span>
                             </div>
 
-                            <label for="total_budgets"/>
+                            <label for="budget_count"/>
                             <div>
                                 <span class="o_stat_value">
                                     <field name="budget_count" readonly="1"/>
                                 </span>
-                                <span class="o_stat_text">бюджетів</span>
+                                <span class="o_stat_text">активних бюджетів</span>
+                            </div>
+
+                            <label for="descendant_count"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="descendant_count" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">всього нащадків</span>
                             </div>
                         </group>
 
-                        <group string="Поточне ЦБО">
-                            <field name="name" readonly="1"/>
-                            <field name="code" readonly="1"/>
-                            <field name="cbo_type" readonly="1"/>
-                            <field name="budget_level" readonly="1"/>
-                            <field name="responsible_user_id" readonly="1"/>
-                            <field name="parent_id" readonly="1"/>
+                        <group string="Фінансові показники">
+                            <label for="total_budget_amount"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="total_budget_amount" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">загальна сума бюджетів</span>
+                            </div>
+
+                            <label for="executed_amount"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="executed_amount" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">виконано</span>
+                            </div>
+
+                            <label for="execution_rate"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="execution_rate" readonly="1"/>%
+                                </span>
+                                <span class="o_stat_text">рівень виконання</span>
+                            </div>
                         </group>
                     </group>
 
                     <!-- ШВИДКІ ДІЇ -->
                     <group string="Швидкі дії">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <button name="action_view_budgets" string="Переглянути бюджети"
-                                        type="object" class="btn btn-outline-primary btn-block"/>
-                            </div>
-                            <div class="col-md-4">
-                                <button name="action_create_budget" string="Створити бюджет"
-                                        type="object" class="btn btn-outline-success btn-block"/>
-                            </div>
-                            <div class="col-md-4">
-                                <button name="%(action_budget_consolidation_wizard)d" string="Консолідація"
-                                        type="action" class="btn btn-outline-info btn-block"/>
-                            </div>
-                        </div>
+                        <group>
+                            <button name="action_create_budget" string="Створити бюджет"
+                                    type="object" class="btn-block btn-outline-primary"/>
+
+                            <button name="action_view_budgets" string="Переглянути бюджети"
+                                    type="object" class="btn-block btn-outline-info"
+                                    invisible="budget_count == 0"/>
+
+                            <button name="action_view_hierarchy" string="Повна ієрархія"
+                                    type="object" class="btn-block btn-outline-success"/>
+                        </group>
+
+                        <group>
+                            <button name="%(action_tree_restructure_wizard)d" string="Реструктуризація"
+                                    type="action" class="btn-block btn-outline-warning"/>
+
+                            <button name="%(action_tree_optimization_wizard)d" string="Оптимізація"
+                                    type="action" class="btn-block btn-outline-info"/>
+
+                            <button name="%(action_tree_analytics_dashboard)d" string="Аналітика"
+                                    type="action" class="btn-block btn-outline-secondary"/>
+                        </group>
                     </group>
 
-                    <!-- ДОЧІРНІ ЦБО -->
-                    <group string="Структура підрозділів">
-                        <field name="child_ids" nolabel="1">
-                            <tree string="Дочірні ЦБО" decoration-bf="cbo_type == 'enterprise'">
-                                <field name="sequence" widget="handle"/>
+                    <!-- ІНФОРМАЦІЯ ПРО ПОТОЧНИЙ ЦБО -->
+                    <group string="Поточний ЦБО">
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="code" readonly="1"/>
+                            <field name="cbo_type" readonly="1" widget="selection"/>
+                            <field name="budget_level" readonly="1" widget="selection"/>
+                        </group>
+
+                        <group>
+                            <field name="parent_id" readonly="1"/>
+                            <field name="responsible_user_id" readonly="1" widget="many2one_avatar_user"/>
+                            <field name="hierarchy_level" readonly="1"/>
+                            <field name="full_path" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- НЕДАВНІ ДОЧІРНІ ЦБО -->
+                    <group string="Дочірні ЦБО" invisible="child_count == 0">
+                        <field name="child_ids" readonly="1" nolabel="1">
+                            <tree string="Підпорядковані ЦБО" limit="5">
                                 <field name="name"/>
                                 <field name="code"/>
-                                <field name="cbo_type" widget="selection"/>
-                                <field name="budget_level" widget="selection"/>
+                                <field name="cbo_type" widget="badge"/>
+                                <field name="responsible_user_id" widget="many2one_avatar_user"/>
                                 <field name="budget_count"/>
                                 <field name="child_count"/>
-                                <field name="responsible_user_id" widget="many2one_avatar_user"/>
 
                                 <button name="action_view_budgets" string="Бюджети"
                                         type="object" class="btn-link"
-                                        attrs="{'invisible': [('budget_count', '=', 0)]}"/>
-                                <button name="action_create_budget" string="+"
-                                        type="object" class="btn-link text-success"/>
+                                        invisible="budget_count == 0"/>
                             </tree>
                         </field>
                     </group>
@@ -98,68 +144,179 @@
         </field>
     </record>
 
-    <!-- ДІЯ ДЛЯ DASHBOARD -->
-    <record id="action_cbo_dashboard" model="ir.actions.act_window">
-        <field name="name">Dashboard структури організації</field>
-        <field name="res_model">budget.responsibility.center</field>
-        <field name="view_mode">form,tree</field>
-        <field name="view_ids" eval="[(5, 0, 0),
-            (0, 0, {'view_mode': 'form', 'view_id': ref('view_cbo_dashboard_form')}),
-            (0, 0, {'view_mode': 'tree', 'view_id': ref('view_responsibility_center_hierarchy_tree')})]"/>
-        <field name="target">current</field>
-        <field name="domain">[('parent_id', '=', False)]</field>
-        <field name="context">{'form_view_initial_mode': 'readonly'}</field>
-        <field name="limit">1</field>
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">
-                Структура організації
-            </p>
-            <p>
-                Перегляд ієрархії ЦБО та статистики бюджетів
-            </p>
+    <!-- БЮДЖЕТНИЙ DASHBOARD З ІЄРАРХІЄЮ -->
+    <record id="view_budget_hierarchy_dashboard_form" model="ir.ui.view">
+        <field name="name">budget.hierarchy.dashboard.form</field>
+        <field name="model">budget.plan</field>
+        <field name="priority">20</field>
+        <field name="arch" type="xml">
+            <form string="Dashboard бюджетної ієрархії" create="false" edit="false">
+                <header>
+                    <button name="action_view_cbo_structure" string="Структура ЦБО"
+                            type="object" class="btn-primary"/>
+                    <button name="action_create_child_budget" string="Створити дочірній бюджет"
+                            type="object" class="btn-success"
+                            invisible="state not in ['approved', 'executed']"/>
+                </header>
+
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Бюджетна ієрархія</h1>
+                        <p>Консолідований вигляд бюджетів по ієрархії ЦБО</p>
+                    </div>
+
+                    <!-- ОСНОВНА ІНФОРМАЦІЯ -->
+                    <group>
+                        <group string="Бюджет">
+                            <field name="name" readonly="1"/>
+                            <field name="code" readonly="1"/>
+                            <field name="budget_type_id" readonly="1"/>
+                            <field name="state" readonly="1" widget="badge"/>
+                        </group>
+
+                        <group string="ЦБО та період">
+                            <field name="cbo_id" readonly="1"/>
+                            <field name="period_id" readonly="1"/>
+                            <field name="currency_id" readonly="1"/>
+                        </group>
+                    </group>
+
+                    <!-- ФІНАНСОВІ ПОКАЗНИКИ -->
+                    <group string="Фінансові показники">
+                        <group>
+                            <label for="planned_amount"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="planned_amount" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">планова сума</span>
+                            </div>
+
+                            <label for="actual_amount"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="actual_amount" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">фактична сума</span>
+                            </div>
+                        </group>
+
+                        <group>
+                            <label for="available_amount"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="available_amount" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">доступна сума</span>
+                            </div>
+
+                            <label for="execution_rate"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="execution_rate" readonly="1"/>%
+                                </span>
+                                <span class="o_stat_text">рівень виконання</span>
+                            </div>
+                        </group>
+                    </group>
+
+                    <!-- КОНСОЛІДАЦІЯ -->
+                    <group string="Консолідація" invisible="not parent_budget_id and not child_budget_ids">
+                        <group>
+                            <field name="parent_budget_id" readonly="1"
+                                   invisible="not parent_budget_id"/>
+                            <field name="auto_consolidation" readonly="1"
+                                   widget="boolean_toggle"/>
+                        </group>
+
+                        <group>
+                            <label for="child_count"/>
+                            <div>
+                                <span class="o_stat_value">
+                                    <field name="child_count" readonly="1"/>
+                                </span>
+                                <span class="o_stat_text">дочірніх бюджетів</span>
+                            </div>
+                        </group>
+                    </group>
+
+                    <!-- ДОЧІРНІ БЮДЖЕТИ -->
+                    <group string="Дочірні бюджети" invisible="not child_budget_ids">
+                        <field name="child_budget_ids" readonly="1" nolabel="1">
+                            <tree string="Консолідовані бюджети" limit="10">
+                                <field name="name"/>
+                                <field name="cbo_id"/>
+                                <field name="state" widget="badge"/>
+                                <field name="planned_amount"/>
+                                <field name="actual_amount"/>
+                                <field name="available_amount"/>
+                                <field name="execution_rate" widget="percentage"/>
+
+                                <button name="action_view_details" string="Деталі"
+                                        type="object" class="btn-link"/>
+                            </tree>
+                        </field>
+                    </group>
+
+                    <!-- ІНТЕГРАЦІЯ З ПРОДАЖАМИ -->
+                    <group string="Прогнози продажів" invisible="not sales_forecast_ids">
+                        <field name="sales_forecast_ids" readonly="1" nolabel="1">
+                            <tree string="Пов'язані прогнози" limit="5">
+                                <field name="name"/>
+                                <field name="period_id"/>
+                                <field name="state" widget="badge"/>
+                                <field name="total_forecast_amount"/>
+                                <field name="responsible_user_id" widget="many2one_avatar_user"/>
+                            </tree>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
         </field>
     </record>
 
-    <!-- ПОШУК ДЛЯ ЦБО -->
-    <record id="view_responsibility_center_search" model="ir.ui.view">
-        <field name="name">budget.responsibility.center.search</field>
-        <field name="model">budget.responsibility.center</field>
-        <field name="arch" type="xml">
-            <search>
-                <field name="name" string="Назва або код"
-                       filter_domain="['|', ('name', 'ilike', self), ('code', 'ilike', self)]"/>
-                <field name="cbo_type"/>
-                <field name="budget_level"/>
-                <field name="responsible_user_id"/>
-                <field name="region"/>
+    <!-- ДІЇ ДЛЯ DASHBOARD -->
+    <record id="action_budget_tree_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard структури ЦБО</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_cbo_dashboard_form"/>
+        <field name="target">current</field>
+        <field name="context">{
+            'default_active': True,
+        }</field>
+    </record>
 
-                <separator/>
-                <filter string="Мої ЦБО" name="my_cbo"
-                        domain="[('responsible_user_id', '=', uid)]"/>
-                <filter string="З бюджетами" name="with_budgets"
-                        domain="[('budget_count', '>', 0)]"/>
-                <filter string="Без бюджетів" name="without_budgets"
-                        domain="[('budget_count', '=', 0)]"/>
+    <record id="action_budget_hierarchy_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard бюджетної ієрархії</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_budget_hierarchy_dashboard_form"/>
+        <field name="domain">[('state', 'in', ['approved', 'executed'])]</field>
+        <field name="context">{
+            'search_default_group_by_cbo': 1,
+            'search_default_group_by_period': 1,
+        }</field>
+    </record>
 
-                <separator/>
-                <filter string="Холдинги" name="holdings"
-                        domain="[('cbo_type', '=', 'holding')]"/>
-                <filter string="Підприємства" name="enterprises"
-                        domain="[('cbo_type', '=', 'enterprise')]"/>
-                <filter string="Департаменти" name="departments"
-                        domain="[('cbo_type', '=', 'department')]"/>
-
-                <group expand="0" string="Групувати за">
-                    <filter string="Тип ЦБО" name="group_type"
-                            context="{'group_by': 'cbo_type'}"/>
-                    <filter string="Рівень бюджетування" name="group_level"
-                            context="{'group_by': 'budget_level'}"/>
-                    <filter string="Батьківське ЦБО" name="group_parent"
-                            context="{'group_by': 'parent_id'}"/>
-                    <filter string="Регіон" name="group_region"
-                            context="{'group_by': 'region'}"/>
-                </group>
-            </search>
+    <!-- КОМБІНОВАНИЙ ВИГЛЯД ЦБО ТА БЮДЖЕТІВ -->
+    <record id="action_organization_budget_combined" model="ir.actions.act_window">
+        <field name="name">Комбінований вигляд: ЦБО + Бюджети</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="view_responsibility_center_hierarchy_tree"/>
+        <field name="context">{
+            'search_default_filter_active': 1,
+            'search_default_filter_with_budgets': 1,
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Немає ЦБО з бюджетами!
+            </p>
+            <p>
+                Створіть центри відповідальності та прив'яжіть до них бюджети
+                для перегляду в комбінованому режимі.
+            </p>
         </field>
     </record>
 

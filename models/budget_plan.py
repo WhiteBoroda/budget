@@ -14,85 +14,24 @@ class BudgetPlan(models.Model):
     _rec_name = 'display_name'
 
     # ОСНОВНІ ПОЛЯ
-    name = fields.Char(
-        'Назва бюджету',
-        required=True,
-        tracking=True,
-        help="Назва бюджетного плану"
-    )
-
-    display_name = fields.Char(
-        'Повна назва',
-        compute='_compute_display_name',
-        store=True,
-        help="Автоматично сформована повна назва"
-    )
-
-    code = fields.Char(
-        'Код бюджету',
-        tracking=True,
-        help="Унікальний код бюджету"
-    )
-
-    description = fields.Text(
-        'Опис',
-        help="Детальний опис бюджету"
-    )
-
-    # ЗВ'ЯЗКИ З ІНШИМИ МОДЕЛЯМИ
-    budget_type_id = fields.Many2one(
-        'budget.type',
-        'Тип бюджету',
-        required=True,
-        tracking=True,
-        ondelete='restrict'
-    )
-
-    cbo_id = fields.Many2one(
-        'budget.responsibility.center',
-        'ЦБО',
-        required=True,
-        tracking=True,
-        ondelete='restrict',
-        help="Центр бюджетної відповідальності"
-    )
-
-    period_id = fields.Many2one(
-        'budget.period',
-        'Бюджетний період',
-        required=True,
-        tracking=True,
-        ondelete='restrict'
-    )
-
-    company_ids = fields.Many2many(
-        'res.company',
-        string='Компанії',
-        default=lambda self: [(6, 0, [self.env.company.id])],
-        required=True
-    )
-
-    currency_id = fields.Many2one(
-        'res.currency',
-        'Валюта',
-        compute='_compute_currency_id',
-        store=True
-    )
-
+    name = fields.Char('Назва бюджету',required=True,tracking=True,
+        help="Назва бюджетного плану")
+    display_name = fields.Char('Повна назва',compute='_compute_display_name',store=True,
+        help="Автоматично сформована повна назва")
+    code = fields.Char('Код бюджету',tracking=True,
+        help="Унікальний код бюджету")
+    description = fields.Text('Опис',help="Детальний опис бюджету")
+    budget_type_id = fields.Many2one('budget.type','Тип бюджету',required=True,tracking=True,ondelete='restrict')
+    cbo_id = fields.Many2one('budget.responsibility.center','ЦБО',required=True,tracking=True,ondelete='restrict',
+        help="Центр бюджетної відповідальності")
+    period_id = fields.Many2one('budget.period','Бюджетний період',required=True,tracking=True,ondelete='restrict')
+    company_ids = fields.Many2many('res.company',string='Компанії',default=lambda self: [(6, 0, [self.env.company.id])],required=True)
+    currency_id = fields.Many2one('res.currency','Валюта',compute='_compute_currency_id',store=True)
     # ІНТЕГРАЦІЯ З ПРОДАЖАМИ
-    sales_forecast_ids = fields.Many2many(
-        'sale.forecast',
-        string='Прогнози продажів',
-        domain="[('period_id', '=', period_id), ('state', '=', 'approved')]",
-        help="Пов'язані прогнози продажів для цього бюджету"
-    )
-
-    # КОНСОЛІДАЦІЯ ТА ІЄРАРХІЯ
-    parent_budget_id = fields.Many2one(
-        'budget.plan',
-        'Батьківський бюджет',
-        help="Консолідований бюджет вищого рівня"
-    )
+    sales_forecast_ids = fields.Many2many('sale.forecast',string='Прогнози продажів',domain="[('period_id', '=', period_id), ('state', '=', 'approved')]",
+        help="Пов'язані прогнози продажів для цього бюджету")
+    parent_budget_id = fields.Many2one('budget.plan','Батьківський бюджет',
+        help="Консолідований бюджет вищого рівня")
 
     child_budget_ids = fields.One2many(
         'budget.plan',
@@ -298,7 +237,7 @@ class BudgetPlan(models.Model):
         'Рядки бюджету'
     )
 
-    # COMPUTED ПОЛЯ ДЛЯ ODOO 17 (замість states)
+
     @api.depends('state')
     def _compute_is_readonly(self):
         """Визначає чи можна редагувати бюджет"""
@@ -348,7 +287,7 @@ class BudgetPlan(models.Model):
             else:
                 record.currency_id = self.env.company.currency_id
 
-    @api.depends('budget_type_id', 'company_id')
+    @api.depends('budget_type_id', 'company_ids')
     def _compute_cbo_domain(self):
         """Обчислення домену для ЦБО на основі типу бюджету та компанії"""
         for record in self:
@@ -358,8 +297,8 @@ class BudgetPlan(models.Model):
             domain.append(('active', '=', True))
 
             # Фільтр по компанії
-            if record.company_id:
-                domain.append(('company_id', '=', record.company_id.id))
+            if record.company_ids:
+                domain.append(('company_id', '=', record.company_ids.id))
 
             # ВИПРАВЛЕНО: Замість allowed_cbo_types використовуємо existing поля
             if record.budget_type_id:
@@ -499,7 +438,7 @@ class BudgetPlan(models.Model):
                 'period_id': self.period_id.id,
                 'budget_type_id': self.budget_type_id.id,
                 'cbo_id': parent_cbo.id,
-                'company_id': self.company_id.id,
+                'company_id': self.company_ids.id,
                 'state': 'draft',
                 'calculation_method': 'consolidation'
             }
@@ -530,7 +469,7 @@ class BudgetPlan(models.Model):
             raise UserError(_("Не обрано жодного прогнозу продажів для синхронізації"))
 
         for forecast in self.sales_forecast_ids:
-            for forecast_line in forecast.line_ids:
+            for forecast_line in forecast.forecast_line_ids:
                 # Створення або оновлення рядків бюджету на основі прогнозу
                 existing_line = self.line_ids.filtered(
                     lambda l: l.sales_forecast_line_id == forecast_line
@@ -577,11 +516,12 @@ class BudgetPlan(models.Model):
         budget = super().create(vals)
 
         # Повідомлення про створення
-        budget.message_post_with_view(
-            'mail.message_origin_link',
+        budget.message_post(
             body=f"Створено бюджет {budget.budget_type_id.name} для {budget.cbo_id.name}",
-            message_type='notification'
+            message_type='notification',
+            subtype_xmlid='mail.mt_note'
         )
+
 
         return budget
 
@@ -690,9 +630,21 @@ class BudgetPlanLine(models.Model):
 
     # ЗВ'ЯЗАНІ ПОЛЯ
     currency_id = fields.Many2one(
-        related='plan_id.company_id.currency_id',
-        readonly=True
+        'res.currency',
+        'Валюта',
+        compute='_compute_currency_id',
+        store=True,
+        help="Валюта з пов'язаного бюджетного плану"
     )
+
+    @api.depends('plan_id.company_ids')
+    def _compute_currency_id(self):
+        """Обчислення валюти з першої компанії бюджету"""
+        for line in self:
+            if line.plan_id and line.plan_id.company_ids:
+                line.currency_id = line.plan_id.company_ids[0].currency_id
+            else:
+                line.currency_id = self.env.company.currency_id
 
     # АНАЛІТИЧНІ ПОЛЯ
     account_id = fields.Many2one(

@@ -1,0 +1,356 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ПОВНІ ПРЕДСТАВЛЕННЯ WIZARD'ІВ - СУМІСНІ З ODOO 17 -->
+
+    <!-- ========== WIZARD СТВОРЕННЯ БЮДЖЕТУ ========== -->
+    <record id="view_budget_wizard_form" model="ir.ui.view">
+        <field name="name">budget.wizard.form</field>
+        <field name="model">budget.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Майстер створення бюджету</h1>
+                        <p class="text-muted">Створення бюджету з шаблону або з нуля</p>
+                    </div>
+
+                    <group>
+                        <group string="Базова інформація">
+                            <field name="name" placeholder="Назва бюджету"/>
+                            <field name="budget_type_id" options="{'no_create': True}"/>
+                            <field name="period_id" options="{'no_create': True}"/>
+                            <field name="cbo_id" options="{'no_create': True}"/>
+                        </group>
+
+                        <group string="Параметри створення">
+                            <field name="creation_mode" widget="radio"/>
+                            <field name="template_id"
+                                   invisible="creation_mode != 'template'"
+                                   options="{'no_create': True}"/>
+                            <field name="copy_from_previous" widget="boolean_toggle"/>
+                            <field name="previous_period_id"
+                                   invisible="not copy_from_previous"
+                                   options="{'no_create': True}"/>
+                        </group>
+                    </group>
+
+                    <group string="Додаткові налаштування">
+                        <group>
+                            <field name="auto_approve" widget="boolean_toggle"/>
+                            <field name="send_notifications" widget="boolean_toggle"/>
+                            <field name="create_lines" widget="boolean_toggle"/>
+                        </group>
+
+                        <group>
+                            <field name="default_amount"
+                                   invisible="creation_mode == 'template'"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="description" placeholder="Опис бюджету..."/>
+                        </group>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_create_budget"
+                            string="Створити бюджет"
+                            type="object"
+                            class="btn-primary"/>
+                    <button string="Скасувати"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== WIZARD ІМПОРТУ БЮДЖЕТІВ ========== -->
+    <record id="view_budget_import_wizard_form" model="ir.ui.view">
+        <field name="name">budget.import.wizard.form</field>
+        <field name="model">budget.import.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Імпорт бюджетних даних</h1>
+                        <p class="text-muted">Завантаження бюджетів з Excel або CSV файлів</p>
+                    </div>
+
+                    <group>
+                        <group string="Файл для імпорту">
+                            <field name="import_file" widget="binary" filename="import_filename"/>
+                            <field name="import_filename" invisible="1"/>
+                            <field name="file_format" widget="selection"/>
+                            <field name="encoding" invisible="file_format != 'csv'"/>
+                        </group>
+
+                        <group string="Параметри імпорту">
+                            <field name="import_mode" widget="selection"/>
+                            <field name="period_id" options="{'no_create': True}"/>
+                            <field name="budget_type_id" options="{'no_create': True}"/>
+                            <field name="validate_data" widget="boolean_toggle"/>
+                        </group>
+                    </group>
+
+                    <group string="Налаштування">
+                        <group>
+                            <field name="skip_existing" widget="boolean_toggle"/>
+                            <field name="update_existing" widget="boolean_toggle"/>
+                            <field name="create_missing_cbos" widget="boolean_toggle"/>
+                        </group>
+
+                        <group>
+                            <field name="header_row" invisible="file_format != 'csv'"/>
+                            <field name="sheet_name" invisible="file_format != 'xlsx'"/>
+                            <field name="start_row" invisible="file_format != 'xlsx'"/>
+                        </group>
+                    </group>
+
+                    <!-- Результати валідації -->
+                    <group string="Результати валідації"
+                           invisible="not validation_results">
+                        <field name="validation_results" widget="text" readonly="1" nolabel="1"/>
+                    </group>
+
+                    <!-- Попередній перегляд -->
+                    <group string="Попередній перегляд даних"
+                           invisible="not preview_data">
+                        <field name="preview_data" widget="text" readonly="1" nolabel="1"/>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_validate_file"
+                            string="Валідувати файл"
+                            type="object"
+                            class="btn-info"
+                            invisible="not import_file"/>
+
+                    <button name="action_preview_import"
+                            string="Попередній перегляд"
+                            type="object"
+                            class="btn-secondary"
+                            invisible="not import_file"/>
+
+                    <button name="action_import_data"
+                            string="Імпортувати"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not import_file or validation_results"
+                            confirm="Розпочати імпорт даних?"/>
+
+                    <button string="Закрити"
+                            class="btn-light"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== WIZARD ЗАТВЕРДЖЕННЯ БЮДЖЕТІВ ========== -->
+    <record id="view_budget_approval_wizard_form" model="ir.ui.view">
+        <field name="name">budget.approval.wizard.form</field>
+        <field name="model">budget.approval.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Затвердження бюджетів</h1>
+                        <p class="text-muted">Масове затвердження або відхилення бюджетних планів</p>
+                    </div>
+
+                    <group>
+                        <group string="Операція">
+                            <field name="action_type" widget="radio"/>
+                            <field name="approval_level"
+                                   invisible="action_type != 'approve'"
+                                   widget="selection"/>
+                        </group>
+
+                        <group string="Параметри">
+                            <field name="send_notifications" widget="boolean_toggle"/>
+                            <field name="create_activities" widget="boolean_toggle"/>
+                            <field name="approval_date"
+                                   invisible="action_type != 'approve'"/>
+                        </group>
+                    </group>
+
+                    <group string="Бюджети для обробки">
+                        <field name="budget_ids" nolabel="1">
+                            <tree>
+                                <field name="name"/>
+                                <field name="cbo_id"/>
+                                <field name="period_id"/>
+                                <field name="state" widget="badge"/>
+                                <field name="planned_amount"/>
+                                <field name="currency_id" column_invisible="1"/>
+                            </tree>
+                        </field>
+                    </group>
+
+                    <group string="Коментар"
+                           invisible="action_type == 'approve'">
+                        <field name="rejection_reason"
+                               placeholder="Причина відхилення..."
+                               nolabel="1"/>
+                    </group>
+
+                    <group string="Затвердження">
+                        <field name="approval_comment"
+                               placeholder="Коментар до затвердження..."
+                               nolabel="1"/>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_approve_budgets"
+                            string="Затвердити"
+                            type="object"
+                            class="btn-success"
+                            invisible="action_type != 'approve'"
+                            confirm="Затвердити вибрані бюджети?"/>
+
+                    <button name="action_reject_budgets"
+                            string="Відхилити"
+                            type="object"
+                            class="btn-danger"
+                            invisible="action_type != 'reject'"
+                            confirm="Відхилити вибрані бюджети?"/>
+
+                    <button name="action_send_for_revision"
+                            string="На доопрацювання"
+                            type="object"
+                            class="btn-warning"
+                            invisible="action_type != 'revise'"
+                            confirm="Відправити на доопрацювання?"/>
+
+                    <button string="Скасувати"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== WIZARD ПРОГНОЗІВ ПРОДАЖІВ ========== -->
+    <record id="view_sales_forecast_wizard_form" model="ir.ui.view">
+        <field name="name">sales.forecast.wizard.form</field>
+        <field name="model">sales.forecast.wizard</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>Майстер прогнозу продажів</h1>
+                        <p class="text-muted">Створення прогнозу на основі історичних даних або ручне планування</p>
+                    </div>
+
+                    <group>
+                        <group string="Базові параметри">
+                            <field name="name" placeholder="Назва прогнозу"/>
+                            <field name="period_id" options="{'no_create': True}"/>
+                            <field name="cbo_id" options="{'no_create': True}"/>
+                            <field name="responsible_user_id" options="{'no_create': True}"/>
+                        </group>
+
+                        <group string="Метод прогнозування">
+                            <field name="forecast_method" widget="radio"/>
+                            <field name="base_period_id"
+                                   invisible="forecast_method != 'historical'"
+                                   options="{'no_create': True}"/>
+                            <field name="growth_rate"
+                                   invisible="forecast_method != 'historical'"
+                                   widget="percentage"/>
+                        </group>
+                    </group>
+
+                    <group string="CRM інтеграція"
+                           invisible="forecast_method != 'crm'">
+                        <group>
+                            <field name="include_opportunities" widget="boolean_toggle"/>
+                            <field name="min_probability"
+                                   invisible="not include_opportunities"/>
+                            <field name="opportunity_stage_ids"
+                                   invisible="not include_opportunities"
+                                   widget="many2many_tags"/>
+                        </group>
+
+                        <group>
+                            <field name="include_quotations" widget="boolean_toggle"/>
+                            <field name="quotation_state"
+                                   invisible="not include_quotations"/>
+                            <field name="partner_category_ids"
+                                   widget="many2many_tags"/>
+                        </group>
+                    </group>
+
+                    <group string="Продуктові лінії"
+                           invisible="forecast_method == 'simple'">
+                        <field name="product_category_ids"
+                               widget="many2many_tags"
+                               nolabel="1"/>
+                    </group>
+
+                    <group string="Деталізація по місяцях">
+                        <field name="monthly_breakdown" widget="boolean_toggle"/>
+                        <field name="seasonality_factor"
+                               invisible="not monthly_breakdown"/>
+                    </group>
+                </sheet>
+
+                <footer>
+                    <button name="action_generate_forecast"
+                            string="Згенерувати прогноз"
+                            type="object"
+                            class="btn-primary"/>
+
+                    <button name="action_preview_forecast"
+                            string="Попередній перегляд"
+                            type="object"
+                            class="btn-info"/>
+
+                    <button string="Скасувати"
+                            class="btn-secondary"
+                            special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <!-- ========== ACTIONS ДЛЯ WIZARD'ІВ ========== -->
+
+    <!-- Дія для wizard створення бюджету -->
+    <record id="action_budget_creation_wizard" model="ir.actions.act_window">
+        <field name="name">Майстер створення бюджету</field>
+        <field name="res_model">budget.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_budget_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Дія для wizard імпорту -->
+    <record id="action_budget_import_wizard" model="ir.actions.act_window">
+        <field name="name">Імпорт бюджетних даних</field>
+        <field name="res_model">budget.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_budget_import_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Дія для wizard затвердження -->
+    <record id="action_budget_approval_wizard" model="ir.actions.act_window">
+        <field name="name">Затвердження бюджетів</field>
+        <field name="res_model">budget.approval.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_budget_approval_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Дія для wizard прогнозів -->
+    <record id="action_sales_forecast_wizard" model="ir.actions.act_window">
+        <field name="name">Майстер прогнозу продажів</field>
+        <field name="res_model">sales.forecast.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_sales_forecast_wizard_form"/>
+        <field name="target">new</field>
+    </record>
+
+</odoo>

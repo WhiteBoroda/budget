@@ -1,171 +1,306 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- security/budget_security.xml -->
     <data noupdate="1">
-        <!-- Групи безпеки -->
+
+        <!-- КАТЕГОРІЇ БЕЗПЕКИ -->
+        <record id="module_category_budget" model="ir.module.category">
+            <field name="name">Бюджетування</field>
+            <field name="description">Система бюджетного планування та контролю</field>
+            <field name="sequence">45</field>
+        </record>
+
+        <!-- ГРУПИ КОРИСТУВАЧІВ -->
+
+        <!-- Базова група для доступу до бюджетування -->
         <record id="group_budget_user" model="res.groups">
             <field name="name">Користувач бюджетування</field>
-            <field name="category_id" ref="base.module_category_accounting"/>
-            <field name="comment">Може переглядати та створювати бюджети та прогнози свого підрозділу</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="comment">Базовий доступ до перегляду бюджетів та прогнозів</field>
         </record>
 
-        <record id="group_budget_coordinator" model="res.groups">
-            <field name="name">Координатор бюджетування</field>
-            <field name="category_id" ref="base.module_category_accounting"/>
-            <field name="comment">Може узгоджувати бюджети всіх підрозділів</field>
-            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
-        </record>
-
+        <!-- Менеджер бюджетів -->
         <record id="group_budget_manager" model="res.groups">
-            <field name="name">Менеджер бюджетування</field>
-            <field name="category_id" ref="base.module_category_accounting"/>
-            <field name="comment">Може затверджувати та консолідувати бюджети</field>
-            <field name="implied_ids" eval="[(4, ref('group_budget_coordinator'))]"/>
+            <field name="name">Менеджер бюджетів</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="comment">Створення та редагування бюджетів, управління ЦБО</field>
         </record>
 
-        <record id="group_budget_director" model="res.groups">
-            <field name="name">Директор з бюджетування</field>
-            <field name="category_id" ref="base.module_category_accounting"/>
-            <field name="comment">Повний доступ до системи бюджетування</field>
+        <!-- Контролер бюджетів -->
+        <record id="group_budget_controller" model="res.groups">
+            <field name="name">Контролер бюджетів</field>
+            <field name="category_id" ref="module_category_budget"/>
             <field name="implied_ids" eval="[(4, ref('group_budget_manager'))]"/>
+            <field name="comment">Затвердження бюджетів, контроль виконання, аналітика</field>
         </record>
 
+        <!-- Адміністратор бюджетування -->
+        <record id="group_budget_admin" model="res.groups">
+            <field name="name">Адміністратор бюджетування</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="implied_ids" eval="[(4, ref('group_budget_controller'))]"/>
+            <field name="comment">Повний доступ до всіх функцій бюджетування, налаштувань</field>
+        </record>
+
+        <!-- Група для прогнозів продажів -->
         <record id="group_sales_forecast_user" model="res.groups">
             <field name="name">Користувач прогнозів продажів</field>
-            <field name="category_id" ref="base.module_category_sales"/>
-            <field name="comment">Може створювати та редагувати прогнози продажів своєї команди</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="comment">Створення та редагування прогнозів продажів</field>
         </record>
 
-        <record id="group_sales_forecast_manager" model="res.groups">
-            <field name="name">Менеджер прогнозів продажів</field>
-            <field name="category_id" ref="base.module_category_sales"/>
-            <field name="comment">Може затверджувати прогнози продажів всіх команд</field>
-            <field name="implied_ids" eval="[(4, ref('group_sales_forecast_user'))]"/>
+        <!-- Група для аналітики -->
+        <record id="group_budget_analytics" model="res.groups">
+            <field name="name">Аналітик бюджетів</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="comment">Доступ до звітів та аналітичних dashboard</field>
         </record>
 
-        <!-- Правила доступу до записів -->
+        <!-- ПРАВИЛА ДОСТУПУ НА РІВНІ ЗАПИСІВ (RLS) -->
 
-        <!-- Бюджетні плани -->
-        <record id="budget_plan_user_rule" model="ir.rule">
-            <field name="name">Бюджети: користувач бачить свої ЦБО</field>
-            <field name="model_id" ref="model_budget_plan"/>
-            <field name="domain_force">[('cbo_id.responsible_user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <record id="budget_plan_coordinator_rule" model="ir.rule">
-            <field name="name">Бюджети: координатор бачить все в компанії</field>
-            <field name="model_id" ref="model_budget_plan"/>
-            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-            <field name="groups" eval="[(4, ref('group_budget_coordinator'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-        <!-- Прогнози продажів -->
-        <record id="sales_forecast_user_rule" model="ir.rule">
-            <field name="name">Прогнози продажів: користувач бачить свою команду</field>
-            <field name="model_id" ref="model_sale_forecast"/>
-            <field name="domain_force">['|', ('team_id.member_ids', 'in', [user.id]), ('user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('group_sales_forecast_user'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-        <record id="sales_forecast_manager_rule" model="ir.rule">
-            <field name="name">Прогнози продажів: менеджер бачить все в компанії</field>
-            <field name="model_id" ref="model_sale_forecast"/>
-            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
-            <field name="groups" eval="[(4, ref('group_sales_forecast_manager'))]"/>
-            <field name="perm_read" eval="True"/>
-            <field name="perm_write" eval="True"/>
-            <field name="perm_create" eval="True"/>
-            <field name="perm_unlink" eval="True"/>
-        </record>
-
-        <!-- ЦБО доступ -->
-        <record id="cbo_user_rule" model="ir.rule">
-            <field name="name">ЦБО: користувач бачить ЦБО своєї компанії</field>
+        <!-- Правило для ЦБО: користувачі бачать тільки свої ЦБО -->
+        <record id="budget_cbo_user_rule" model="ir.rule">
+            <field name="name">ЦБО: доступ користувача</field>
             <field name="model_id" ref="model_budget_responsibility_center"/>
-            <field name="domain_force">[('company_ids', 'in', company_ids)]</field>
             <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="False"/>
             <field name="perm_create" eval="False"/>
             <field name="perm_unlink" eval="False"/>
-        </record>
-
-        <!-- Сповіщення -->
-        <record id="budget_notification_rule" model="ir.rule">
-            <field name="name">Сповіщення: користувач бачить тільки свої</field>
-            <field name="model_id" ref="model_budget_notification"/>
-            <field name="domain_force">[('user_id', '=', user.id)]</field>
-            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
-        </record>
-
-        <!-- Правила для ієрархічного доступу до бюджетів -->
-        <record id="budget_plan_hierarchy_rule" model="ir.rule">
-            <field name="name">Бюджети: ієрархічний доступ до ЦБО</field>
-            <field name="model_id" ref="model_budget_plan"/>
             <field name="domain_force">[
                 '|',
-                ('cbo_id.responsible_user_id', '=', user.id),
-                ('cbo_id.parent_id.responsible_user_id', '=', user.id)
+                ('responsible_user_id', '=', user.id),
+                ('approver_user_id', '=', user.id)
             ]</field>
-            <field name="groups" eval="[(4, ref('group_budget_coordinator'))]"/>
+        </record>
+
+        <!-- Правило для ЦБО: менеджери бачать всі активні -->
+        <record id="budget_cbo_manager_rule" model="ir.rule">
+            <field name="name">ЦБО: доступ менеджера</field>
+            <field name="model_id" ref="model_budget_responsibility_center"/>
+            <field name="groups" eval="[(4, ref('group_budget_manager'))]"/>
             <field name="perm_read" eval="True"/>
             <field name="perm_write" eval="True"/>
             <field name="perm_create" eval="True"/>
             <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[('active', '=', True)]</field>
         </record>
 
-        <!-- Додаткові групи для інтеграції з Sales -->
-        <record id="group_budget_sales_integration" model="res.groups">
-            <field name="name">Інтеграція бюджетування та продажів</field>
-            <field name="category_id" ref="base.module_category_accounting"/>
-            <field name="comment">Доступ до інтеграційних функцій між бюджетуванням та продажами</field>
-            <field name="implied_ids" eval="[(4, ref('group_budget_user')), (4, ref('group_sales_forecast_user'))]"/>
+        <!-- Правило для ЦБО: адміністратори бачать все -->
+        <record id="budget_cbo_admin_rule" model="ir.rule">
+            <field name="name">ЦБО: доступ адміністратора</field>
+            <field name="model_id" ref="model_budget_responsibility_center"/>
+            <field name="groups" eval="[(4, ref('group_budget_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
         </record>
 
-        <!-- Правила для валютних налаштувань -->
-        <record id="currency_setting_rule" model="ir.rule">
-            <field name="name">Валютні налаштування: доступ по ЦБО</field>
-            <field name="model_id" ref="model_budget_currency_setting"/>
+        <!-- Правила для бюджетних планів -->
+        <record id="budget_plan_user_rule" model="ir.rule">
+            <field name="name">Бюджети: доступ користувача</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[
+                '|', '|',
+                ('cbo_id.responsible_user_id', '=', user.id),
+                ('cbo_id.approver_user_id', '=', user.id),
+                ('create_uid', '=', user.id)
+            ]</field>
+        </record>
+
+        <record id="budget_plan_manager_rule" model="ir.rule">
+            <field name="name">Бюджети: доступ менеджера</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="groups" eval="[(4, ref('group_budget_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[('state', 'in', ['draft', 'planning', 'revision'])]</field>
+        </record>
+
+        <record id="budget_plan_controller_rule" model="ir.rule">
+            <field name="name">Бюджети: доступ контролера</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="groups" eval="[(4, ref('group_budget_controller'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- Правила для прогнозів продажів -->
+        <record id="sales_forecast_user_rule" model="ir.rule">
+            <field name="name">Прогнози: доступ користувача</field>
+            <field name="model_id" ref="model_sale_forecast"/>
+            <field name="groups" eval="[(4, ref('group_sales_forecast_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
             <field name="domain_force">[
                 '|',
-                ('cbo_ids', '=', False),
-                ('cbo_ids.responsible_user_id', '=', user.id)
+                ('responsible_user_id', '=', user.id),
+                ('create_uid', '=', user.id)
             ]</field>
-            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
         </record>
 
-                <!-- Права на роботу з деревом -->
-        <record id="group_tree_manager" model="res.groups">
-            <field name="name">Менеджер структури дерева</field>
-            <field name="category_id" ref="base.module_category_human_resources"/>
-            <field name="implied_ids" eval="[(4, ref('group_budget_manager'))]"/>
+        <!-- Правила для багатокомпанійності -->
+        <record id="budget_multicompany_rule" model="ir.rule">
+            <field name="name">Бюджети: мультикомпанійність</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('company_ids', 'in', company_ids)]</field>
         </record>
 
-        <record id="group_tree_admin" model="res.groups">
-            <field name="name">Адміністратор структури дерева</field>
-            <field name="category_id" ref="base.module_category_administration"/>
-            <field name="implied_ids" eval="[(4, ref('group_tree_manager'))]"/>
+        <record id="cbo_multicompany_rule" model="ir.rule">
+            <field name="name">ЦБО: мультикомпанійність</field>
+            <field name="model_id" ref="model_budget_responsibility_center"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[
+                '|',
+                ('company_ids', '=', False),
+                ('company_ids', 'in', company_ids)
+            ]</field>
         </record>
 
-        <!-- Правила доступу -->
-        <record id="rule_tree_restructure_manager" model="ir.rule">
-            <field name="name">Реструктуризація - тільки менеджери</field>
+        <!-- СПЕЦІАЛЬНІ ПРАВИЛА ДЛЯ WIZARD'ІВ -->
+
+        <!-- Доступ до wizard реструктуризації тільки для адміністраторів -->
+        <record id="tree_restructure_admin_rule" model="ir.rule">
+            <field name="name">Реструктуризація: тільки адміністратори</field>
             <field name="model_id" ref="model_tree_restructure_wizard"/>
-            <field name="groups" eval="[(4, ref('group_tree_manager'))]"/>
+            <field name="groups" eval="[(4, ref('group_budget_admin'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
             <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- ПРАВИЛА ДЛЯ ПЕРІОДІВ -->
+        <record id="budget_period_global_rule" model="ir.rule">
+            <field name="name">Періоди: глобальний доступ</field>
+            <field name="model_id" ref="model_budget_period"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[('company_id', 'in', company_ids)]</field>
+        </record>
+
+        <!-- ПРАВИЛА ДЛЯ ТИПІВ БЮДЖЕТІВ -->
+        <record id="budget_type_global_rule" model="ir.rule">
+            <field name="name">Типи бюджетів: глобальний доступ</field>
+            <field name="model_id" ref="model_budget_type"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids)
+            ]</field>
+        </record>
+
+        <!-- ПРАВИЛА ДЛЯ КАТЕГОРІЙ -->
+        <record id="budget_category_global_rule" model="ir.rule">
+            <field name="name">Категорії: глобальний доступ</field>
+            <field name="model_id" ref="model_budget_category"/>
+            <field name="global" eval="True"/>
+            <field name="domain_force">[
+                '|',
+                ('company_id', '=', False),
+                ('company_id', 'in', company_ids)
+            ]</field>
+        </record>
+
+        <!-- ДОДАТКОВІ ГРУПИ ДЛЯ ІНТЕГРАЦІЇ -->
+
+        <!-- Група для роботи з проектами -->
+        <record id="group_budget_project_user" model="res.groups">
+            <field name="name">Користувач проектних бюджетів</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="comment">Робота з бюджетами проектів</field>
+        </record>
+
+        <!-- Група для роботи з закупівлями -->
+        <record id="group_budget_purchase_user" model="res.groups">
+            <field name="name">Користувач бюджетів закупівель</field>
+            <field name="category_id" ref="module_category_budget"/>
+            <field name="implied_ids" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="comment">Контроль бюджетів закупівель</field>
+        </record>
+
+        <!-- СПЕЦІАЛЬНІ ПРАВИЛА ДЛЯ ЗВІТІВ -->
+        <record id="budget_report_access_rule" model="ir.rule">
+            <field name="name">Звіти: доступ по ролям</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="groups" eval="[(4, ref('group_budget_analytics'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[('state', 'in', ['approved', 'executed', 'closed'])]</field>
+        </record>
+
+        <!-- ПРАВИЛА ДЛЯ ВИКОНАННЯ БЮДЖЕТІВ -->
+        <record id="budget_execution_user_rule" model="ir.rule">
+            <field name="name">Виконання: доступ користувача</field>
+            <field name="model_id" ref="model_budget_execution"/>
+            <field name="groups" eval="[(4, ref('group_budget_user'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="False"/>
+            <field name="perm_create" eval="False"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[
+                ('budget_id.cbo_id.responsible_user_id', '=', user.id)
+            ]</field>
+        </record>
+
+        <record id="budget_execution_manager_rule" model="ir.rule">
+            <field name="name">Виконання: доступ менеджера</field>
+            <field name="model_id" ref="model_budget_execution"/>
+            <field name="groups" eval="[(4, ref('group_budget_manager'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="False"/>
+            <field name="domain_force">[(1, '=', 1)]</field>
+        </record>
+
+        <!-- ПРАВИЛА ДЛЯ DEMO ДАНИХ -->
+        <record id="demo_data_access_rule" model="ir.rule">
+            <field name="name">Demo дані: обмежений доступ</field>
+            <field name="model_id" ref="model_budget_plan"/>
+            <field name="groups" eval="[(4, ref('base.group_system'))]"/>
+            <field name="perm_read" eval="True"/>
+            <field name="perm_write" eval="True"/>
+            <field name="perm_create" eval="True"/>
+            <field name="perm_unlink" eval="True"/>
+            <field name="domain_force">[('name', 'ilike', 'demo')]</field>
+        </record>
+
+        <!-- НАЛАШТУВАННЯ ГРУП ЗА ЗАМОВЧУВАННЯМ -->
+
+        <!-- Додавання менеджерів бюджетування до групи account.group_account_manager -->
+        <record id="group_budget_manager" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('account.group_account_user'))]"/>
+        </record>
+
+        <!-- Додавання контролерів до групи project.group_project_manager -->
+        <record id="group_budget_controller" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('project.group_project_user'))]"/>
+        </record>
+
+        <!-- Додавання користувачів прогнозів до групи sales_team.group_sale_salesman -->
+        <record id="group_sales_forecast_user" model="res.groups">
+            <field name="implied_ids" eval="[(4, ref('sales_team.group_sale_salesman'))]"/>
         </record>
 
     </data>

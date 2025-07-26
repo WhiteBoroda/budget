@@ -1,0 +1,517 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- ПОВНИЙ ФАЙЛ ДІЙ ДЛЯ МЕНЮ - СУМІСНИЙ З ODOO 17 -->
+
+    <!-- ========== ОСНОВНІ ДІЇ БЮДЖЕТУВАННЯ ========== -->
+
+    <!-- Бюджетні плани -->
+    <record id="action_budget_plan" model="ir.actions.act_window">
+        <field name="name">Бюджетні плани</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form,graph,pivot</field>
+        <field name="context">{
+            'search_default_group_by_cbo': 1,
+            'search_default_filter_current_period': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть перший бюджетний план!
+            </p>
+            <p>
+                Бюджетні плани дозволяють планувати доходи та витрати
+                по центрах відповідальності та періодах.
+            </p>
+        </field>
+    </record>
+
+    <!-- Центри відповідальності -->
+    <record id="action_responsibility_center" model="ir.actions.act_window">
+        <field name="name">Центри бюджетної відповідальності</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="context">{
+            'search_default_filter_active': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть організаційну структуру!
+            </p>
+            <p>
+                Центри відповідальності визначають структуру організації
+                для бюджетного планування та контролю.
+            </p>
+        </field>
+    </record>
+
+    <!-- Прогнози продажів -->
+    <record id="action_sales_forecast" model="ir.actions.act_window">
+        <field name="name">Прогнози продажів</field>
+        <field name="res_model">sale.forecast</field>
+        <field name="view_mode">tree,form,graph,pivot</field>
+        <field name="context">{
+            'search_default_group_by_period': 1,
+            'search_default_filter_current_year': 1
+        }</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                Створіть перший прогноз продажів!
+            </p>
+            <p>
+                Прогнози продажів інтегруються з бюджетним плануванням
+                для точного планування доходів.
+            </p>
+        </field>
+    </record>
+
+    <!-- Виконання бюджетів -->
+    <record id="action_budget_execution" model="ir.actions.act_window">
+        <field name="name">Виконання бюджетів</field>
+        <field name="res_model">budget.execution</field>
+        <field name="view_mode">tree,form,graph,pivot</field>
+        <field name="context">{
+            'search_default_group_by_budget': 1,
+            'search_default_filter_current_month': 1
+        }</field>
+    </record>
+
+    <!-- ========== КОНФІГУРАЦІЯ ========== -->
+
+    <!-- Періоди бюджетування -->
+    <record id="action_budget_period" model="ir.actions.act_window">
+        <field name="name">Періоди бюджетування</field>
+        <field name="res_model">budget.period</field>
+        <field name="view_mode">tree,form,calendar</field>
+        <field name="context">{
+            'search_default_filter_current_year': 1
+        }</field>
+    </record>
+
+    <!-- Типи бюджетів -->
+    <record id="action_budget_type" model="ir.actions.act_window">
+        <field name="name">Типи бюджетів</field>
+        <field name="res_model">budget.type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_filter_active': 1
+        }</field>
+    </record>
+
+    <!-- Категорії бюджетів -->
+    <record id="action_budget_category" model="ir.actions.act_window">
+        <field name="name">Категорії витрат</field>
+        <field name="res_model">budget.category</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_filter_active': 1
+        }</field>
+    </record>
+
+    <!-- ========== ЗВІТИ ========== -->
+
+    <!-- Звіт виконання бюджетів -->
+    <record id="action_budget_execution_report" model="ir.actions.act_window">
+        <field name="name">Звіт виконання бюджетів</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">pivot,graph,tree</field>
+        <field name="context">{
+            'search_default_group_by_cbo': 1,
+            'search_default_group_by_period': 1,
+            'search_default_filter_approved': 1
+        }</field>
+        <field name="domain">[('state', 'in', ['approved', 'executed'])]</field>
+    </record>
+
+    <!-- Звіт відхилень -->
+    <record id="action_budget_variance_report" model="ir.actions.act_window">
+        <field name="name">Звіт відхилень</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,graph,pivot</field>
+        <field name="context">{
+            'search_default_has_variance': 1,
+            'search_default_group_by_cbo': 1
+        }</field>
+        <field name="domain">[
+            ('state', 'in', ['approved', 'executed']),
+            ('variance_amount', '!=', 0)
+        ]</field>
+    </record>
+
+    <!-- Аналітичний звіт ЦБО -->
+    <record id="action_cbo_analytics_report" model="ir.actions.act_window">
+        <field name="name">Аналітика ЦБО</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">graph,pivot,tree</field>
+        <field name="context">{
+            'search_default_group_by_type': 1,
+            'search_default_filter_with_budgets': 1
+        }</field>
+    </record>
+
+    <!-- ========== WIZARDS ========== -->
+
+    <!-- Wizard створення бюджету -->
+    <record id="action_budget_creation_wizard" model="ir.actions.act_window">
+        <field name="name">Майстер створення бюджету</field>
+        <field name="res_model">budget.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Wizard прогнозу продажів -->
+    <record id="action_sales_forecast_wizard" model="ir.actions.act_window">
+        <field name="name">Майстер прогнозу продажів</field>
+        <field name="res_model">sales.forecast.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Wizard імпорту бюджетів -->
+    <record id="action_budget_import_wizard" model="ir.actions.act_window">
+        <field name="name">Імпорт бюджетів</field>
+        <field name="res_model">budget.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- Wizard затвердження -->
+    <record id="action_budget_approval_wizard" model="ir.actions.act_window">
+        <field name="name">Затвердження бюджетів</field>
+        <field name="res_model">budget.approval.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ========== КОНФІГУРАЦІЯ МОДУЛЯ ========== -->
+
+    <!-- Шаблони бюджетів -->
+    <record id="action_budget_template" model="ir.actions.act_window">
+        <field name="name">Шаблони бюджетів</field>
+        <field name="res_model">budget.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Налаштування затвердження -->
+    <record id="action_budget_approval_config" model="ir.actions.act_window">
+        <field name="name">Налаштування затвердження</field>
+        <field name="res_model">budget.approval.config</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Інтеграції -->
+    <record id="action_budget_integration" model="ir.actions.act_window">
+        <field name="name">Інтеграції</field>
+        <field name="res_model">budget.integration</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Права доступу -->
+    <record id="action_budget_access_rights" model="ir.actions.act_window">
+        <field name="name">Права доступу</field>
+        <field name="res_model">res.groups</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('category_id.name', '=', 'Бюджетування')]</field>
+    </record>
+
+    <!-- ========== СТРУКТУРА ОРГАНІЗАЦІЇ ========== -->
+
+    <!-- Дерево структури -->
+    <record id="action_budget_tree_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard структури організації</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_cbo_dashboard_form"/>
+        <field name="target">current</field>
+        <field name="context">{
+            'default_active': True,
+            'dashboard_mode': True
+        }</field>
+    </record>
+
+    <!-- Організаційна ієрархія -->
+    <record id="action_organization_hierarchy_tree" model="ir.actions.act_window">
+        <field name="name">Організаційна ієрархія</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="view_responsibility_center_hierarchy_tree"/>
+        <field name="search_view_id" ref="view_responsibility_center_hierarchy_search"/>
+        <field name="context">{
+            'search_default_filter_active': 1,
+            'tree_view_ref': 'budget.view_responsibility_center_hierarchy_tree'
+        }</field>
+    </record>
+
+    <!-- Бюджетна ієрархія -->
+    <record id="action_budget_hierarchy_tree" model="ir.actions.act_window">
+        <field name="name">Ієрархія бюджетів</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="view_budget_hierarchy_dashboard_form"/>
+        <field name="domain">[('state', 'in', ['approved', 'executed'])]</field>
+        <field name="context">{
+            'search_default_group_by_cbo': 1,
+            'search_default_group_by_period': 1,
+        }</field>
+    </record>
+
+    <!-- Комбінований вигляд -->
+    <record id="action_organization_budget_combined" model="ir.actions.act_window">
+        <field name="name">Комбінований вигляд: ЦБО + Бюджети</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">tree,kanban,form</field>
+        <field name="view_id" ref="view_responsibility_center_hierarchy_tree"/>
+        <field name="context">{
+            'search_default_filter_active': 1,
+            'search_default_filter_with_budgets': 1,
+        }</field>
+    </record>
+
+    <!-- ========== ІНСТРУМЕНТИ ДЕРЕВА ========== -->
+
+    <!-- Реструктуризація -->
+    <record id="action_tree_restructure_wizard" model="ir.actions.act_window">
+        <field name="name">Реструктуризація дерева</field>
+        <field name="res_model">tree.restructure.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_tree_restructure_wizard_form"/>
+    </record>
+
+    <!-- Оптимізація структури -->
+    <record id="action_tree_optimization_wizard" model="ir.actions.act_window">
+        <field name="name">Оптимізація структури</field>
+        <field name="res_model">tree.optimization.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_tree_optimization_wizard_form"/>
+    </record>
+
+    <!-- Експорт/Імпорт структури -->
+    <record id="action_tree_export_import_wizard" model="ir.actions.act_window">
+        <field name="name">Експорт/Імпорт структури</field>
+        <field name="res_model">tree.export.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+        <field name="view_id" ref="view_tree_export_import_wizard_form"/>
+    </record>
+
+    <!-- Аналітика структури -->
+    <record id="action_tree_analytics_dashboard" model="ir.actions.act_window">
+        <field name="name">Аналітика структури</field>
+        <field name="res_model">budget.responsibility.center</field>
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="view_tree_analytics_dashboard_form"/>
+        <field name="target">current</field>
+    </record>
+
+    <!-- ========== ІНТЕГРАЦІЯ З ПРОДАЖАМИ ========== -->
+
+    <!-- Шаблони прогнозів -->
+    <record id="action_sales_forecast_template" model="ir.actions.act_window">
+        <field name="name">Шаблони прогнозів</field>
+        <field name="res_model">sale.forecast.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <!-- Лінії прогнозів -->
+    <record id="action_sales_forecast_line" model="ir.actions.act_window">
+        <field name="name">Деталі прогнозів</field>
+        <field name="res_model">sale.forecast.line</field>
+        <field name="view_mode">tree,form,graph</field>
+    </record>
+
+    <!-- ========== МОНІТОРИНГ ТА КОНТРОЛЬ ========== -->
+
+    <!-- Моніторинг бюджетів -->
+    <record id="action_budget_monitoring" model="ir.actions.act_window">
+        <field name="name">Моніторинг виконання</field>
+        <field name="res_model">budget.plan</field>
+        <field name="view_mode">kanban,tree,graph</field>
+        <field name="domain">[('state', 'in', ['approved', 'executed'])]</field>
+        <field name="context">{
+            'search_default_alerts': 1,
+            'monitoring_mode': True
+        }</field>
+    </record>
+
+    <!-- Алерти та сповіщення -->
+    <record id="action_budget_alerts" model="ir.actions.act_window">
+        <field name="name">Алерти та сповіщення</field>
+        <field name="res_model">budget.alert</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{
+            'search_default_active_alerts': 1
+        }</field>
+    </record>
+
+    <!-- ========== АНАЛІТИКА ТА ЗВІТИ ========== -->
+
+    <!-- Dashboard аналітики -->
+    <record id="action_budget_analytics_dashboard" model="ir.actions.client">
+        <field name="name">Dashboard аналітики</field>
+        <field name="tag">budget_analytics_dashboard</field>
+        <field name="context">{
+            'dashboard_type': 'analytics'
+        }</field>
+    </record>
+
+    <!-- KPI бюджетів -->
+    <record id="action_budget_kpi" model="ir.actions.act_window">
+        <field name="name">KPI бюджетів</field>
+        <field name="res_model">budget.kpi</field>
+        <field name="view_mode">tree,form,graph</field>
+    </record>
+
+    <!-- ========== НАЛАШТУВАННЯ СИСТЕМИ ========== -->
+
+    <!-- Конфігурація модуля -->
+    <record id="action_budget_config_settings" model="ir.actions.act_window">
+        <field name="name">Налаштування бюджетування</field>
+        <field name="res_model">res.config.settings</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+        <field name="context">{'module': 'budget'}</field>
+    </record>
+
+    <!-- Послідовності -->
+    <record id="action_budget_sequences" model="ir.actions.act_window">
+        <field name="name">Послідовності</field>
+        <field name="res_model">ir.sequence</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('code', 'like', 'budget.%')]</field>
+    </record>
+
+    <!-- Шаблони email -->
+    <record id="action_budget_mail_templates" model="ir.actions.act_window">
+        <field name="name">Шаблони повідомлень</field>
+        <field name="res_model">mail.template</field>
+        <field name="view_mode">tree,form</field>
+        <field name="domain">[('model_id.model', 'like', 'budget.%')]</field>
+    </record>
+
+    <!-- ========== СПЕЦІАЛЬНІ ДІЇ ========== -->
+
+    <!-- Швидкий доступ -->
+    <record id="action_budget_quick_access" model="ir.actions.act_window_multi">
+        <field name="name">Швидкий доступ</field>
+        <field name="res_model">budget.plan</field>
+    </record>
+
+    <!-- Експорт даних -->
+    <record id="action_budget_data_export" model="ir.actions.server">
+        <field name="name">Експорт даних бюджетування</field>
+        <field name="model_id" ref="model_budget_plan"/>
+        <field name="binding_model_id" ref="model_budget_plan"/>
+        <field name="state">code</field>
+        <field name="code">
+if records:
+    action = env['budget.export.wizard'].create_export_action(records.ids)
+        </field>
+    </record>
+
+    <!-- ========== CLIENT ACTIONS (JavaScript віджети) ========== -->
+
+    <!-- Інтерактивне дерево -->
+    <record id="action_interactive_hierarchy_tree" model="ir.actions.client">
+        <field name="name">Інтерактивне дерево ієрархії</field>
+        <field name="tag">budget_hierarchy_tree_widget</field>
+        <field name="context">{
+            'interactive_mode': True,
+            'enable_drag_drop': True,
+            'show_analytics': True
+        }</field>
+    </record>
+
+    <!-- Розширений dashboard -->
+    <record id="action_advanced_budget_dashboard" model="ir.actions.client">
+        <field name="name">Розширений Dashboard</field>
+        <field name="tag">budget_advanced_dashboard</field>
+        <field name="context">{
+            'dashboard_type': 'advanced',
+            'include_forecasts': True,
+            'real_time_updates': True
+        }</field>
+    </record>
+
+    <!-- ========== ПРИВ'ЯЗКА ДІЙ ДО МЕНЮ ========== -->
+
+    <!-- Основні меню -->
+    <record id="menu_budget_plan" model="ir.ui.menu">
+        <field name="action" ref="action_budget_plan"/>
+    </record>
+
+    <record id="menu_responsibility_center" model="ir.ui.menu">
+        <field name="action" ref="action_responsibility_center"/>
+    </record>
+
+    <record id="menu_sales_forecast" model="ir.ui.menu">
+        <field name="action" ref="action_sales_forecast"/>
+    </record>
+
+    <record id="menu_budget_execution" model="ir.ui.menu">
+        <field name="action" ref="action_budget_execution"/>
+    </record>
+
+    <!-- Конфігурація -->
+    <record id="menu_budget_period" model="ir.ui.menu">
+        <field name="action" ref="action_budget_period"/>
+    </record>
+
+    <record id="menu_budget_type" model="ir.ui.menu">
+        <field name="action" ref="action_budget_type"/>
+    </record>
+
+    <record id="menu_budget_category" model="ir.ui.menu">
+        <field name="action" ref="action_budget_category"/>
+    </record>
+
+    <record id="menu_budget_template" model="ir.ui.menu">
+        <field name="action" ref="action_budget_template"/>
+    </record>
+
+    <record id="menu_budget_approval_config" model="ir.ui.menu">
+        <field name="action" ref="action_budget_approval_config"/>
+    </record>
+
+    <record id="menu_budget_integration" model="ir.ui.menu">
+        <field name="action" ref="action_budget_integration"/>
+    </record>
+
+    <record id="menu_budget_access_rights" model="ir.ui.menu">
+        <field name="action" ref="action_budget_access_rights"/>
+    </record>
+
+    <!-- Структура організації -->
+    <record id="menu_tree_dashboard" model="ir.ui.menu">
+        <field name="action" ref="action_budget_tree_dashboard"/>
+    </record>
+
+    <record id="menu_organization_tree" model="ir.ui.menu">
+        <field name="action" ref="action_organization_hierarchy_tree"/>
+    </record>
+
+    <record id="menu_budget_hierarchy" model="ir.ui.menu">
+        <field name="action" ref="action_budget_hierarchy_tree"/>
+    </record>
+
+    <record id="menu_combined_tree" model="ir.ui.menu">
+        <field name="action" ref="action_organization_budget_combined"/>
+    </record>
+
+    <!-- Інструменти -->
+    <record id="menu_restructure_wizard" model="ir.ui.menu">
+        <field name="action" ref="action_tree_restructure_wizard"/>
+    </record>
+
+    <record id="menu_tree_optimization" model="ir.ui.menu">
+        <field name="action" ref="action_tree_optimization_wizard"/>
+    </record>
+
+    <record id="menu_tree_export_import" model="ir.ui.menu">
+        <field name="action" ref="action_tree_export_import_wizard"/>
+    </record>
+
+    <record id="menu_tree_analytics" model="ir.ui.menu">
+        <field name="action" ref="action_tree_analytics_dashboard"/>
+    </record>
+
+</odoo>

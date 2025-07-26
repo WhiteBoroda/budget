@@ -121,7 +121,7 @@ class BudgetPlanLine(models.Model):
     category_code = fields.Char(related='budget_category_id.code', string='Код категорії')
     cost_center_code = fields.Char(related='cost_center_id.code', string='Код центру витрат')
 
-    @api.depends('budget_category_id', 'cost_center_id', 'plan_id.company_id', 'plan_id.cbo_id')
+    @api.depends('budget_category_id', 'cost_center_id', 'plan_id.company_ids', 'plan_id.cbo_id')
     def _compute_accounting_data(self):
         """Автоматичне визначення рахунків на основі зопоставлень"""
         for line in self:

@@ -226,7 +226,16 @@ class BudgetPeriod(models.Model):
         ('closed', 'Закритий')
     ], 'Статус', default='draft', required=True)
 
-    company_id = fields.Many2one('res.company', 'Підприємство', required=True, default=lambda self: self.env.company)
+    company_ids = fields.Many2many('res.company', 'Компанії',
+                                   default=lambda self: [(6, 0, [self.env.company.id])],
+                                   required=True)
+    company_id = fields.Many2one('res.company', 'Головна компанія',
+                                 compute='_compute_company_id', store=True)
+
+    @api.depends('company_ids')
+    def _compute_company_id(self):
+        for record in self:
+            record.company_id = record.company_ids[0] if record.company_ids else self.env.company
 
     # Гнучкість для різних циклів планування
     planning_cycle = fields.Selection([

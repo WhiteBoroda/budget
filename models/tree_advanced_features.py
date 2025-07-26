@@ -39,13 +39,13 @@ class TreeAdvancedFeatures(models.Model):
 
             cbo.total_employees = direct_employees + child_employees
 
-    @api.depends('budget_plan_id', 'budget_plan_id')
+    @api.depends('budget_plan_id' )
     def _compute_budget_utilization(self):
         """Розрахунок середнього використання бюджету"""
         for cbo in self:
             active_budgets = cbo.budget_plan_id.filtered(lambda b: b.state == 'approved')
             if active_budgets:
-                cbo.budget_utilization = sum(active_budgets.mapped('execution')) / len(active_budgets)
+                cbo.budget_utilization = sum(active_budgets.mapped('execution_percent')) / len(active_budgets)
             else:
                 cbo.budget_utilization = 0.0
 

@@ -1,11 +1,13 @@
 /** @odoo-module **/
+// Віджет ієрархічного дерева для ЦБО - ПОВНІСТЮ СУМІСНИЙ З ODOO 17
 
 import { Component, useState, onWillStart, onMounted, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
 import { useService } from "@web/core/utils/hooks";
+import { debounce } from "@web/core/utils/timing";
 
 /**
- * Віджет ієрархічного дерева для ЦБО - СУМІСНИЙ З ODOO 17
+ * Віджет ієрархічного дерева для ЦБО
  */
 export class HierarchyTreeWidget extends Component {
     static template = "budget.HierarchyTreeWidget";
@@ -14,6 +16,7 @@ export class HierarchyTreeWidget extends Component {
         this.orm = useService("orm");
         this.action = useService("action");
         this.notification = useService("notification");
+        this.dialog = useService("dialog");
 
         this.treeRef = useRef("tree-container");
 
@@ -22,8 +25,14 @@ export class HierarchyTreeWidget extends Component {
             loading: true,
             selectedNode: null,
             expandedNodes: new Set(),
-            searchQuery: ''
+            searchQuery: '',
+            filteredData: [],
+            showInactive: false,
+            viewMode: 'tree' // tree, compact, cards
         });
+
+        // Debounced пошук
+        this.searchDebounced = debounce(this.performSearch.bind(this), 300);
 
         onWillStart(async () => {
             await this.loadTreeData();
@@ -45,9 +54,18 @@ export class HierarchyTreeWidget extends Component {
                 "get_hierarchy_tree",
                 []
             );
-            this.state.treeData = data;
+
+            this.state.treeData = data || [];
+            this.state.filteredData = [...this.state.treeData];
+
+            // Розгортаємо перший рівень за замовчуванням
+            this.expandFirstLevel();
+
         } catch (error) {
-            this.notification.add("Помилка завантаження дерева", { type: "danger" });
+            this.notification.add(
+                "Помилка завантаження дерева ієрархії",
+                { type: "danger" }
+            );
             console.error("Tree loading error:", error);
         } finally {
             this.state.loading = false;
@@ -58,23 +76,91 @@ export class HierarchyTreeWidget extends Component {
      * Налаштування обробників подій
      */
     setupEventListeners() {
-        document.addEventListener('click', this.handleDocumentClick.bind(this));
+        // Клік по документу для зняття виділення
+        document.addEventListener('click', (event) => {
+            if (!event.target.closest('.hierarchy-tree-node')) {
+                this.state.selectedNode = null;
+            }
+        });
+
+        // Обробка клавіатури
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                this.state.selectedNode = null;
+            }
+        });
     }
 
     /**
-     * Обробка кліків по документу
+     * Розгортання першого рівня
      */
-    handleDocumentClick(event) {
-        // Скидання виділення при кліку поза деревом
-        if (!event.target.closest('.hierarchy-tree-widget')) {
-            this.state.selectedNode = null;
+    expandFirstLevel() {
+        this.state.treeData.forEach(node => {
+            if (node.children && node.children.length > 0) {
+                this.state.expandedNodes.add(node.id);
+            }
+        });
+    }
+
+    /**
+     * Обробка вводу пошуку
+     */
+    onSearchInput(event) {
+        this.state.searchQuery = event.target.value;
+        this.searchDebounced();
+    }
+
+    /**
+     * Виконання пошуку
+     */
+    performSearch() {
+        if (!this.state.searchQuery.trim()) {
+            this.state.filteredData = [...this.state.treeData];
+            return;
         }
+
+        const query = this.state.searchQuery.toLowerCase();
+        this.state.filteredData = this.filterTreeNodes(this.state.treeData, query);
     }
 
     /**
-     * Перемикання розгортання/згортання вузла
+     * Фільтрація вузлів дерева
      */
-    async toggleNode(nodeId) {
+    filterTreeNodes(nodes, query) {
+        const filtered = [];
+
+        for (const node of nodes) {
+            const matches = (
+                node.name?.toLowerCase().includes(query) ||
+                node.code?.toLowerCase().includes(query) ||
+                node.type?.toLowerCase().includes(query)
+            );
+
+            if (matches) {
+                // Якщо вузол відповідає, додаємо його з усіма дочірніми
+                filtered.push({
+                    ...node,
+                    children: node.children || []
+                });
+            } else if (node.children) {
+                // Рекурсивно перевіряємо дочірні вузли
+                const filteredChildren = this.filterTreeNodes(node.children, query);
+                if (filteredChildren.length > 0) {
+                    filtered.push({
+                        ...node,
+                        children: filteredChildren
+                    });
+                }
+            }
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Перемикання розгортання вузла
+     */
+    toggleExpand(nodeId) {
         if (this.state.expandedNodes.has(nodeId)) {
             this.state.expandedNodes.delete(nodeId);
         } else {
@@ -83,10 +169,10 @@ export class HierarchyTreeWidget extends Component {
     }
 
     /**
-     * Виділення вузла
+     * Вибір вузла
      */
-    selectNode(nodeId) {
-        this.state.selectedNode = nodeId;
+    selectNode(node) {
+        this.state.selectedNode = node;
     }
 
     /**
@@ -95,12 +181,13 @@ export class HierarchyTreeWidget extends Component {
     expandAll() {
         const addAllNodes = (nodes) => {
             nodes.forEach(node => {
-                if (node.children && node.children.length > 0) {
-                    this.state.expandedNodes.add(node.id);
+                this.state.expandedNodes.add(node.id);
+                if (node.children) {
                     addAllNodes(node.children);
                 }
             });
         };
+
         addAllNodes(this.state.treeData);
     }
 
@@ -112,268 +199,175 @@ export class HierarchyTreeWidget extends Component {
     }
 
     /**
-     * Перегляд бюджетів вузла
+     * Перемикання показу неактивних
+     */
+    toggleInactive() {
+        this.state.showInactive = !this.state.showInactive;
+        this.performSearch(); // Перефільтруємо дані
+    }
+
+    /**
+     * Зміна режиму перегляду
+     */
+    changeViewMode(mode) {
+        this.state.viewMode = mode;
+    }
+
+    /**
+     * Перегляд бюджетів для вузла
      */
     async viewBudgets(node) {
-        try {
-            const action = await this.orm.call(
-                "budget.responsibility.center",
-                "action_view_budgets",
-                [node.id]
-            );
-            this.action.doAction(action);
-        } catch (error) {
-            this.notification.add("Помилка відкриття бюджетів", { type: "danger" });
-        }
+        return this.action.doAction({
+            name: `Бюджети - ${node.name}`,
+            type: "ir.actions.act_window",
+            res_model: "budget.plan",
+            view_mode: "tree,form",
+            domain: [['cbo_id', '=', node.id]],
+            context: {
+                default_cbo_id: node.id,
+                search_default_group_by_period: 1
+            }
+        });
     }
 
     /**
      * Створення нового бюджету
      */
     async createBudget(node) {
-        try {
-            const action = await this.orm.call(
-                "budget.responsibility.center",
-                "action_create_budget",
-                [node.id]
-            );
-            this.action.doAction(action);
-        } catch (error) {
-            this.notification.add("Помилка створення бюджету", { type: "danger" });
-        }
+        return this.action.doAction({
+            name: `Новий бюджет - ${node.name}`,
+            type: "ir.actions.act_window",
+            res_model: "budget.plan",
+            view_mode: "form",
+            context: {
+                default_cbo_id: node.id,
+                default_name: `Бюджет ${node.name}`
+            },
+            target: "new"
+        });
     }
 
     /**
-     * Відкриття форми ЦБО
+     * Редагування ЦБО
      */
-    async openNodeForm(node) {
-        const action = {
-            type: 'ir.actions.act_window',
-            res_model: 'budget.responsibility.center',
+    async editCbo(node) {
+        return this.action.doAction({
+            name: `Редагувати - ${node.name}`,
+            type: "ir.actions.act_window",
+            res_model: "budget.responsibility.center",
             res_id: node.id,
-            view_mode: 'form',
-            target: 'new'
-        };
-        this.action.doAction(action);
+            view_mode: "form",
+            views: [[false, "form"]],
+            target: "new"
+        });
     }
 
     /**
      * Створення дочірнього ЦБО
      */
-    async createChildNode(parentNode) {
-        const action = {
-            type: 'ir.actions.act_window',
-            res_model: 'budget.responsibility.center',
-            view_mode: 'form',
+    async createChildCbo(node) {
+        return this.action.doAction({
+            name: `Новий підрозділ - ${node.name}`,
+            type: "ir.actions.act_window",
+            res_model: "budget.responsibility.center",
+            view_mode: "form",
             context: {
-                default_parent_id: parentNode.id,
-                default_cbo_type: this._getDefaultChildType(parentNode.cbo_type),
-                default_budget_level: this._getDefaultChildLevel(parentNode.budget_level)
+                default_parent_id: node.id,
+                default_name: `Підрозділ ${node.name}`
             },
-            target: 'new'
-        };
-        this.action.doAction(action);
+            target: "new"
+        });
     }
 
     /**
-     * Пошук в дереві
+     * Отримання CSS класу для вузла
      */
-    onSearchInput(event) {
-        this.state.searchQuery = event.target.value;
-        this.performSearch();
-    }
+    getNodeClass(node) {
+        let classes = ['hierarchy-tree-node'];
 
-    /**
-     * Виконання пошуку
-     */
-    performSearch() {
-        if (!this.state.searchQuery.trim()) {
-            this.loadTreeData();
-            return;
+        if (this.state.selectedNode?.id === node.id) {
+            classes.push('selected');
         }
 
-        // Автоматично розгортаємо вузли які містять результати пошуку
-        const expandMatchingNodes = (nodes) => {
-            nodes.forEach(node => {
-                const matches = this.nodeMatchesSearch(node, this.state.searchQuery);
-                if (matches && node.children && node.children.length > 0) {
-                    this.state.expandedNodes.add(node.id);
-                }
-                if (node.children) {
-                    expandMatchingNodes(node.children);
-                }
+        if (node.children && node.children.length > 0) {
+            classes.push('has-children');
+        }
+
+        if (!node.active) {
+            classes.push('inactive');
+        }
+
+        if (node.type) {
+            classes.push(`cbo-type-${node.type}`);
+        }
+
+        return classes.join(' ');
+    }
+
+    /**
+     * Отримання іконки для вузла
+     */
+    getNodeIcon(node) {
+        const iconMap = {
+            holding: 'fa fa-university',
+            cluster: 'fa fa-cubes',
+            business_direction: 'fa fa-compass',
+            brand: 'fa fa-tags',
+            enterprise: 'fa fa-industry',
+            department: 'fa fa-building',
+            division: 'fa fa-sitemap',
+            office: 'fa fa-briefcase',
+            team: 'fa fa-users',
+            project: 'fa fa-project-diagram',
+            other: 'fa fa-folder'
+        };
+
+        return iconMap[node.type] || 'fa fa-folder';
+    }
+
+    /**
+     * Перевірка чи розгорнутий вузол
+     */
+    isExpanded(nodeId) {
+        return this.state.expandedNodes.has(nodeId);
+    }
+
+    /**
+     * Оновлення дерева
+     */
+    async refreshTree() {
+        await this.loadTreeData();
+        this.notification.add("Дерево оновлено", { type: "success" });
+    }
+
+    /**
+     * Експорт дерева
+     */
+    async exportTree() {
+        try {
+            const data = await this.orm.call(
+                "budget.responsibility.center",
+                "export_tree_structure",
+                []
+            );
+
+            // Створюємо та завантажуємо файл
+            const blob = new Blob([JSON.stringify(data, null, 2)], {
+                type: 'application/json'
             });
-        };
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `tree_structure_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
 
-        expandMatchingNodes(this.state.treeData);
-    }
-
-    /**
-     * Перевірка відповідності вузла пошуковому запиту
-     */
-    nodeMatchesSearch(node, query) {
-        const lowerQuery = query.toLowerCase();
-        return node.name.toLowerCase().includes(lowerQuery) ||
-               (node.code && node.code.toLowerCase().includes(lowerQuery));
-    }
-
-    /**
-     * Рендеринг вузла дерева
-     */
-    renderNode(node, level = 0) {
-        const isExpanded = this.state.expandedNodes.has(node.id);
-        const isSelected = this.state.selectedNode === node.id;
-        const hasChildren = node.children && node.children.length > 0;
-
-        // Перевірка відповідності пошуку
-        const matchesSearch = !this.state.searchQuery ||
-                             this.nodeMatchesSearch(node, this.state.searchQuery);
-
-        if (!matchesSearch && !this.hasMatchingDescendants(node)) {
-            return '';
+            this.notification.add("Структуру експортовано", { type: "success" });
+        } catch (error) {
+            this.notification.add("Помилка експорту", { type: "danger" });
         }
-
-        return `
-            <div class="hierarchy-tree-node ${isSelected ? 'selected' : ''} cbo-type-${node.cbo_type} hierarchy-tree-level-${level}"
-                 data-node-id="${node.id}"
-                 data-level="${level}"
-                 onclick="this.closest('.hierarchy-tree-widget').component.selectNode(${node.id})"
-                 ondblclick="this.closest('.hierarchy-tree-widget').component.openNodeForm(${JSON.stringify(node).replace(/"/g, '&quot;')})">
-                
-                <div class="hierarchy-tree-content">
-                    <!-- Toggle button -->
-                    <span class="hierarchy-tree-toggle ${hasChildren ? 'has-children' : ''}"
-                          onclick="event.stopPropagation(); this.closest('.hierarchy-tree-widget').component.toggleNode(${node.id})">
-                        ${hasChildren ? (isExpanded ? '▼' : '▶') : ''}
-                    </span>
-                    
-                    <!-- Іконка -->
-                    <span class="hierarchy-tree-icon">
-                        <i class="fa ${node.icon || 'fa-folder'} ${node.color_class || 'text-secondary'}"></i>
-                    </span>
-                    
-                    <!-- Назва -->
-                    <span class="hierarchy-tree-label" title="${node.name}">
-                        ${node.name}
-                    </span>
-                    
-                    <!-- Код ЦБО -->
-                    ${node.code ? `<span class="hierarchy-tree-badge badge badge-secondary">${node.code}</span>` : ''}
-                    
-                    <!-- Метадані -->
-                    <div class="hierarchy-tree-meta">
-                        ${node.budget_count > 0 ? 
-                            `<span class="hierarchy-tree-badge badge badge-info" title="Кількість бюджетів">${node.budget_count} 📊</span>` : ''}
-                        ${node.child_count > 0 ? 
-                            `<span class="hierarchy-tree-badge badge badge-secondary" title="Дочірні ЦБО">${node.child_count} 🏢</span>` : ''}
-                        ${node.execution_rate > 0 ? 
-                            `<span class="hierarchy-tree-badge badge badge-${this.getExecutionBadgeClass(node.execution_rate)}" title="Виконання бюджету">${node.execution_rate.toFixed(1)}%</span>` : ''}
-                    </div>
-                    
-                    <!-- Дії -->
-                    <div class="hierarchy-tree-actions">
-                        ${node.budget_count > 0 ? 
-                            `<button class="hierarchy-tree-action btn-tree-primary" 
-                                    onclick="event.stopPropagation(); this.closest('.hierarchy-tree-widget').component.viewBudgets(${JSON.stringify(node)})"
-                                    title="Переглянути бюджети">📊</button>` : ''}
-                        
-                        <button class="hierarchy-tree-action btn-tree-success" 
-                                onclick="event.stopPropagation(); this.closest('.hierarchy-tree-widget').component.createBudget(${JSON.stringify(node)})"
-                                title="Створити бюджет">💰</button>
-                                
-                        <button class="hierarchy-tree-action btn-tree-secondary" 
-                                onclick="event.stopPropagation(); this.closest('.hierarchy-tree-widget').component.createChildNode(${JSON.stringify(node)})"
-                                title="Додати підрозділ">➕</button>
-                    </div>
-                </div>
-                
-                <!-- Дочірні вузли -->
-                ${isExpanded && hasChildren ? 
-                    `<div class="hierarchy-tree-children">
-                        ${node.children.map(child => this.renderNode(child, level + 1)).join('')}
-                     </div>` : ''}
-            </div>
-        `;
-    }
-
-    /**
-     * Перевірка наявності відповідних нащадків
-     */
-    hasMatchingDescendants(node) {
-        if (!node.children) return false;
-
-        return node.children.some(child =>
-            this.nodeMatchesSearch(child, this.state.searchQuery) ||
-            this.hasMatchingDescendants(child)
-        );
-    }
-
-    /**
-     * Отримання CSS класу для badge виконання
-     */
-    getExecutionBadgeClass(rate) {
-        if (rate >= 90) return 'success';
-        if (rate >= 70) return 'info';
-        if (rate >= 50) return 'warning';
-        return 'danger';
-    }
-
-    /**
-     * Отримання типу дочірнього ЦБО за замовчуванням
-     */
-    _getDefaultChildType(parentType) {
-        const typeHierarchy = {
-            'holding': 'enterprise',
-            'enterprise': 'business_direction',
-            'business_direction': 'department',
-            'department': 'division',
-            'division': 'office',
-            'office': 'team'
-        };
-        return typeHierarchy[parentType] || 'department';
-    }
-
-    /**
-     * Отримання рівня бюджетування за замовчуванням
-     */
-    _getDefaultChildLevel(parentLevel) {
-        const levelHierarchy = {
-            'strategic': 'tactical',
-            'tactical': 'operational',
-            'operational': 'functional'
-        };
-        return levelHierarchy[parentLevel] || 'functional';
-    }
-
-    /**
-     * Отримання іконки для типу ЦБО
-     */
-    _getIconForType(cboType) {
-        const icons = {
-            'holding': 'fa-university',
-            'enterprise': 'fa-industry',
-            'business_direction': 'fa-building',
-            'department': 'fa-building-o',
-            'division': 'fa-folder',
-            'office': 'fa-briefcase',
-            'team': 'fa-users',
-            'project': 'fa-tasks'
-        };
-        return icons[cboType] || 'fa-folder';
-    }
-
-    /**
-     * Отримання іконки для рівня консолідації
-     */
-    _getConsolidationIcon(consolidationLevel) {
-        const icons = {
-            'holding': '🏛️',
-            'company': '🏭',
-            'department': '📊'
-        };
-        return icons[consolidationLevel] || '💰';
     }
 }
 
 // Реєстрація віджета
-registry.category("fields").add("hierarchy_tree", HierarchyTreeWidget);
+registry.category("fields").add("hierarchy_tree_widget", HierarchyTreeWidget);

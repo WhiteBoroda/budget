@@ -1,4 +1,5 @@
 /** @odoo-module **/
+// Розширений віджет дерева - ПОВНІСТЮ СУМІСНИЙ З ODOO 17
 
 import { Component, useState, onWillStart, onMounted, useRef } from "@odoo/owl";
 import { registry } from "@web/core/registry";
@@ -6,7 +7,7 @@ import { useService } from "@web/core/utils/hooks";
 import { debounce } from "@web/core/utils/timing";
 
 /**
- * Розширений віджет дерева для ЦБО - ПОВНІСТЮ СУМІСНИЙ З ODOO 17
+ * Розширений віджет дерева для ЦБО з додатковими функціями
  */
 export class AdvancedTreeWidget extends Component {
     static template = "budget.AdvancedTreeWidget";
@@ -30,12 +31,16 @@ export class AdvancedTreeWidget extends Component {
             selectedNodes: new Set(),
             expandedNodes: new Set(),
             searchQuery: '',
-            viewMode: 'tree', // tree, cards, compact
+            filteredData: [],
+            viewMode: 'tree', // tree, cards, compact, analytics
             showContextMenu: false,
             contextMenuNode: null,
             contextMenuPosition: { x: 0, y: 0 },
             draggedNode: null,
-            dropTarget: null
+            dropTarget: null,
+            showInactive: false,
+            showAnalytics: false,
+            analyticsData: null
         });
 
         // Налаштування віджета
@@ -44,11 +49,13 @@ export class AdvancedTreeWidget extends Component {
             enableMultiSelect: true,
             enableContextMenu: true,
             autoSave: true,
-            expandOnLoad: false
+            expandOnLoad: false,
+            maxNodes: 1000 // Обмеження для продуктивності
         };
 
-        // Debounced пошук
+        // Debounced функції
         this.searchDebounced = debounce(this.performSearch.bind(this), 300);
+        this.saveStateDebounced = debounce(this.saveTreeState.bind(this), 1000);
 
         onWillStart(async () => {
             await this.loadTreeData();
@@ -57,31 +64,56 @@ export class AdvancedTreeWidget extends Component {
 
         onMounted(() => {
             this.setupEventListeners();
+            this.setupDragAndDrop();
         });
     }
 
     /**
-     * Завантаження даних дерева
+     * Завантаження даних дерева з кешуванням
      */
     async loadTreeData(refresh = false) {
         try {
             this.state.loading = true;
 
+            // Спробуємо отримати з кешу, якщо не refresh
+            if (!refresh) {
+                const cached = this.getCachedData();
+                if (cached && cached.timestamp > Date.now() - 300000) { // 5 хвилин
+                    this.state.treeData = cached.data;
+                    this.state.filteredData = [...this.state.treeData];
+                    this.state.loading = false;
+                    return;
+                }
+            }
+
             const data = await this.orm.call(
                 "budget.responsibility.center",
-                "get_hierarchy_tree",
+                "get_advanced_tree_data",
                 [],
-                { context: { tree_view: true } }
+                {
+                    include_analytics: this.state.showAnalytics,
+                    include_inactive: this.state.showInactive,
+                    max_depth: 10
+                }
             );
 
-            this.state.treeData = this._processTreeData(data);
+            this.state.treeData = data.tree || [];
+            this.state.analyticsData = data.analytics || null;
+            this.state.filteredData = [...this.state.treeData];
 
-            if (this.settings.expandOnLoad || refresh) {
-                this._autoExpandImportantNodes();
+            // Кешуємо дані
+            this.setCachedData(this.state.treeData);
+
+            // Розгортаємо перший рівень за замовчуванням
+            if (!refresh && this.settings.expandOnLoad) {
+                this.expandFirstLevel();
             }
 
         } catch (error) {
-            this.notification.add("Помилка завантаження дерева", { type: "danger" });
+            this.notification.add(
+                "Помилка завантаження розширеного дерева",
+                { type: "danger" }
+            );
             console.error("Advanced tree loading error:", error);
         } finally {
             this.state.loading = false;
@@ -89,339 +121,314 @@ export class AdvancedTreeWidget extends Component {
     }
 
     /**
-     * Обробка даних дерева
+     * Налаштування обробників подій
      */
-    _processTreeData(data) {
-        return data.map(node => this._enrichNode(node));
+    setupEventListeners() {
+        // Глобальні обробники
+        document.addEventListener('click', this.handleGlobalClick.bind(this));
+        document.addEventListener('keydown', this.handleKeydown.bind(this));
+        document.addEventListener('contextmenu', this.handleContextMenu.bind(this));
+
+        // Обробка зміни розміру вікна
+        window.addEventListener('resize', debounce(this.handleResize.bind(this), 250));
     }
 
     /**
-     * Збагачення вузла додатковими властивостями
+     * Налаштування drag & drop
      */
-    _enrichNode(node) {
-        return {
-            ...node,
-            expanded: this.state.expandedNodes.has(node.id),
-            selected: this.state.selectedNodes.has(node.id),
-            children: node.children ? node.children.map(child => this._enrichNode(child)) : []
-        };
+    setupDragAndDrop() {
+        if (!this.settings.enableDragDrop) return;
+
+        const container = this.treeContainerRef.el;
+        if (!container) return;
+
+        container.addEventListener('dragstart', this.handleDragStart.bind(this));
+        container.addEventListener('dragover', this.handleDragOver.bind(this));
+        container.addEventListener('drop', this.handleDrop.bind(this));
+        container.addEventListener('dragend', this.handleDragEnd.bind(this));
     }
 
     /**
-     * Автоматичне розгортання важливих вузлів
+     * Обробка глобального кліку
      */
-    _autoExpandImportantNodes() {
-        const expandImportantNodes = (nodes) => {
-            nodes.forEach(node => {
-                // Розгортаємо вузли з бюджетами або багатьма дочірніми елементами
-                if (node.budget_count > 0 || node.child_count > 3) {
-                    this.state.expandedNodes.add(node.id);
+    handleGlobalClick(event) {
+        if (!event.target.closest('.hierarchy-tree-node')) {
+            this.state.selectedNodes.clear();
+        }
+
+        if (!event.target.closest('.hierarchy-context-menu')) {
+            this.state.showContextMenu = false;
+        }
+    }
+
+    /**
+     * Обробка клавіатури
+     */
+    handleKeydown(event) {
+        switch (event.key) {
+            case 'Escape':
+                this.state.selectedNodes.clear();
+                this.state.showContextMenu = false;
+                break;
+            case 'Delete':
+                if (this.state.selectedNodes.size > 0) {
+                    this.deleteSelectedNodes();
                 }
+                break;
+            case 'F5':
+                event.preventDefault();
+                this.refreshTree();
+                break;
+            case 'a':
+                if (event.ctrlKey) {
+                    event.preventDefault();
+                    this.selectAllNodes();
+                }
+                break;
+        }
+    }
 
+    /**
+     * Обробка контекстного меню
+     */
+    handleContextMenu(event) {
+        if (!this.settings.enableContextMenu) return;
+
+        const nodeElement = event.target.closest('.hierarchy-tree-node');
+        if (!nodeElement) return;
+
+        event.preventDefault();
+
+        const nodeId = parseInt(nodeElement.dataset.nodeId);
+        const node = this.findNodeById(nodeId);
+
+        if (node) {
+            this.state.contextMenuNode = node;
+            this.state.contextMenuPosition = { x: event.clientX, y: event.clientY };
+            this.state.showContextMenu = true;
+        }
+    }
+
+    /**
+     * Розширений пошук з фільтрами
+     */
+    performSearch() {
+        if (!this.state.searchQuery.trim()) {
+            this.state.filteredData = [...this.state.treeData];
+            return;
+        }
+
+        const query = this.state.searchQuery.toLowerCase();
+        const filters = this.parseSearchQuery(query);
+
+        this.state.filteredData = this.filterTreeNodes(this.state.treeData, filters);
+    }
+
+    /**
+     * Парсинг запиту пошуку
+     */
+    parseSearchQuery(query) {
+        const filters = {
+            text: query,
+            type: null,
+            hasbudgets: null,
+            active: null
+        };
+
+        // Парсимо спеціальні фільтри: type:enterprise hasbudgets:true active:false
+        const parts = query.split(' ');
+        const textParts = [];
+
+        for (const part of parts) {
+            if (part.includes(':')) {
+                const [key, value] = part.split(':');
+                switch (key) {
+                    case 'type':
+                        filters.type = value;
+                        break;
+                    case 'hasbudgets':
+                        filters.hasbudgets = value === 'true';
+                        break;
+                    case 'active':
+                        filters.active = value === 'true';
+                        break;
+                    default:
+                        textParts.push(part);
+                }
+            } else {
+                textParts.push(part);
+            }
+        }
+
+        filters.text = textParts.join(' ');
+        return filters;
+    }
+
+    /**
+     * Розширена фільтрація вузлів
+     */
+    filterTreeNodes(nodes, filters) {
+        const filtered = [];
+
+        for (const node of nodes) {
+            let matches = true;
+
+            // Текстовий пошук
+            if (filters.text) {
+                const textMatch = (
+                    node.name?.toLowerCase().includes(filters.text) ||
+                    node.code?.toLowerCase().includes(filters.text) ||
+                    node.type?.toLowerCase().includes(filters.text)
+                );
+                matches = matches && textMatch;
+            }
+
+            // Фільтр по типу
+            if (filters.type) {
+                matches = matches && node.type === filters.type;
+            }
+
+            // Фільтр по наявності бюджетів
+            if (filters.hasbudgets !== null) {
+                const hasBudgets = (node.budget_count || 0) > 0;
+                matches = matches && (hasBudgets === filters.hasbudgets);
+            }
+
+            // Фільтр по активності
+            if (filters.active !== null) {
+                matches = matches && (node.active === filters.active);
+            }
+
+            if (matches) {
+                filtered.push({
+                    ...node,
+                    children: node.children || []
+                });
+            } else if (node.children) {
+                const filteredChildren = this.filterTreeNodes(node.children, filters);
+                if (filteredChildren.length > 0) {
+                    filtered.push({
+                        ...node,
+                        children: filteredChildren
+                    });
+                }
+            }
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Вибір вузла з підтримкою множинного вибору
+     */
+    selectNode(node, multiSelect = false) {
+        if (!this.settings.enableMultiSelect || !multiSelect) {
+            this.state.selectedNodes.clear();
+        }
+
+        if (this.state.selectedNodes.has(node.id)) {
+            this.state.selectedNodes.delete(node.id);
+        } else {
+            this.state.selectedNodes.add(node.id);
+        }
+
+        this.saveStateDebounced();
+    }
+
+    /**
+     * Вибір всіх вузлів
+     */
+    selectAllNodes() {
+        const addAllNodes = (nodes) => {
+            nodes.forEach(node => {
+                this.state.selectedNodes.add(node.id);
                 if (node.children) {
-                    expandImportantNodes(node.children);
+                    addAllNodes(node.children);
                 }
             });
         };
 
-        expandImportantNodes(this.state.treeData);
+        addAllNodes(this.state.filteredData);
     }
 
     /**
-     * Налаштування обробників подій
+     * Масові операції з вибраними вузлами
      */
-    setupEventListeners() {
-        document.addEventListener('click', this._handleDocumentClick.bind(this));
-        document.addEventListener('keydown', this._handleKeyDown.bind(this));
-
-        // Drag & Drop якщо увімкнено
-        if (this.settings.enableDragDrop) {
-            this._setupDragAndDrop();
-        }
-    }
-
-    /**
-     * Перемикання розгортання вузла
-     */
-    toggleNode(nodeId) {
-        if (this.state.expandedNodes.has(nodeId)) {
-            this.state.expandedNodes.delete(nodeId);
-        } else {
-            this.state.expandedNodes.add(nodeId);
+    async bulkOperation(operation) {
+        const selectedNodeIds = Array.from(this.state.selectedNodes);
+        if (selectedNodeIds.length === 0) {
+            this.notification.add("Виберіть вузли для операції", { type: "warning" });
+            return;
         }
 
-        if (this.settings.autoSave) {
-            this._saveTreeState();
-        }
-    }
-
-    /**
-     * Виділення вузла
-     */
-    selectNode(nodeId, multiSelect = false) {
-        if (multiSelect && this.settings.enableMultiSelect) {
-            if (this.state.selectedNodes.has(nodeId)) {
-                this.state.selectedNodes.delete(nodeId);
-            } else {
-                this.state.selectedNodes.add(nodeId);
-            }
-        } else {
-            this.state.selectedNodes.clear();
-            this.state.selectedNodes.add(nodeId);
-        }
-    }
-
-    /**
-     * Показ контекстного меню
-     */
-    showContextMenu(event, nodeId) {
-        if (!this.settings.enableContextMenu) return;
-
-        event.preventDefault();
-
-        this.state.contextMenuNode = this._findNodeById(nodeId);
-        this.state.contextMenuPosition = { x: event.clientX, y: event.clientY };
-        this.state.showContextMenu = true;
-    }
-
-    /**
-     * Дії контекстного меню
-     */
-    async contextMenuAction(action) {
-        const node = this.state.contextMenuNode;
-        this.hideContextMenu();
-
-        switch (action) {
-            case 'view':
-                await this._openNodeForm(node);
-                break;
-            case 'edit':
-                await this._editNode(node);
-                break;
-            case 'create_child':
-                await this._createChildNode(node);
-                break;
-            case 'create_budget':
-                await this._createBudget(node);
-                break;
-            case 'view_budgets':
-                await this._viewBudgets(node);
-                break;
-            case 'clone':
-                await this._cloneNode(node);
-                break;
-            case 'export':
-                await this._exportSubtree(node);
-                break;
-            case 'delete':
-                await this._deleteNode(node);
-                break;
-        }
-    }
-
-    /**
-     * Відкриття форми ЦБО
-     */
-    async _openNodeForm(node) {
-        const action = {
-            type: 'ir.actions.act_window',
-            res_model: 'budget.responsibility.center',
-            res_id: node.id,
-            view_mode: 'form',
-            target: 'new',
-            context: { tree_view: true }
-        };
-        this.action.doAction(action);
-    }
-
-    /**
-     * Редагування вузла
-     */
-    async _editNode(node) {
-        await this._openNodeForm(node);
-    }
-
-    /**
-     * Створення дочірнього вузла
-     */
-    async _createChildNode(parentNode) {
-        const action = {
-            type: 'ir.actions.act_window',
-            res_model: 'budget.responsibility.center',
-            view_mode: 'form',
-            context: {
-                default_parent_id: parentNode.id,
-                default_cbo_type: this._getDefaultChildType(parentNode.cbo_type),
-                default_budget_level: this._getDefaultChildLevel(parentNode.budget_level),
-                tree_view: true
-            },
-            target: 'new'
-        };
-        this.action.doAction(action);
-    }
-
-    /**
-     * Створення бюджету
-     */
-    async _createBudget(node) {
-        try {
-            const action = await this.orm.call(
-                "budget.responsibility.center",
-                "action_create_budget",
-                [node.id]
-            );
-            this.action.doAction(action);
-        } catch (error) {
-            this.notification.add("Помилка створення бюджету", { type: "danger" });
-        }
-    }
-
-    /**
-     * Перегляд бюджетів
-     */
-    async _viewBudgets(node) {
-        try {
-            const action = await this.orm.call(
-                "budget.responsibility.center",
-                "action_view_budgets",
-                [node.id]
-            );
-            this.action.doAction(action);
-        } catch (error) {
-            this.notification.add("Помилка відкриття бюджетів", { type: "danger" });
-        }
-    }
-
-    /**
-     * Клонування вузла
-     */
-    async _cloneNode(node) {
         try {
             await this.orm.call(
                 "budget.responsibility.center",
-                "copy",
-                [node.id],
-                {
-                    context: {
-                        default_name: `${node.name} (копія)`,
-                        default_code: `${node.code}_copy`
-                    }
-                }
+                "bulk_operation",
+                [selectedNodeIds, operation]
             );
 
-            this.notification.add("Вузол успішно скопійовано", { type: "success" });
+            this.notification.add(
+                `Операція "${operation}" виконана для ${selectedNodeIds.length} вузлів`,
+                { type: "success" }
+            );
+
             await this.loadTreeData(true);
         } catch (error) {
-            this.notification.add("Помилка копіювання вузла", { type: "danger" });
-        }
-    }
-
-    /**
-     * Видалення вузла
-     */
-    async _deleteNode(node) {
-        if (node.child_count > 0) {
             this.notification.add(
-                "Неможливо видалити ЦБО з дочірніми підрозділами",
-                { type: "warning" }
+                `Помилка виконання операції: ${error.message}`,
+                { type: "danger" }
             );
+        }
+    }
+
+    /**
+     * Експорт вибраних вузлів
+     */
+    async exportSelected() {
+        const selectedNodeIds = Array.from(this.state.selectedNodes);
+        if (selectedNodeIds.length === 0) {
+            this.notification.add("Виберіть вузли для експорту", { type: "warning" });
             return;
         }
 
-        const confirmed = await this.dialog.add({
-            title: "Підтвердження видалення",
-            body: `Ви впевнені, що хочете видалити ЦБО "${node.name}"?`,
-            confirmLabel: "Видалити",
-            cancelLabel: "Скасувати"
-        });
+        try {
+            const data = await this.orm.call(
+                "budget.responsibility.center",
+                "export_nodes",
+                [selectedNodeIds]
+            );
 
-        if (confirmed) {
-            try {
-                await this.orm.unlink("budget.responsibility.center", [node.id]);
-                this.notification.add("ЦБО успішно видалено", { type: "success" });
-                await this.loadTreeData(true);
-            } catch (error) {
-                this.notification.add("Помилка видалення ЦБО", { type: "danger" });
-            }
+            this.downloadFile(data, `tree_export_${new Date().toISOString().split('T')[0]}.json`);
+        } catch (error) {
+            this.notification.add("Помилка експорту", { type: "danger" });
         }
     }
 
     /**
-     * Пошук в дереві
+     * Завантаження файлу
      */
-    performSearch() {
-        if (!this.state.searchQuery.trim()) {
-            this.loadTreeData();
-            return;
-        }
-
-        // Фільтруємо дерево
-        const filteredData = this._filterTreeData(this.state.treeData, this.state.searchQuery);
-        this.state.treeData = filteredData;
-
-        // Автоматично розгортаємо знайдені вузли
-        this._expandSearchResults(filteredData);
-    }
-
-    /**
-     * Фільтрація дерева
-     */
-    _filterTreeData(nodes, query) {
-        const lowerQuery = query.toLowerCase();
-
-        return nodes.filter(node => {
-            const matchesNode = node.name.toLowerCase().includes(lowerQuery) ||
-                               (node.code && node.code.toLowerCase().includes(lowerQuery));
-
-            const hasMatchingChildren = node.children &&
-                                      this._filterTreeData(node.children, query).length > 0;
-
-            if (hasMatchingChildren) {
-                node.children = this._filterTreeData(node.children, query);
-            }
-
-            return matchesNode || hasMatchingChildren;
+    downloadFile(data, filename) {
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+            type: 'application/json'
         });
-    }
-
-    /**
-     * Розгортання результатів пошуку
-     */
-    _expandSearchResults(nodes) {
-        nodes.forEach(node => {
-            if (node.children && node.children.length > 0) {
-                this.state.expandedNodes.add(node.id);
-                this._expandSearchResults(node.children);
-            }
-        });
-    }
-
-    /**
-     * Знайти вузол по ID
-     */
-    _findNodeById(nodeId, nodes = null) {
-        nodes = nodes || this.state.treeData;
-
-        for (const node of nodes) {
-            if (node.id === nodeId) {
-                return node;
-            }
-            if (node.children) {
-                const found = this._findNodeById(nodeId, node.children);
-                if (found) return found;
-            }
-        }
-        return null;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
     }
 
     /**
      * Збереження стану дерева
      */
-    _saveTreeState() {
+    saveTreeState() {
         const state = {
             expandedNodes: Array.from(this.state.expandedNodes),
             selectedNodes: Array.from(this.state.selectedNodes),
-            viewMode: this.state.viewMode
+            viewMode: this.state.viewMode,
+            searchQuery: this.state.searchQuery
         };
 
         localStorage.setItem('budget_tree_state', JSON.stringify(state));
@@ -438,177 +445,108 @@ export class AdvancedTreeWidget extends Component {
                 this.state.expandedNodes = new Set(state.expandedNodes || []);
                 this.state.selectedNodes = new Set(state.selectedNodes || []);
                 this.state.viewMode = state.viewMode || 'tree';
+                this.state.searchQuery = state.searchQuery || '';
             }
         } catch (error) {
-            console.warn('Не вдалося відновити стан дерева:', error);
+            console.warn("Could not restore tree state:", error);
         }
     }
 
     /**
-     * Створення кореневого вузла
+     * Кешування даних
      */
-    async _createRootNode() {
-        const action = {
-            type: 'ir.actions.act_window',
-            res_model: 'budget.responsibility.center',
-            view_mode: 'form',
-            context: {
-                default_cbo_type: 'holding',
-                default_budget_level: 'strategic',
-                tree_view: true
-            },
-            target: 'new'
-        };
-        this.action.doAction(action);
-    }
-
-    /**
-     * Налаштування Drag & Drop
-     */
-    _setupDragAndDrop() {
-        // Буде реалізовано при потребі
-    }
-
-    /**
-     * Приховування контекстного меню
-     */
-    hideContextMenu() {
-        this.state.showContextMenu = false;
-        this.state.contextMenuNode = null;
-    }
-
-    /**
-     * Обробка кліків по документу
-     */
-    _handleDocumentClick(event) {
-        // Приховування контекстного меню
-        if (this.state.showContextMenu && !event.target.closest('.context-menu')) {
-            this.hideContextMenu();
-        }
-    }
-
-    /**
-     * Обробка клавіатури
-     */
-    _handleKeyDown(event) {
-        if (!this.state.selectedNodes.size) return;
-
-        switch (event.key) {
-            case 'Delete':
-                this._deleteSelectedNodes();
-                break;
-            case 'Enter':
-                this._editSelectedNode();
-                break;
-            case 'ArrowUp':
-                event.preventDefault();
-                this._navigateUp();
-                break;
-            case 'ArrowDown':
-                event.preventDefault();
-                this._navigateDown();
-                break;
-            case 'ArrowRight':
-                this._expandSelectedNode();
-                break;
-            case 'ArrowLeft':
-                this._collapseSelectedNode();
-                break;
-            case 'F2':
-                event.preventDefault();
-                this._renameSelectedNode();
-                break;
-        }
-    }
-
-    /**
-     * Отримання типу дочірнього ЦБО за замовчуванням
-     */
-    _getDefaultChildType(parentType) {
-        const typeHierarchy = {
-            'holding': 'enterprise',
-            'enterprise': 'business_direction',
-            'business_direction': 'department',
-            'department': 'division',
-            'division': 'office',
-            'office': 'team'
-        };
-
-        return typeHierarchy[parentType] || 'department';
-    }
-
-    /**
-     * Отримання рівня бюджетування за замовчуванням
-     */
-    _getDefaultChildLevel(parentLevel) {
-        const levelHierarchy = {
-            'strategic': 'tactical',
-            'tactical': 'operational',
-            'operational': 'functional'
-        };
-
-        return levelHierarchy[parentLevel] || 'functional';
-    }
-
-    /**
-     * Експорт піддерева
-     */
-    async _exportSubtree(node) {
+    setCachedData(data) {
         try {
-            await this.orm.call('budget.responsibility.center', 'action_export_tree_structure', [node.id]);
-            this.notification.add("Структуру експортовано успішно", { type: "success" });
+            const cached = {
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('budget_tree_cache', JSON.stringify(cached));
         } catch (error) {
-            this.notification.add("Помилка експорту структури", { type: "danger" });
+            console.warn("Could not cache tree data:", error);
         }
     }
 
     /**
-     * Публічні методи для зовнішнього API
+     * Отримання кешованих даних
      */
-    expandAll() {
-        const addAllNodes = (nodes) => {
-            nodes.forEach(node => {
-                if (node.children && node.children.length > 0) {
-                    this.state.expandedNodes.add(node.id);
-                    addAllNodes(node.children);
-                }
-            });
-        };
-
-        addAllNodes(this.state.treeData);
-    }
-
-    collapseAll() {
-        this.state.expandedNodes.clear();
-    }
-
-    setViewMode(mode) {
-        this.state.viewMode = mode;
-        if (this.settings.autoSave) {
-            this._saveTreeState();
+    getCachedData() {
+        try {
+            const cached = localStorage.getItem('budget_tree_cache');
+            return cached ? JSON.parse(cached) : null;
+        } catch (error) {
+            console.warn("Could not get cached tree data:", error);
+            return null;
         }
     }
 
-    getSelectedNodes() {
-        return Array.from(this.state.selectedNodes)
-            .map(id => this._findNodeById(id))
-            .filter(Boolean);
+    /**
+     * Пошук вузла по ID
+     */
+    findNodeById(id, nodes = this.state.treeData) {
+        for (const node of nodes) {
+            if (node.id === id) {
+                return node;
+            }
+            if (node.children) {
+                const found = this.findNodeById(id, node.children);
+                if (found) return found;
+            }
+        }
+        return null;
     }
 
-    selectNodeById(nodeId) {
-        this.selectNode(nodeId, false);
+    /**
+     * Аналітика дерева
+     */
+    async loadAnalytics() {
+        try {
+            this.state.showAnalytics = true;
+            const analytics = await this.orm.call(
+                "budget.responsibility.center",
+                "get_tree_analytics",
+                []
+            );
+            this.state.analyticsData = analytics;
+        } catch (error) {
+            this.notification.add("Помилка завантаження аналітики", { type: "danger" });
+        }
     }
 
-    searchInTree(query) {
-        this.state.searchQuery = query;
-        this.performSearch();
+    /**
+     * Оптимізація дерева
+     */
+    async optimizeTree() {
+        return this.action.doAction({
+            name: "Оптимізація структури дерева",
+            type: "ir.actions.act_window",
+            res_model: "tree.optimization.wizard",
+            view_mode: "form",
+            target: "new"
+        });
+    }
+
+    /**
+     * Обробка зміни розміру
+     */
+    handleResize() {
+        // Адаптивні зміни інтерфейсу
+        const container = this.treeContainerRef.el;
+        if (container && window.innerWidth < 768) {
+            this.state.viewMode = 'compact';
+        }
+    }
+
+    /**
+     * Очищення пам'яті при знищенні
+     */
+    willUnmount() {
+        document.removeEventListener('click', this.handleGlobalClick);
+        document.removeEventListener('keydown', this.handleKeydown);
+        document.removeEventListener('contextmenu', this.handleContextMenu);
+        window.removeEventListener('resize', this.handleResize);
     }
 }
 
-// Шаблон для AdvancedTreeWidget
-AdvancedTreeWidget.template = "budget.AdvancedTreeWidget";
-
-// Реєстрація компонента
-registry.category("fields").add("advanced_tree", AdvancedTreeWidget);
-
-export default AdvancedTreeWidget;
+// Реєстрація розширеного віджета
+registry.category("fields").add("advanced_tree_widget", AdvancedTreeWidget);

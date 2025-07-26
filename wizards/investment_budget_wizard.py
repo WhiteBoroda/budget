@@ -278,7 +278,7 @@ class InvestmentBudgetWizard(models.TransientModel):
         ]
 
         if not self.include_all_companies:
-            domain.append(('company_id', 'in', self.company_ids.ids))
+            domain.append(('company_ids', 'in', self.company_ids.ids))
 
         budgets = self.env['budget.plan'].search(domain)
 
@@ -286,10 +286,11 @@ class InvestmentBudgetWizard(models.TransientModel):
         companies_data = {}
 
         for budget in budgets:
-            company_key = budget.company_id.name
+            main_company = budget.company_ids[0] if budget.company_ids else None
+            company_key = main_company.name if main_company.company_ids else None
             if company_key not in companies_data:
                 companies_data[company_key] = {
-                    'company': budget.company_id,
+                    'company': main_company,
                     'total_amount': 0,
                     'projects': []
                 }

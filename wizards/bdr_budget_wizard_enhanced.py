@@ -344,7 +344,7 @@ class BdrBudgetWizardEnhanced(models.TransientModel):
             ('period_id', '=', self.period_id.id),
             ('budget_type_id', '=', budget_type.id),
             ('cbo_id', '=', self.cbo_id.id),
-            ('company_id', '=', self.company_id.id)
+            ('company_ids', 'in', [self.company_id.id])
         ], limit=1)
 
         if existing_plan:
@@ -356,7 +356,7 @@ class BdrBudgetWizardEnhanced(models.TransientModel):
             'period_id': self.period_id.id,
             'budget_type_id': budget_type.id,
             'cbo_id': self.cbo_id.id,
-            'company_id': self.company_id.id,
+            'company_ids': [(6, 0, [self.company_id.id])],
             'state': 'draft'
         }
 
@@ -365,12 +365,12 @@ class BdrBudgetWizardEnhanced(models.TransientModel):
     def _prepare_import_result(self, created_categories, created_lines):
         """Підготовка результату імпорту"""
         summary_parts = []
-        summary_parts.append(f'✅ Імпорт БДР завершено успішно!')
-        summary_parts.append(f'📂 Створено категорій: {len(created_categories)}')
-        summary_parts.append(f'📊 Створено позицій бюджету: {len(created_lines)}')
+        summary_parts.append(f'Імпорт БДР завершено успішно!')
+        summary_parts.append(f'Створено категорій: {len(created_categories)}')
+        summary_parts.append(f'Створено позицій бюджету: {len(created_lines)}')
 
         if created_categories:
-            summary_parts.append('\n🏷️ Нові категорії:')
+            summary_parts.append('\nНові категорії:')
             for category in created_categories[:10]:  # Показуємо перші 10
                 summary_parts.append(f'  • {category.code} - {category.name}')
             if len(created_categories) > 10:
@@ -378,7 +378,7 @@ class BdrBudgetWizardEnhanced(models.TransientModel):
 
         if created_lines:
             total_amount = sum(line.planned_amount for line in created_lines)
-            summary_parts.append(f'\n💰 Загальна сума бюджету: {total_amount:,.2f} грн')
+            summary_parts.append(f'\nЗагальна сума бюджету: {total_amount:,.2f} грн')
 
         self.import_summary = '\n'.join(summary_parts)
         self.created_categories = [(6, 0, [c.id for c in created_categories])]

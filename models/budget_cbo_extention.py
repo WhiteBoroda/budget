@@ -6,7 +6,7 @@ import json
 
 
 class ResponsibilityCenterExtended(models.Model):
-    """Розширення ЦБО для роботи з деревом - СУМІСНО З ODOO 17"""
+    """Розширення ЦБО для роботи з деревом """
     _inherit = 'budget.responsibility.center'
 
     # Computed поля для статистики дерева
@@ -81,9 +81,20 @@ class ResponsibilityCenterExtended(models.Model):
 
     # Валютне поле компанії
     company_currency_id = fields.Many2one(
-        related='company_ids.currency_id',
-        readonly=True
+        'res.currency',
+        'Валюта компанії',
+        compute='_compute_company_currency',
+        store=True
     )
+
+    @api.depends('company_ids')
+    def _compute_company_currency(self):
+        """Обчислення валюти з першої компанії"""
+        for cbo in self:
+            if cbo.company_ids:
+                cbo.company_currency_id = cbo.company_ids[0].currency_id
+            else:
+                cbo.company_currency_id = self.env.company.currency_id
 
     @api.depends('child_ids')
     def _compute_child_count(self):
@@ -93,32 +104,38 @@ class ResponsibilityCenterExtended(models.Model):
 
     @api.depends('child_ids', 'child_ids.child_ids')
     def _compute_descendant_count(self):
-        """Підрахунок всіх нащадків"""
+        """Обчислення загальної кількості нащадків"""
         for cbo in self:
-            def count_descendants(node):
-                count = len(node.child_ids)
-                for child in node.child_ids:
-                    count += count_descendants(child)
-                return count
+            descendants = self._get_all_descendants(cbo)
+            cbo.descendant_count = len(descendants)
 
-            cbo.descendant_count = count_descendants(cbo)
+    def _get_all_descendants(self, cbo):
+        """Рекурсивне отримання всіх нащадків"""
+        descendants = []
+        for child in cbo.child_ids:
+            descendants.append(child.id)
+            descendants.extend(self._get_all_descendants(child))
+        return descendants
 
     @api.depends('cbo_type')
     def _compute_tree_icon(self):
-        """Іконка залежно від типу ЦБО"""
-        icons = {
-            'holding': 'fa-university',
-            'enterprise': 'fa-industry',
-            'business_direction': 'fa-building',
-            'department': 'fa-building-o',
-            'division': 'fa-folder',
-            'office': 'fa-briefcase',
-            'team': 'fa-users',
-            'project': 'fa-tasks'
+        """Обчислення іконки для дерева"""
+        icon_map = {
+            'holding': 'fa fa-university',
+            'cluster': 'fa fa-cubes',
+            'business_direction': 'fa fa-compass',
+            'brand': 'fa fa-tags',
+            'enterprise': 'fa fa-industry',
+            'department': 'fa fa-building',
+            'division': 'fa fa-sitemap',
+            'office': 'fa fa-briefcase',
+            'team': 'fa fa-users',
+            'project': 'fa fa-project-diagram',
+            'other': 'fa fa-folder'
         }
 
         for cbo in self:
-            cbo.tree_icon = icons.get(cbo.cbo_type, 'fa-folder')
+            cbo.tree_icon = icon_map.get(cbo.cbo_type, 'fa fa-folder')
 
     @api.depends('budget_level')
     def _compute_tree_color(self):
@@ -183,26 +200,24 @@ class ResponsibilityCenterExtended(models.Model):
                 cbo.full_path = cbo.name
 
     def get_tree_data(self):
-        """Отримання даних для дерева (JSON API)"""
+        """Отримання даних для побудови дерева (для JS віджетів)"""
         self.ensure_one()
 
         def build_node(cbo):
             return {
                 'id': cbo.id,
                 'name': cbo.name,
-                'code': cbo.code or '',
-                'cbo_type': cbo.cbo_type,
-                'budget_level': cbo.budget_level,
-                'budget_count': cbo.budget_count,
-                'child_count': cbo.child_count,
+                'code': cbo.code,
+                'type': cbo.cbo_type,
+                'level': cbo.budget_level,
                 'icon': cbo.tree_icon,
                 'color_class': cbo.tree_color_class,
-                'hierarchy_level': cbo.hierarchy_level,
-                'total_amount': cbo.total_budget_amount,
-                'executed_amount': cbo.executed_amount,
-                'execution_rate': cbo.execution_rate,
+                'budget_count': cbo.budget_count,
+                'child_count': cbo.child_count,
+                'children': [build_node(child) for child in cbo.child_ids],
+                'has_children': bool(cbo.child_ids),
                 'active': cbo.active,
-                'children': [build_node(child) for child in cbo.child_ids]
+                'responsible': cbo.responsible_user_id.name if cbo.responsible_user_id else '',
             }
 
         return build_node(self)
@@ -248,16 +263,40 @@ class ResponsibilityCenterExtended(models.Model):
             'target': 'new'
         }
 
+    @api.model
+    def get_root_nodes(self):
+        """Отримання кореневих вузлів дерева"""
+        return self.search([('parent_id', '=', False), ('active', '=', True)])
+
+    def expand_to_level(self, max_level=2):
+        """Розгортання дерева до певного рівня"""
+
+        def collect_nodes(nodes, current_level):
+            result = []
+            if current_level <= max_level:
+                for node in nodes:
+                    result.append(node)
+                    if node.child_ids:
+                        result.extend(collect_nodes(node.child_ids, current_level + 1))
+            return result
+
+        return collect_nodes([self], 0)
+
     def action_view_hierarchy(self):
-        """Дія для перегляду ієрархії"""
+        """Перегляд ієрархії ЦБО"""
         self.ensure_one()
         return {
-            'name': _('Ієрархія ЦБО: %s') % self.name,
+            'name': f'Ієрархія - {self.name}',
             'type': 'ir.actions.act_window',
             'res_model': 'budget.responsibility.center',
             'view_mode': 'tree,form',
-            'domain': [('id', 'child_of', self.id)],
+            'domain': [
+                '|',
+                ('id', 'child_of', self.id),
+                ('id', '=', self.id)
+            ],
             'context': {
+                'search_default_filter_active': 1,
                 'tree_view_ref': 'budget.view_responsibility_center_hierarchy_tree'
             }
         }
@@ -378,21 +417,6 @@ class ResponsibilityCenterExtended(models.Model):
             'target': 'new'
         }
 
-    def action_create_budget(self):
-        """Дія для створення нового бюджету"""
-        return {
-            'name': _('Створити новий бюджет'),
-            'type': 'ir.actions.act_window',
-            'res_model': 'budget.plan',
-            'view_mode': 'form',
-            'context': {
-                'default_cbo_id': self.id if self.id else False,
-                'default_responsible_user_id': self.env.user.id,
-                'dashboard_mode': True
-            },
-            'target': 'new'
-        }
-
     def action_view_budget_reports(self):
         """Дія для перегляду звітів по бюджетах"""
         return {
@@ -423,9 +447,19 @@ class ResponsibilityCenterExtended(models.Model):
 
     @api.constrains('parent_id')
     def _check_parent_recursion(self):
-        """Перевірка на циклічні посилання в ієрархії"""
-        if not self._check_recursion():
-            raise ValidationError(_('Не можна створити циклічні посилання в ієрархії ЦБО'))
+        """Перевірка на рекурсивні зв'язки"""
+        for cbo in self:
+            if cbo.parent_id:
+                current = cbo.parent_id
+                visited = set()
+                while current:
+                    if current.id in visited:
+                        raise ValidationError(
+                            _('Виявлено циклічну залежність в ієрархії ЦБО. '
+                              'ЦБО не може бути батьківським для самого себе.')
+                        )
+                    visited.add(current.id)
+                    current = current.parent_id
 
     @api.constrains('cbo_type', 'parent_id')
     def _check_hierarchy_logic(self):
@@ -473,3 +507,45 @@ class ResponsibilityCenterExtended(models.Model):
             domain = ['|', ('name', operator, name), ('code', operator, name)]
             return self._search(domain + args, limit=limit, access_rights_uid=name_get_uid)
         return super()._name_search(name, args, operator, limit, name_get_uid)
+
+    def get_hierarchy_stats(self):
+        """Статистика по ієрархії"""
+        self.ensure_one()
+
+        # Отримуємо всіх нащадків
+        all_descendants = self.search([('id', 'child_of', self.id)])
+
+        # Групуємо по типах
+        type_counts = {}
+        for descendant in all_descendants:
+            type_counts[descendant.cbo_type] = type_counts.get(descendant.cbo_type, 0) + 1
+
+        # Статистика бюджетів
+        total_budgets = sum(all_descendants.mapped('budget_count'))
+        total_amount = sum(all_descendants.mapped('total_budget_amount'))
+
+        return {
+            'total_nodes': len(all_descendants),
+            'max_depth': max(all_descendants.mapped('hierarchy_level')),
+            'type_distribution': type_counts,
+            'total_budgets': total_budgets,
+            'total_amount': total_amount,
+        }
+
+    def write(self, vals):
+        """Оновлення з інвалідацією кешу для computed полів"""
+        result = super().write(vals)
+
+        # Якщо змінюється структура, оновлюємо computed поля
+        if any(key in vals for key in ['parent_id', 'child_ids', 'name']):
+            # Оновлюємо батьківські та дочірні записи
+            all_related = self
+            if 'parent_id' in vals:
+                all_related |= self.mapped('parent_id')
+                if vals.get('parent_id'):
+                    all_related |= self.browse(vals['parent_id'])
+
+            # Примусово перерахунок
+            all_related.invalidate_recordset(['hierarchy_level', 'full_path', 'descendant_count'])
+
+        return result
