@@ -12,6 +12,7 @@ class ResponsibilityCenter(models.Model):
 
     name = fields.Char('Назва ЦБО', required=True)
     code = fields.Char('Код', required=True, size=10)
+    budget_plan_ids = fields.One2many('budget.plan', 'cbo_id', string='Бюджетні плани')
 
     # Гнучка типологія замість жорсткої ієрархії
     cbo_type = fields.Selection([

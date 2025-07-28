@@ -76,7 +76,7 @@
                     <!-- ОСНОВНА ІНФОРМАЦІЯ -->
                     <group>
                         <group string="Базова інформація">
-                            <field name="parent_id" widget="many2one_tree"
+                            <field name="parent_id" widget="many2one"
                                    domain="[('id', '!=', id)]"/>
                             <field name="sequence"/>
                             <field name="active" widget="boolean_toggle"/>
